@@ -41,7 +41,6 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.7
   smooth_page_indicator: ^1.2.1
-  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
