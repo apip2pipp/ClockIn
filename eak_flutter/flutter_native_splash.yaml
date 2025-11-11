@@ -1,15 +1,26 @@
 flutter_native_splash:
+  # Background color (gunakan warna yang sesuai dengan desain splash screen Anda)
   color: "#ffffff"
-  image: assets/icons/splash_icon.png
-  branding: assets/icons/branding.png
-  color_dark: "#121212"
-  image_dark: assets/icons/splash_icon.png
-  branding_dark: assets/icons/branding.png
-
+  
+  # Gunakan splash screen image dari assets
+  image: assets/splashScreen/splash-screen.png
+  
+  # Fullscreen mode (akan menggunakan gambar penuh)
+  fullscreen: true
+  
+  # Dark mode configuration
+  color_dark: "#ffffff"
+  image_dark: assets/splashScreen/splash-screen.png
+  
+  # Android 12+ configuration
   android_12:
-    image: assets/icons/splash_icon.png
+    image: assets/splashScreen/splash-screen.png
     icon_background_color: "#ffffff"
-    image_dark: assets/icons/splash_icon.png
-    icon_background_color_dark: "#121212"
-
+    image_dark: assets/splashScreen/splash-screen.png
+    icon_background_color_dark: "#ffffff"
+  
+  # iOS configuration
+  ios: true
+  
+  # Web configuration
   web: false
