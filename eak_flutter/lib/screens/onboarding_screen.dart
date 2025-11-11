@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -211,26 +212,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('hasSeenOnboarding', true);
 
-      // Navigate to home/login screen
+      // Navigate to login screen
       if (mounted) {
-        // TODO: Replace with your actual home or login screen
-        // For now, show a dialog
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Onboarding Complete!'),
-            content: const Text('Ready to start using ClockIn app.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // TODO: Navigate to actual home screen
-                  // Navigator.of(context).pushReplacementNamed('/home');
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       }
     } catch (e) {
