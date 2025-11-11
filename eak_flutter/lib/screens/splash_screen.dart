@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/auth_provider.dart';
 import 'onboarding_screen.dart';
+import 'login_screen.dart';
+import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -40,22 +44,41 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
+    // Check authentication status
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.initialize();
+
     // Check if user has seen onboarding
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
 
-    if (hasSeenOnboarding) {
-      // TODO: Navigate to home/login screen
-      // For now, go to onboarding
+    if (!mounted) return;
+
+    // Navigate based on status
+    if (!hasSeenOnboarding) {
       _navigateToOnboarding();
+    } else if (authProvider.isAuthenticated) {
+      _navigateToHome();
     } else {
-      _navigateToOnboarding();
+      _navigateToLogin();
     }
   }
 
   void _navigateToOnboarding() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+    );
+  }
+
+  void _navigateToLogin() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
+  void _navigateToHome() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
     );
   }
 
