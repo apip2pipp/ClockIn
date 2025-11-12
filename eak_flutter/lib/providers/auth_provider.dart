@@ -33,27 +33,26 @@ class AuthProvider with ChangeNotifier {
 
   /// Login user
   Future<bool> login(String email, String password) async {
-  _isLoading = true;
-  _errorMessage = null;
-  notifyListeners();
-
-  final result = await ApiService.login(email, password);
-
-  if (result['success']) {
-    _user = result['user'];
-    _isAuthenticated = true;
+    _isLoading = true;
     _errorMessage = null;
-    _isLoading = false;
     notifyListeners();
-    return true;
-  } else {
-    _errorMessage = result['message'];
-    _isLoading = false;
-    notifyListeners();
-    return false;
-  }
-}
 
+    final result = await ApiService.login(email, password);
+
+    if (result['success']) {
+      _user = result['user'];
+      _isAuthenticated = true;
+      _errorMessage = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } else {
+      _errorMessage = result['message'];
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 
   /// Register new user
   Future<bool> register({
