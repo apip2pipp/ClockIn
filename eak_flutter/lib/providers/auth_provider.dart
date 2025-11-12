@@ -37,6 +37,52 @@ class AuthProvider with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
+    // DUMMY LOGIN - For development/testing only
+    // TODO: Replace with real API call when backend is ready
+    if (email == 'employee@company.com' && password == '123456') {
+      await Future.delayed(const Duration(seconds: 1)); // Simulate API delay
+
+      _user = User(
+        id: 1,
+        companyId: 1,
+        name: 'John Doe',
+        email: email,
+        phone: '081234567890',
+        position: 'Software Developer',
+        employeeId: 'EMP001',
+        photo: null,
+        role: 'employee',
+        isActive: true,
+      );
+
+      _company = Company(
+        id: 1,
+        name: 'PT. Demo Company',
+        email: 'demo@company.com',
+        phone: '021-12345678',
+        address: 'Jakarta, Indonesia',
+        latitude: -6.2088,
+        longitude: 106.8456,
+        radius: 100,
+        workStartTime: '08:00:00',
+        workEndTime: '17:00:00',
+        isActive: true,
+      );
+
+      _isAuthenticated = true;
+      _errorMessage = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    }
+
+    // If credentials don't match dummy data
+    _errorMessage = 'Email atau password salah. Gunakan credentials demo.';
+    _isLoading = false;
+    notifyListeners();
+    return false;
+
+    /* REAL API IMPLEMENTATION - Uncomment when ready
     final result = await ApiService.login(email, password);
 
     if (result['success']) {
@@ -56,6 +102,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return false;
     }
+    */
   }
 
   /// Register new user

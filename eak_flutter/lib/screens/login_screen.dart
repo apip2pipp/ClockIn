@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
 import 'home_screen.dart';
-// import 'register_screen.dart'; // TODO: Enable when register is ready
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,11 +17,35 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
 
+  // URL website untuk registrasi perusahaan
+  static const String _registerWebUrl = 'http://localhost:8000/register';
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  /// Membuka URL website registrasi di browser
+  Future<void> _openRegisterWebsite() async {
+    try {
+      final Uri url = Uri.parse(_registerWebUrl);
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak dapat membuka website registrasi'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -285,44 +309,74 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Belum punya akun? ',
+                          'Belum punya akun karyawan? ',
                           style: TextStyle(
                             color: Colors.grey[600],
-                            fontSize: 15,
+                            fontSize: 14,
                           ),
                         ),
                         TextButton(
-                          onPressed: () {
-                            // TODO: Implement register with company selection
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Fitur registrasi dalam pengembangan',
-                                ),
-                                backgroundColor: Colors.orange,
-                              ),
-                            );
-                            // Navigator.of(context).push(
-                            //   MaterialPageRoute(
-                            //     builder: (context) => const RegisterScreen(),
-                            //   ),
-                            // );
-                          },
+                          onPressed: _openRegisterWebsite,
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: const Size(0, 0),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           child: Text(
-                            'Daftar Sekarang',
+                            'Daftar Perusahaan',
                             style: TextStyle(
                               color: Theme.of(context).primaryColor,
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ],
+                    ),
+                  ),
+
+                  // Info untuk dummy login (Development only)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue[200]!),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Colors.blue[700],
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Demo Login Credentials',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Email: employee@company.com\nPassword: 123456',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.blue[900],
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
