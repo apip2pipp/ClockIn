@@ -7,7 +7,7 @@ import 'package:eak_flutter/models/leave_request_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String baseUrl = 'http://192.168.100.240:8000/api';
 
   // Get saved token from SharedPreferences
   static Future<String?> getToken() async {
@@ -53,8 +53,7 @@ class ApiService {
 
       final data = json.decode(response.body);
 
-      if (response.statusCode == 200 && data['success']) {
-        // Save token
+      if (response.statusCode == 200 && data['success'] == true) {
         await saveToken(data['data']['token']);
         return {
           'success': true,
@@ -99,8 +98,7 @@ class ApiService {
 
       final data = json.decode(response.body);
 
-      if (response.statusCode == 201 && data['success']) {
-        // Save token
+      if (response.statusCode == 201 && data['success'] == true) {
         await saveToken(data['data']['token']);
         return {
           'success': true,
