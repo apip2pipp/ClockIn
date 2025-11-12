@@ -28,8 +28,12 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#4ADE80'), // ClockIn Green
+                'gray' => Color::hex('#2D3E5F'), // ClockIn Blue
             ])
+            ->brandName('ClockIn Admin')
+            ->brandLogo(fn () => view('components.brand-logo'))
+            ->favicon(asset('favicon.ico'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
