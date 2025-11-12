@@ -19,14 +19,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingData> _pages = [
     OnboardingData(
       image: 'assets/onboarding/onboarding-1.png',
-      title: 'Welcome to ClockIn',
+      title: 'Aplikasi Absensi Karyawan',
       description:
-          'Your smart attendance management solution for modern workplaces',
+          'CLockIn adalah aplikasi absensi berbasis online untuk karyawan dengan menggunakan handphone dari mana saja dan kapan saja',
     ),
     OnboardingData(
       image: 'assets/onboarding/onboarding-2.png',
-      title: 'Easy Attendance',
-      description: 'Clock in and out with just one tap, anytime and anywhere',
+      title: 'Disiplin yang Nyaman',
+      description:
+          'Cara hadir yang sederhana, tidak mengganggu ritme. Fokusmu tetap ke pekerjaan, bukan administrasi.',
     ),
     OnboardingData(
       image: 'assets/onboarding/onboarding-3.png',
@@ -36,8 +37,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     OnboardingData(
       image: 'assets/onboarding/onboarding-4.png',
-      title: 'Real-time Reports',
-      description: 'Get instant updates and detailed attendance reports',
+      title: 'Akurasi Lokasi',
+      description:
+          'GPS & geofence memastikan absen dari area kerja. Titip absen? Tidak bisa.',
     ),
   ];
 
