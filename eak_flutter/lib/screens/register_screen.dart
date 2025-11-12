@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../theme/colors.dart';
 import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -16,8 +17,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _passwordConfirmationController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _employeeIdController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isPasswordConfirmationVisible = false;
+
+  // TODO: This should be selected from a company list or passed as parameter
+  final int _companyId = 1; // Default company ID
 
   @override
   void dispose() {
@@ -25,6 +31,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _passwordConfirmationController.dispose();
+    _phoneController.dispose();
+    _employeeIdController.dispose();
     super.dispose();
   }
 
@@ -34,10 +42,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     final success = await authProvider.register(
-      _nameController.text.trim(),
-      _emailController.text.trim(),
-      _passwordController.text,
-      _passwordConfirmationController.text,
+      companyId: _companyId,
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      passwordConfirmation: _passwordConfirmationController.text,
+      phone: _phoneController.text.trim().isEmpty
+          ? null
+          : _phoneController.text.trim(),
+      employeeId: _employeeIdController.text.trim().isEmpty
+          ? null
+          : _employeeIdController.text.trim(),
     );
 
     if (!mounted) return;
@@ -63,7 +78,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Daftar Akun'),
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: kPrimaryBlue,
+        foregroundColor: Colors.white,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -135,6 +151,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: 16),
+
+                // Phone Field (Optional)
+                TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Nomor Telepon (Opsional)',
+                    hintText: 'masukkan nomor telepon',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Employee ID Field (Optional)
+                TextFormField(
+                  controller: _employeeIdController,
+                  decoration: const InputDecoration(
+                    labelText: 'ID Karyawan (Opsional)',
+                    hintText: 'masukkan ID karyawan',
+                    prefixIcon: Icon(Icons.badge_outlined),
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -216,7 +257,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           : _handleRegister,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Theme.of(context).primaryColor,
+                        backgroundColor: kPrimaryBlue,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
