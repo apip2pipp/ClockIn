@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import '../theme/colors.dart';
 import 'login_screen.dart';
 
+/// Modern Onboarding Screen for ClockIn App
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -11,58 +13,93 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final PageController _controller = PageController();
-  bool isLastPage = false;
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
-  // Onboarding data
   final List<OnboardingData> _pages = [
     OnboardingData(
       image: 'assets/onboarding/onboarding-1.png',
       title: 'Welcome to ClockIn',
-      subtitle: 'Your smart attendance management solution',
-      color: Color(0xFF4A90E2),
+      description:
+          'Your smart attendance management solution for modern workplaces',
     ),
     OnboardingData(
       image: 'assets/onboarding/onboarding-2.png',
       title: 'Easy Attendance',
-      subtitle: 'Clock in and out with just one tap, anytime, anywhere',
-      color: Color(0xFF50C878),
+      description: 'Clock in and out with just one tap, anytime and anywhere',
     ),
     OnboardingData(
       image: 'assets/onboarding/onboarding-3.png',
       title: 'Track Your Time',
-      subtitle: 'Monitor your working hours and attendance history',
-      color: Color(0xFFFF6B6B),
+      description:
+          'Monitor your working hours and attendance history effortlessly',
     ),
     OnboardingData(
       image: 'assets/onboarding/onboarding-4.png',
       title: 'Real-time Reports',
-      subtitle: 'Get instant updates and detailed attendance reports',
-      color: Color(0xFFFFB84D),
+      description: 'Get instant updates and detailed attendance reports',
     ),
   ];
 
   @override
   void dispose() {
-    _controller.dispose();
+    _pageController.dispose();
     super.dispose();
+  }
+
+  void _onPageChanged(int page) {
+    setState(() {
+      _currentPage = page;
+    });
+  }
+
+  Future<void> _completeOnboarding() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('hasSeenOnboarding', true);
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error completing onboarding: $e');
+    }
+  }
+
+  void _nextPage() {
+    if (_currentPage < _pages.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _completeOnboarding();
+    }
+  }
+
+  void _skipOnboarding() {
+    _completeOnboarding();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLastPage = _currentPage == _pages.length - 1;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
-            // Skip button
+            // Skip Button
             if (!isLastPage)
-              Padding(
-                padding: const EdgeInsets.only(right: 20, top: 20),
-                child: Align(
-                  alignment: Alignment.topRight,
+              Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: TextButton(
-                    onPressed: () => _controller.jumpToPage(_pages.length - 1),
+                    onPressed: _skipOnboarding,
                     child: Text(
                       'Skip',
                       style: TextStyle(
@@ -73,38 +110,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                 ),
-              ),
-            // PageView
+              )
+            else
+              const SizedBox(height: 56),
+
+            // Page View
             Expanded(
               child: PageView.builder(
-                controller: _controller,
-                onPageChanged: (index) {
-                  setState(() {
-                    isLastPage = index == _pages.length - 1;
-                  });
-                },
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
                 itemCount: _pages.length,
                 itemBuilder: (context, index) {
-                  return _buildPage(_pages[index]);
+                  return _OnboardingPage(data: _pages[index]);
                 },
               ),
             ),
-            // Bottom section with indicator and button
+
+            // Bottom Section
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
-                  // Page indicator
+                  // Page Indicator
                   SmoothPageIndicator(
-                    controller: _controller,
+                    controller: _pageController,
                     count: _pages.length,
                     effect: ExpandingDotsEffect(
-                      activeDotColor:
-                          _pages[_controller.hasClients
-                                  ? (_controller.page?.round() ?? 0)
-                                  : 0]
-                              .color,
-                      dotColor: Colors.grey[300]!,
+                      activeDotColor: kPrimaryBlue,
+                      dotColor: kPrimaryBlue.withOpacity(0.2),
                       dotHeight: 8,
                       dotWidth: 8,
                       expansionFactor: 4,
@@ -112,39 +145,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  // Next/Get Started button
+
+                  // Action Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (isLastPage) {
-                          _completeOnboarding();
-                        } else {
-                          _controller.nextPage(
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
+                      onPressed: _nextPage,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            _pages[_controller.hasClients
-                                    ? (_controller.page?.round() ?? 0)
-                                    : 0]
-                                .color,
+                        backgroundColor: kPrimaryBlue,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 0,
                       ),
-                      child: Text(
-                        isLastPage ? 'Get Started' : 'Next',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            isLastPage ? 'Get Started' : 'Next',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            isLastPage
+                                ? Icons.check_circle_outline
+                                : Icons.arrow_forward,
+                            size: 22,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -156,85 +190,68 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
+}
 
-  Widget _buildPage(OnboardingData data) {
+class _OnboardingPage extends StatelessWidget {
+  final OnboardingData data;
+
+  const _OnboardingPage({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Image
           Flexible(
             flex: 3,
             child: Container(
-              padding: const EdgeInsets.all(20),
+              constraints: const BoxConstraints(maxHeight: 400),
               child: Image.asset(data.image, fit: BoxFit.contain),
             ),
           ),
           const SizedBox(height: 48),
-          // Title
-          Flexible(
-            flex: 1,
-            child: Column(
-              children: [
-                Text(
-                  data.title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[900],
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Subtitle
-                Text(
-                  data.subtitle,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                    height: 1.5,
-                  ),
-                ),
-              ],
+          Text(
+            data.title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[900],
+              height: 1.2,
+              letterSpacing: -0.5,
             ),
           ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              data.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                height: 1.6,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
-
-  Future<void> _completeOnboarding() async {
-    try {
-      // Set onboarding as completed
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('hasSeenOnboarding', true);
-
-      // Navigate to login screen
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error completing onboarding: $e');
-    }
-  }
 }
 
-// Model class for onboarding data
 class OnboardingData {
   final String image;
   final String title;
-  final String subtitle;
-  final Color color;
+  final String description;
 
   OnboardingData({
     required this.image,
     required this.title,
-    required this.subtitle,
-    required this.color,
+    required this.description,
   });
 }
