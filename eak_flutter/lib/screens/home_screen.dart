@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -16,10 +17,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late Timer _timer;
+  String _currentTime = '';
+  String _selectedZone = 'WIB';
+
   @override
   void initState() {
     super.initState();
     _loadData();
+    _startClock();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -32,6 +44,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _refreshData() async {
     await _loadData();
+  }
+
+  void _startClock() {
+    _updateTime();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+  }
+
+  void _updateTime() {
+    DateTime now = DateTime.now();
+
+    // Atur perbedaan zona waktu manual
+    switch (_selectedZone) {
+      case 'WITA':
+        now = now.add(const Duration(hours: 1)); // WIB + 1
+        break;
+      case 'WIT':
+        now = now.add(const Duration(hours: 2)); // WIB + 2
+        break;
+      default:
+        break; // WIB = default
+    }
+
+    setState(() {
+      _currentTime = DateFormat('HH:mm:ss').format(now);
+    });
   }
 
   @override
@@ -108,10 +145,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    DateFormat(
-                                      'EEEE, d MMMM y',
-                                      'id_ID',
-                                    ).format(DateTime.now()),
+                                    DateFormat('EEEE, d MMMM y', 'id_ID')
+                                        .format(DateTime.now()),
                                     style: TextStyle(
                                       color: Colors.grey[600],
                                       fontSize: 12,
@@ -122,13 +157,52 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 16),
+                        // Real-time Clock with Zone Selection
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _currentTime,
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            DropdownButton<String>(
+                              value: _selectedZone,
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'WIB',
+                                  child: Text('WIB'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'WITA',
+                                  child: Text('WITA'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'WIT',
+                                  child: Text('WIT'),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    _selectedZone = value;
+                                    _updateTime();
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Today's Attendance Status Card
+                // Attendance Status Card
                 Card(
                   elevation: 2,
                   color: todayAttendance != null
@@ -166,20 +240,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         if (todayAttendance != null) ...[
                           _buildAttendanceInfo(
                             'Clock In',
-                            DateFormat(
-                              'HH:mm',
-                              'id_ID',
-                            ).format(todayAttendance.clockIn),
+                            DateFormat('HH:mm', 'id_ID')
+                                .format(todayAttendance.clockIn),
                             Icons.login,
                           ),
                           if (todayAttendance.clockOut != null) ...[
                             const SizedBox(height: 8),
                             _buildAttendanceInfo(
                               'Clock Out',
-                              DateFormat(
-                                'HH:mm',
-                                'id_ID',
-                              ).format(todayAttendance.clockOut!),
+                              DateFormat('HH:mm', 'id_ID')
+                                  .format(todayAttendance.clockOut!),
                               Icons.logout,
                             ),
                             const SizedBox(height: 8),
@@ -209,18 +279,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: todayAttendance == null
                             ? Icons.login
                             : todayAttendance.clockOut == null
-                            ? Icons.logout
-                            : Icons.check_circle,
+                                ? Icons.logout
+                                : Icons.check_circle,
                         label: todayAttendance == null
                             ? 'Clock In'
                             : todayAttendance.clockOut == null
-                            ? 'Clock Out'
-                            : 'Selesai',
+                                ? 'Clock Out'
+                                : 'Selesai',
                         color: todayAttendance == null
                             ? Colors.green
                             : todayAttendance.clockOut == null
-                            ? Colors.orange
-                            : Colors.grey,
+                                ? Colors.orange
+                                : Colors.grey,
                         onTap: () {
                           if (todayAttendance == null ||
                               todayAttendance.clockOut == null) {
