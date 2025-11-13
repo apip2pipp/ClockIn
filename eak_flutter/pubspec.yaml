@@ -49,7 +49,7 @@ dependencies:
   permission_handler: ^11.1.0
   flutter_map: ^7.0.2
   latlong2: ^0.9.0
-  google_maps_flutter: ^2.6.1
+  google_maps_flutter: ^2.14.0
 
   # Camera & Image
   image_picker: ^1.0.7
