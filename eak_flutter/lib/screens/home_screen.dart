@@ -117,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             CircleAvatar(
                               radius: 30,
                               backgroundImage: user?.photoUrl != null
-                                  ? NetworkImage(user!.photoUrl!)
+                                  ? NetworkImage(user!.photoUrl)
                                   : null,
                               child: user?.photoUrl == null
                                   ? const Icon(Icons.person, size: 30)
@@ -145,8 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    DateFormat('EEEE, d MMMM y', 'id_ID')
-                                        .format(DateTime.now()),
+                                    DateFormat(
+                                      'EEEE, d MMMM y',
+                                      'id_ID',
+                                    ).format(DateTime.now()),
                                     style: TextStyle(
                                       color: Colors.grey[600],
                                       fontSize: 12,
@@ -240,16 +242,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         if (todayAttendance != null) ...[
                           _buildAttendanceInfo(
                             'Clock In',
-                            DateFormat('HH:mm', 'id_ID')
-                                .format(todayAttendance.clockIn),
+                            DateFormat(
+                              'HH:mm',
+                              'id_ID',
+                            ).format(todayAttendance.clockIn),
                             Icons.login,
                           ),
                           if (todayAttendance.clockOut != null) ...[
                             const SizedBox(height: 8),
                             _buildAttendanceInfo(
                               'Clock Out',
-                              DateFormat('HH:mm', 'id_ID')
-                                  .format(todayAttendance.clockOut!),
+                              DateFormat(
+                                'HH:mm',
+                                'id_ID',
+                              ).format(todayAttendance.clockOut!),
                               Icons.logout,
                             ),
                             const SizedBox(height: 8),
@@ -279,18 +285,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: todayAttendance == null
                             ? Icons.login
                             : todayAttendance.clockOut == null
-                                ? Icons.logout
-                                : Icons.check_circle,
+                            ? Icons.logout
+                            : Icons.check_circle,
                         label: todayAttendance == null
                             ? 'Clock In'
                             : todayAttendance.clockOut == null
-                                ? 'Clock Out'
-                                : 'Selesai',
+                            ? 'Clock Out'
+                            : 'Selesai',
                         color: todayAttendance == null
                             ? Colors.green
                             : todayAttendance.clockOut == null
-                                ? Colors.orange
-                                : Colors.grey,
+                            ? Colors.orange
+                            : Colors.grey,
                         onTap: () {
                           if (todayAttendance == null ||
                               todayAttendance.clockOut == null) {
@@ -398,9 +404,9 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [

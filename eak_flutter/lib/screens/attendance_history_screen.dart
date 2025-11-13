@@ -77,7 +77,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
             children: [
               // Month Selector
               DropdownButtonFormField<int?>(
-                value: tempMonth,
+                initialValue: tempMonth,
                 decoration: const InputDecoration(
                   labelText: 'Bulan',
                   border: OutlineInputBorder(),
@@ -109,7 +109,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
               const SizedBox(height: 16),
               // Year Selector
               DropdownButtonFormField<int?>(
-                value: tempYear,
+                initialValue: tempYear,
                 decoration: const InputDecoration(
                   labelText: 'Tahun',
                   border: OutlineInputBorder(),
@@ -253,7 +253,9 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(attendance.status).withOpacity(0.1),
+                    color: _getStatusColor(
+                      attendance.status,
+                    ).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
