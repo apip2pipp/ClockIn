@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +24,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
   bool _isSubmitting = false;
   String? _errorMessage;
   StreamSubscription<Position>? _positionStream;
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -331,11 +333,46 @@ class _ClockInScreenState extends State<ClockInScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Lat: ${_currentPosition!.latitude.toStringAsFixed(6)}',
-                            style: const TextStyle(fontSize: 12),
+                          SizedBox(
+                            height: 200,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: GoogleMap(
+                                initialCameraPosition: CameraPosition(
+                                  target: LatLng(
+                                    _currentPosition!.latitude,
+                                    _currentPosition!.longitude,
+                                  ),
+                                  zoom: 17,
+                                ),
+                                markers: {
+                                  Marker(
+                                    markerId: const MarkerId(
+                                      'current_location',
+                                    ),
+                                    position: LatLng(
+                                      _currentPosition!.latitude,
+                                      _currentPosition!.longitude,
+                                    ),
+                                    infoWindow: const InfoWindow(
+                                      title: 'Lokasi Anda',
+                                    ),
+                                    icon: BitmapDescriptor.defaultMarkerWithHue(
+                                      BitmapDescriptor.hueRed,
+                                    ),
+                                  ),
+                                },
+                                onMapCreated: (controller) =>
+                                    _mapController = controller,
+                                myLocationEnabled: true,
+                                myLocationButtonEnabled: true,
+                                zoomControlsEnabled: false,
+                              ),
+                            ),
                           ),
+                          const SizedBox(height: 8),
                           Text(
+                            'Lat: ${_currentPosition!.latitude.toStringAsFixed(6)} | '
                             'Long: ${_currentPosition!.longitude.toStringAsFixed(6)}',
                             style: const TextStyle(fontSize: 12),
                           ),
