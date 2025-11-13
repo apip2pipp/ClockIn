@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:eak_flutter/models/user_model.dart';
 import 'package:eak_flutter/models/attendance_model.dart';
@@ -7,7 +8,7 @@ import 'package:eak_flutter/models/leave_request_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.100.240:8000/api';
+  static const String baseUrl = 'http://192.168.68.93:8000/api';
 
   // Get saved token from SharedPreferences
   static Future<String?> getToken() async {
@@ -64,7 +65,7 @@ class ApiService {
         return {'success': false, 'message': data['message'] ?? 'Login failed'};
       }
     } catch (e) {
-      print('Login Error: $e');
+      debugPrint('Login Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -113,7 +114,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Register Error: $e');
+      debugPrint('Register Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -139,7 +140,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Logout Error: $e');
+      debugPrint('Logout Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -164,7 +165,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Get Profile Error: $e');
+      debugPrint('Get Profile Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -191,7 +192,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Get Company Error: $e');
+      debugPrint('Get Company Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -239,7 +240,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Clock In Error: $e');
+      debugPrint('Clock In Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -284,7 +285,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Clock Out Error: $e');
+      debugPrint('Clock Out Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -314,7 +315,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Get Today Attendance Error: $e');
+      debugPrint('Get Today Attendance Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -357,7 +358,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Get History Error: $e');
+      debugPrint('Get History Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -401,7 +402,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Get Leave Requests Error: $e');
+      debugPrint('Get Leave Requests Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -452,7 +453,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Submit Leave Request Error: $e');
+      debugPrint('Submit Leave Request Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
