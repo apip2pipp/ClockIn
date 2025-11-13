@@ -74,7 +74,7 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
             children: [
               // Status Filter
               DropdownButtonFormField<String?>(
-                value: tempStatus,
+                initialValue: tempStatus,
                 decoration: const InputDecoration(
                   labelText: 'Status',
                   border: OutlineInputBorder(),
@@ -94,7 +94,7 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
               const SizedBox(height: 16),
               // Type Filter
               DropdownButtonFormField<String?>(
-                value: tempType,
+                initialValue: tempType,
                 decoration: const InputDecoration(
                   labelText: 'Jenis',
                   border: OutlineInputBorder(),
@@ -247,7 +247,7 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -265,7 +265,7 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(leave.status).withOpacity(0.1),
+                    color: _getStatusColor(leave.status).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
