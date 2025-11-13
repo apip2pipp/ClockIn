@@ -157,21 +157,6 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
     return _endDate!.difference(_startDate!).inDays + 1;
   }
 
-  String _getTypeLabel(String type) {
-    switch (type) {
-      case 'sick':
-        return 'Sakit';
-      case 'annual':
-        return 'Cuti Tahunan';
-      case 'permission':
-        return 'Izin';
-      case 'other':
-        return 'Lainnya';
-      default:
-        return type;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -203,7 +188,7 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
-                        value: _selectedType,
+                        initialValue: _selectedType,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.category),
@@ -311,7 +296,7 @@ class _LeaveRequestFormScreenState extends State<LeaveRequestFormScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(

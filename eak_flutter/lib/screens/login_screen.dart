@@ -275,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             disabledBackgroundColor: Theme.of(
                               context,
-                            ).primaryColor.withOpacity(0.6),
+                            ).primaryColor.withValues(alpha: 0.6),
                           ),
                           child: authProvider.isLoading
                               ? const SizedBox(
