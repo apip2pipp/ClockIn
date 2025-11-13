@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -21,6 +23,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
   bool _isLoadingLocation = false;
   bool _isSubmitting = false;
   String? _errorMessage;
+  StreamSubscription<Position>? _positionStream;
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -31,9 +35,11 @@ class _ClockInScreenState extends State<ClockInScreen> {
   @override
   void dispose() {
     _notesController.dispose();
+    _positionStream?.cancel();
     super.dispose();
   }
 
+  /// Mendapatkan lokasi awal dan mulai stream realtime
   Future<void> _getCurrentLocation() async {
     setState(() {
       _isLoadingLocation = true;
@@ -41,34 +47,65 @@ class _ClockInScreenState extends State<ClockInScreen> {
     });
 
     try {
-      // Check location permission
-      final permission = await Permission.location.request();
+      // Pastikan izin lokasi
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() {
+            _errorMessage = 'Izin lokasi diperlukan untuk absensi.';
+            _isLoadingLocation = false;
+          });
+          return;
+        }
+      }
 
-      if (!permission.isGranted) {
+      if (permission == LocationPermission.deniedForever) {
         setState(() {
-          _errorMessage = 'Izin lokasi diperlukan untuk absensi';
+          _errorMessage =
+              'Izin lokasi ditolak permanen. Aktifkan di pengaturan.';
           _isLoadingLocation = false;
         });
         return;
       }
 
-      // Check if location service is enabled
+      // Cek apakah layanan GPS aktif
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         setState(() {
-          _errorMessage = 'Layanan lokasi tidak aktif. Silakan aktifkan GPS.';
+          _errorMessage =
+              'Layanan lokasi tidak aktif. Silakan aktifkan GPS untuk melanjutkan.';
           _isLoadingLocation = false;
         });
         return;
       }
 
-      // Get current position
+      // Ambil lokasi awal langsung (tanpa lastKnownPosition, karena tidak didukung di web)
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        desiredAccuracy: LocationAccuracy.best,
+        timeLimit: const Duration(seconds: 10),
       );
 
       setState(() {
         _currentPosition = position;
+        _isLoadingLocation = false;
+      });
+
+      // Jalankan stream realtime (update setiap 10 meter)
+      _positionStream?.cancel();
+      _positionStream =
+          Geolocator.getPositionStream(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.medium,
+              distanceFilter: 10,
+            ),
+          ).listen((Position pos) {
+            setState(() => _currentPosition = pos);
+          });
+    } on TimeoutException {
+      setState(() {
+        _errorMessage =
+            'Waktu pengambilan lokasi terlalu lama. Coba pindah ke area terbuka.';
         _isLoadingLocation = false;
       });
     } catch (e) {
@@ -79,10 +116,10 @@ class _ClockInScreenState extends State<ClockInScreen> {
     }
   }
 
+  /// Ambil foto selfie
   Future<void> _capturePhoto() async {
     try {
       final permission = await Permission.camera.request();
-
       if (!permission.isGranted) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -103,9 +140,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
       );
 
       if (photo != null) {
-        setState(() {
-          _selectedPhoto = File(photo.path);
-        });
+        setState(() => _selectedPhoto = File(photo.path));
       }
     } catch (e) {
       if (!mounted) return;
@@ -118,6 +153,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
     }
   }
 
+  /// Kirim data absensi
   Future<void> _submitAttendance() async {
     if (_currentPosition == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -139,9 +175,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
       return;
     }
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isSubmitting = true);
 
     final attendanceProvider = Provider.of<AttendanceProvider>(
       context,
@@ -150,9 +184,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
     final todayAttendance = attendanceProvider.todayAttendance;
 
     bool success;
-
     if (todayAttendance == null) {
-      // Clock In
       success = await attendanceProvider.clockIn(
         latitude: _currentPosition!.latitude,
         longitude: _currentPosition!.longitude,
@@ -162,7 +194,6 @@ class _ClockInScreenState extends State<ClockInScreen> {
             : _notesController.text.trim(),
       );
     } else {
-      // Clock Out
       success = await attendanceProvider.clockOut(
         latitude: _currentPosition!.latitude,
         longitude: _currentPosition!.longitude,
@@ -173,9 +204,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
       );
     }
 
-    setState(() {
-      _isSubmitting = false;
-    });
+    setState(() => _isSubmitting = false);
 
     if (!mounted) return;
 
@@ -190,7 +219,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.of(context).pop(true); // Return true to indicate success
+      Navigator.of(context).pop(true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -219,7 +248,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Info Card
+            /// --- Kartu Informasi ---
             Card(
               elevation: 2,
               color: isClockOut ? Colors.orange.shade50 : Colors.green.shade50,
@@ -248,10 +277,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      authProvider.company?.name ?? '',
-                      style: const TextStyle(fontSize: 14),
-                    ),
+                    Text(authProvider.company?.name ?? ''),
                     Text(
                       authProvider.company?.address ?? '',
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
@@ -262,7 +288,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Location Status
+            /// --- Lokasi ---
             Card(
               elevation: 2,
               child: Padding(
@@ -282,7 +308,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
                         ),
                         const SizedBox(width: 8),
                         const Text(
-                          'Lokasi',
+                          'Lokasi Anda (Realtime)',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -307,11 +333,46 @@ class _ClockInScreenState extends State<ClockInScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Lat: ${_currentPosition!.latitude.toStringAsFixed(6)}',
-                            style: const TextStyle(fontSize: 12),
+                          SizedBox(
+                            height: 200,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: GoogleMap(
+                                initialCameraPosition: CameraPosition(
+                                  target: LatLng(
+                                    _currentPosition!.latitude,
+                                    _currentPosition!.longitude,
+                                  ),
+                                  zoom: 17,
+                                ),
+                                markers: {
+                                  Marker(
+                                    markerId: const MarkerId(
+                                      'current_location',
+                                    ),
+                                    position: LatLng(
+                                      _currentPosition!.latitude,
+                                      _currentPosition!.longitude,
+                                    ),
+                                    infoWindow: const InfoWindow(
+                                      title: 'Lokasi Anda',
+                                    ),
+                                    icon: BitmapDescriptor.defaultMarkerWithHue(
+                                      BitmapDescriptor.hueRed,
+                                    ),
+                                  ),
+                                },
+                                onMapCreated: (controller) =>
+                                    _mapController = controller,
+                                myLocationEnabled: true,
+                                myLocationButtonEnabled: true,
+                                zoomControlsEnabled: false,
+                              ),
+                            ),
                           ),
+                          const SizedBox(height: 8),
                           Text(
+                            'Lat: ${_currentPosition!.latitude.toStringAsFixed(6)} | '
                             'Long: ${_currentPosition!.longitude.toStringAsFixed(6)}',
                             style: const TextStyle(fontSize: 12),
                           ),
@@ -344,9 +405,10 @@ class _ClockInScreenState extends State<ClockInScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 16),
 
-            // Photo Section
+            /// --- Foto Selfie ---
             Card(
               elevation: 2,
               child: Padding(
@@ -384,11 +446,9 @@ class _ClockInScreenState extends State<ClockInScreen> {
                             top: 8,
                             right: 8,
                             child: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _selectedPhoto = null;
-                                });
-                              },
+                              onPressed: () => setState(() {
+                                _selectedPhoto = null;
+                              }),
                               icon: const Icon(Icons.close),
                               style: IconButton.styleFrom(
                                 backgroundColor: Colors.red,
@@ -425,26 +485,24 @@ class _ClockInScreenState extends State<ClockInScreen> {
                         ),
                       ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _capturePhoto,
-                        icon: const Icon(Icons.camera_alt),
-                        label: Text(
-                          _selectedPhoto == null ? 'Ambil Foto' : 'Ambil Ulang',
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
+                    ElevatedButton.icon(
+                      onPressed: _capturePhoto,
+                      icon: const Icon(Icons.camera_alt),
+                      label: Text(
+                        _selectedPhoto == null ? 'Ambil Foto' : 'Ambil Ulang',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+
             const SizedBox(height: 16),
 
-            // Notes Section
+            /// --- Catatan ---
             Card(
               elevation: 2,
               child: Padding(
@@ -480,7 +538,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Submit Button
+            /// --- Tombol Submit ---
             SizedBox(
               height: 50,
               child: ElevatedButton(
