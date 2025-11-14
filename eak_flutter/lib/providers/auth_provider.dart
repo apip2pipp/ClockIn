@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:eak_flutter/models/user_model.dart';
 import 'package:eak_flutter/services/api_services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider with ChangeNotifier {
   User? _user;
@@ -14,6 +15,8 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  static const String tokenKey = 'token';
 
   /// Initialize auth state from saved token
   Future<void> initialize() async {
@@ -148,5 +151,20 @@ class AuthProvider with ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  static Future<void> saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(tokenKey, token);
+  }
+
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(tokenKey);
+  }
+
+  static Future<void> clearToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(tokenKey);
   }
 }

@@ -52,7 +52,7 @@ dependencies:
   google_maps_flutter: ^2.14.0
 
   # Camera & Image
-  image_picker: ^1.0.7
+  image_picker: ^1.1.1
 
   # UI Components
   cupertino_icons: ^1.0.8
