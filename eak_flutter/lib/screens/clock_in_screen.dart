@@ -1,13 +1,10 @@
-import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-import '../providers/attendance_provider.dart';
-import '../providers/auth_provider.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ClockInScreen extends StatefulWidget {
   const ClockInScreen({super.key});
@@ -17,565 +14,130 @@ class ClockInScreen extends StatefulWidget {
 }
 
 class _ClockInScreenState extends State<ClockInScreen> {
-  final _notesController = TextEditingController();
-  File? _selectedPhoto;
-  Position? _currentPosition;
-  bool _isLoadingLocation = false;
-  bool _isSubmitting = false;
-  String? _errorMessage;
-  StreamSubscription<Position>? _positionStream;
-  GoogleMapController? _mapController;
+  File? _image;
+  String _description = '';
+  bool _loading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _getCurrentLocation();
+  final picker = ImagePicker();
+
+  // -------- GET TOKEN dari SharedPreferences --------
+  Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('auth_token');
   }
 
-  @override
-  void dispose() {
-    _notesController.dispose();
-    _positionStream?.cancel();
-    super.dispose();
-  }
-
-  /// Mendapatkan lokasi awal dan mulai stream realtime
-  Future<void> _getCurrentLocation() async {
-    setState(() {
-      _isLoadingLocation = true;
-      _errorMessage = null;
-    });
-
-    try {
-      // Pastikan izin lokasi
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          setState(() {
-            _errorMessage = 'Izin lokasi diperlukan untuk absensi.';
-            _isLoadingLocation = false;
-          });
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          _errorMessage =
-              'Izin lokasi ditolak permanen. Aktifkan di pengaturan.';
-          _isLoadingLocation = false;
-        });
-        return;
-      }
-
-      // Cek apakah layanan GPS aktif
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        setState(() {
-          _errorMessage =
-              'Layanan lokasi tidak aktif. Silakan aktifkan GPS untuk melanjutkan.';
-          _isLoadingLocation = false;
-        });
-        return;
-      }
-
-      // Ambil lokasi awal langsung (tanpa lastKnownPosition, karena tidak didukung di web)
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
-        timeLimit: const Duration(seconds: 10),
-      );
-
-      setState(() {
-        _currentPosition = position;
-        _isLoadingLocation = false;
-      });
-
-      // Jalankan stream realtime (update setiap 10 meter)
-      _positionStream?.cancel();
-      _positionStream =
-          Geolocator.getPositionStream(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.medium,
-              distanceFilter: 10,
-            ),
-          ).listen((Position pos) {
-            setState(() => _currentPosition = pos);
-          });
-    } on TimeoutException {
-      setState(() {
-        _errorMessage =
-            'Waktu pengambilan lokasi terlalu lama. Coba pindah ke area terbuka.';
-        _isLoadingLocation = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Gagal mendapatkan lokasi: $e';
-        _isLoadingLocation = false;
-      });
+  // -------- AMBIL FOTO --------
+  Future<void> _pickImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      setState(() => _image = File(pickedFile.path));
     }
   }
 
-  /// Ambil foto selfie
-  Future<void> _capturePhoto() async {
-    try {
-      final permission = await Permission.camera.request();
-      if (!permission.isGranted) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Izin kamera diperlukan untuk mengambil foto'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
+  // -------- DAPATKAN LOKASI --------
+  Future<Position> _determinePosition() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) throw Exception('GPS belum diaktifkan');
 
-      final ImagePicker picker = ImagePicker();
-      final XFile? photo = await picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-
-      if (photo != null) {
-        setState(() => _selectedPhoto = File(photo.path));
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal mengambil foto: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
     }
-  }
-
-  /// Kirim data absensi
-  Future<void> _submitAttendance() async {
-    if (_currentPosition == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lokasi belum ditemukan. Silakan coba lagi.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Izin lokasi ditolak permanen');
     }
 
-    if (_selectedPhoto == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Foto selfie diperlukan untuk absensi'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isSubmitting = true);
-
-    final attendanceProvider = Provider.of<AttendanceProvider>(
-      context,
-      listen: false,
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
     );
-    final todayAttendance = attendanceProvider.todayAttendance;
+  }
 
-    bool success;
-    if (todayAttendance == null) {
-      success = await attendanceProvider.clockIn(
-        latitude: _currentPosition!.latitude,
-        longitude: _currentPosition!.longitude,
-        photo: _selectedPhoto!,
-        notes: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
+  // -------- SUBMIT CLOCK IN --------
+  Future<void> _submit() async {
+    if (_image == null || _description.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Isi deskripsi dan ambil foto dulu')),
       );
-    } else {
-      success = await attendanceProvider.clockOut(
-        latitude: _currentPosition!.latitude,
-        longitude: _currentPosition!.longitude,
-        photo: _selectedPhoto!,
-        notes: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
-      );
+      return;
     }
 
-    setState(() => _isSubmitting = false);
+    setState(() => _loading = true);
 
-    if (!mounted) return;
+    try {
+      final pos = await _determinePosition();
+      final token = await getToken();
 
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            todayAttendance == null
-                ? 'Clock In berhasil!'
-                : 'Clock Out berhasil!',
-          ),
-          backgroundColor: Colors.green,
-        ),
+      // Convert foto ke BASE64
+      final bytes = await _image!.readAsBytes();
+      final imgBase64 = base64Encode(bytes);
+
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://192.168.100.91:8000/api/attendance/clock-in'),
       );
-      Navigator.of(context).pop(true);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(attendanceProvider.errorMessage ?? 'Absensi gagal'),
-          backgroundColor: Colors.red,
-        ),
-      );
+
+      // HEADER
+      request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Accept'] = 'application/json';
+
+      // SESUAI API Laravel
+      request.fields['description'] = _description;
+      request.fields['latitude'] = pos.latitude.toString();
+      request.fields['longitude'] = pos.longitude.toString();
+      request.fields['photo'] = imgBase64; // ← BASE64 dikirim string
+
+      // KIRIM REQUEST
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201 && data['success'] == true) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(data['message'])));
+      } else {
+        throw Exception(data['message'] ?? 'Clock in gagal');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
+
+    setState(() => _loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final attendanceProvider = Provider.of<AttendanceProvider>(context);
-    final authProvider = Provider.of<AuthProvider>(context);
-    final todayAttendance = attendanceProvider.todayAttendance;
-    final isClockOut =
-        todayAttendance != null && todayAttendance.clockOut == null;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isClockOut ? 'Clock Out' : 'Clock In'),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-      body: SingleChildScrollView(
+      appBar: AppBar(title: const Text('Clock In')),
+      body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            /// --- Kartu Informasi ---
-            Card(
-              elevation: 2,
-              color: isClockOut ? Colors.orange.shade50 : Colors.green.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          isClockOut ? Icons.logout : Icons.login,
-                          color: isClockOut ? Colors.orange : Colors.green,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          isClockOut ? 'Clock Out' : 'Clock In',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isClockOut
-                                ? Colors.orange.shade900
-                                : Colors.green.shade900,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(authProvider.company?.name ?? ''),
-                    Text(
-                      authProvider.company?.address ?? '',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
+            if (_image != null)
+              Image.file(_image!, height: 200)
+            else
+              const Text('Belum ada foto'),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: const Text('Ambil Foto'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Deskripsi aktivitas',
+                border: OutlineInputBorder(),
               ),
+              onChanged: (v) => _description = v,
             ),
             const SizedBox(height: 16),
-
-            /// --- Lokasi ---
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          _currentPosition != null
-                              ? Icons.location_on
-                              : Icons.location_off,
-                          color: _currentPosition != null
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Lokasi Anda (Realtime)',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    if (_isLoadingLocation)
-                      const Row(
-                        children: [
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          SizedBox(width: 8),
-                          Text('Mencari lokasi...'),
-                        ],
-                      )
-                    else if (_currentPosition != null)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 200,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: GoogleMap(
-                                initialCameraPosition: CameraPosition(
-                                  target: LatLng(
-                                    _currentPosition!.latitude,
-                                    _currentPosition!.longitude,
-                                  ),
-                                  zoom: 17,
-                                ),
-                                markers: {
-                                  Marker(
-                                    markerId: const MarkerId(
-                                      'current_location',
-                                    ),
-                                    position: LatLng(
-                                      _currentPosition!.latitude,
-                                      _currentPosition!.longitude,
-                                    ),
-                                    infoWindow: const InfoWindow(
-                                      title: 'Lokasi Anda',
-                                    ),
-                                    icon: BitmapDescriptor.defaultMarkerWithHue(
-                                      BitmapDescriptor.hueRed,
-                                    ),
-                                  ),
-                                },
-                                onMapCreated: (controller) =>
-                                    _mapController = controller,
-                                myLocationEnabled: true,
-                                myLocationButtonEnabled: true,
-                                zoomControlsEnabled: false,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Lat: ${_currentPosition!.latitude.toStringAsFixed(6)} | '
-                            'Long: ${_currentPosition!.longitude.toStringAsFixed(6)}',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          Text(
-                            'Akurasi: ${_currentPosition!.accuracy.toStringAsFixed(1)} meter',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      )
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _errorMessage ?? 'Lokasi tidak tersedia',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.red,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton.icon(
-                            onPressed: _getCurrentLocation,
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Coba Lagi'),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            /// --- Foto Selfie ---
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.camera_alt, color: Colors.blue),
-                        SizedBox(width: 8),
-                        Text(
-                          'Foto Selfie',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    if (_selectedPhoto != null)
-                      Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              _selectedPhoto!,
-                              height: 200,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: IconButton(
-                              onPressed: () => setState(() {
-                                _selectedPhoto = null;
-                              }),
-                              icon: const Icon(Icons.close),
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      Container(
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[400]!),
-                        ),
-                        child: const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.camera_alt,
-                                size: 48,
-                                color: Colors.grey,
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Belum ada foto',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      onPressed: _capturePhoto,
-                      icon: const Icon(Icons.camera_alt),
-                      label: Text(
-                        _selectedPhoto == null ? 'Ambil Foto' : 'Ambil Ulang',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            /// --- Catatan ---
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.notes, color: Colors.grey),
-                        SizedBox(width: 8),
-                        Text(
-                          'Catatan (Opsional)',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _notesController,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        hintText: 'Tambahkan catatan jika perlu...',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            /// --- Tombol Submit ---
-            SizedBox(
-              height: 50,
-              child: ElevatedButton(
-                onPressed:
-                    _isSubmitting ||
-                        _currentPosition == null ||
-                        _selectedPhoto == null
-                    ? null
-                    : _submitAttendance,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isClockOut ? Colors.orange : Colors.green,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : Text(
-                        isClockOut
-                            ? 'Konfirmasi Clock Out'
-                            : 'Konfirmasi Clock In',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-              ),
+            ElevatedButton(
+              onPressed: _loading ? null : _submit,
+              child: _loading
+                  ? const CircularProgressIndicator()
+                  : const Text('Lanjut & Kirim Lokasi'),
             ),
           ],
         ),
