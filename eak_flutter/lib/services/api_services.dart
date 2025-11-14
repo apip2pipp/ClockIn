@@ -6,9 +6,10 @@ import 'package:eak_flutter/models/user_model.dart';
 import 'package:eak_flutter/models/attendance_model.dart';
 import 'package:eak_flutter/models/leave_request_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:eak_flutter/providers/auth_provider.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.68.18:8000/api';
+  static const String baseUrl = 'http://192.168.100.91:8000/api';
 
   // Get saved token from SharedPreferences
   static Future<String?> getToken() async {
