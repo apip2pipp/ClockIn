@@ -10,14 +10,14 @@
             <span class="text-clockin-green">ClockIn</span>
         </h1>
         <p class="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Solusi praktis dan efisien untuk bisnis. ClockIn memberikan kemudahan untuk dapat melakukan presensi online dan mana saja
+            Solusi praktis dan efisien untuk bisnis. ClockIn memberikan kemudahan untuk dapat melakukan presensi online dari mana saja
         </p>
     </div>
     
     <div class="max-w-2xl mx-auto card text-center">
         <div class="mb-6">
             <p class="text-lg text-gray-200 mb-2">
-                Jika Anda adalah perusahaan yang ini memulai menggunakan ClockIn, mulai dengan
+                Jika Anda adalah perusahaan yang ingin memulai menggunakan ClockIn, mulai dengan
             </p>
         </div>
         
