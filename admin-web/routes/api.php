@@ -24,15 +24,15 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // Auth routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
-    
+
     // Company routes
     Route::get('/company', [CompanyController::class, 'show']);
-    
+
     // Attendance routes
     Route::prefix('attendance')->group(function () {
         Route::post('/clock-in', [AttendanceController::class, 'clockIn']);
@@ -41,7 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/history', [AttendanceController::class, 'history']);
         Route::get('/statistics', [AttendanceController::class, 'statistics']);
     });
-    
+
     // Leave Request routes
     Route::prefix('leave-requests')->group(function () {
         Route::get('/', [LeaveRequestController::class, 'index']);
@@ -51,4 +51,3 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/statistics/summary', [LeaveRequestController::class, 'statistics']);
     });
 });
-
