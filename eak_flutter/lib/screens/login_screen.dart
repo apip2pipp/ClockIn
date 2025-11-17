@@ -116,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Silakan login menggunakan akun karyawan Anda',
+                      'Silakan login mengguankan akun karyawan perusahaan Anda',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     ),
