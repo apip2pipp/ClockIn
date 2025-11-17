@@ -208,40 +208,40 @@ class ApiService {
     String? notes,
   }) async {
     try {
-      final token = await getToken();
-      var request = http.MultipartRequest(
-        'POST',
+      final headers = await getHeaders();
+
+      // Convert image to base64
+      final bytes = await photo.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      final body = json.encode({
+        'latitude': latitude,
+        'longitude': longitude,
+        'photo': base64Image,
+        'description': notes ?? '',
+
+      });
+
+      final response = await http.post(
         Uri.parse('$baseUrl/attendance/clock-in'),
+        headers: headers,
+        body: body,
       );
 
-      request.headers['Authorization'] = 'Bearer $token';
-      request.headers['Accept'] = 'application/json';
-
-      request.fields['latitude'] = latitude.toString();
-      request.fields['longitude'] = longitude.toString();
-      if (notes != null) request.fields['notes'] = notes;
-
-      request.files.add(await http.MultipartFile.fromPath('photo', photo.path));
-
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
       final data = json.decode(response.body);
 
       if (response.statusCode == 201 && data['success']) {
         return {
           'success': true,
-          'attendance': Attendance.fromJson(data['data']),
-          'message': data['message'],
+          'attendance': data['data'], // ← INI WAJIB ADA!
         };
       } else {
         return {
           'success': false,
           'message': data['message'] ?? 'Clock in failed',
-          'data': data['data'],
         };
       }
     } catch (e) {
-      debugPrint('Clock In Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -251,32 +251,36 @@ class ApiService {
     required double latitude,
     required double longitude,
     required File photo,
-    String? notes,
+    required String notes, // ganti dari description → notes
   }) async {
     try {
       final token = await getToken();
-      var request = http.MultipartRequest(
-        'POST',
+
+      // Convert image → base64
+      final bytes = await photo.readAsBytes();
+      final imgBase64 = base64Encode(bytes);
+
+      final response = await http.post(
         Uri.parse('$baseUrl/attendance/clock-out'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'notes': notes, // ganti description → notes
+          'photo': imgBase64,
+          'latitude': latitude,
+          'longitude': longitude,
+        }),
       );
 
-      request.headers['Authorization'] = 'Bearer $token';
-      request.headers['Accept'] = 'application/json';
-
-      request.fields['latitude'] = latitude.toString();
-      request.fields['longitude'] = longitude.toString();
-      if (notes != null) request.fields['notes'] = notes;
-
-      request.files.add(await http.MultipartFile.fromPath('photo', photo.path));
-
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-      final data = json.decode(response.body);
+      final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success']) {
         return {
           'success': true,
-          'attendance': Attendance.fromJson(data['data']),
+          'attendance': data['data'],
           'message': data['message'],
         };
       } else {
@@ -286,7 +290,6 @@ class ApiService {
         };
       }
     } catch (e) {
-      debugPrint('Clock Out Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
