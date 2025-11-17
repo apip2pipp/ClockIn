@@ -5,7 +5,7 @@
 
 
     <application
-        android:label="eak_flutter"
+        android:label="E-Absensi Karyawan"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
