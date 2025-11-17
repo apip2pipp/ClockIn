@@ -22,7 +22,8 @@ class AttendanceProvider with ChangeNotifier {
     final result = await ApiService.getTodayAttendance();
 
     if (result['success']) {
-      _todayAttendance = result['attendance'];
+      _todayAttendance = Attendance.fromJson(result['attendance']);
+
       _errorMessage = null;
     } else {
       _errorMessage = result['message'];
@@ -48,10 +49,12 @@ class AttendanceProvider with ChangeNotifier {
       longitude: longitude,
       photo: photo,
       notes: notes,
+
     );
 
     if (result['success']) {
-      _todayAttendance = result['attendance'];
+      _todayAttendance = Attendance.fromJson(result['attendance']);
+
       _errorMessage = null;
       _isLoading = false;
       notifyListeners();
@@ -79,11 +82,12 @@ class AttendanceProvider with ChangeNotifier {
       latitude: latitude,
       longitude: longitude,
       photo: photo,
-      notes: notes,
+      notes: notes!,
     );
 
     if (result['success']) {
-      _todayAttendance = result['attendance'];
+      _todayAttendance = Attendance.fromJson(result['attendance']);
+
       _errorMessage = null;
       _isLoading = false;
       notifyListeners();
