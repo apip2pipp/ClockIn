@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -18,15 +20,19 @@ class _ClockInScreenState extends State<ClockInScreen> {
   String _description = '';
   bool _loading = false;
 
+  double? latitude;
+  double? longitude;
+  bool _locationLoading = false;
+
   final picker = ImagePicker();
 
-  // -------- GET TOKEN dari SharedPreferences --------
+  final MapController _mapController = MapController();
+
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
   }
 
-  // -------- AMBIL FOTO --------
   Future<void> _pickImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
@@ -34,29 +40,54 @@ class _ClockInScreenState extends State<ClockInScreen> {
     }
   }
 
-  // -------- DAPATKAN LOKASI --------
-  Future<Position> _determinePosition() async {
+  Future<void> getCurrentLocation() async {
+    setState(() => _locationLoading = true);
+
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) throw Exception('GPS belum diaktifkan');
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission == LocationPermission.deniedForever) {
-      throw Exception('Izin lokasi ditolak permanen');
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('GPS is not enabled')));
+      setState(() => _locationLoading = false);
+      return;
     }
 
-    return await Geolocator.getCurrentPosition(
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location permission denied')),
+      );
+      setState(() => _locationLoading = false);
+      return;
+    }
+
+    Position pos = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
+
+    setState(() {
+      latitude = pos.latitude;
+      longitude = pos.longitude;
+      _locationLoading = false;
+    });
+
+    if (latitude != null && longitude != null) {
+      _mapController.move(LatLng(latitude!, longitude!), 16);
+    }
   }
 
-  // -------- SUBMIT CLOCK IN --------
-  Future<void> _submit() async {
+  Future<void> submitClockIn() async {
     if (_image == null || _description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Isi deskripsi dan ambil foto dulu')),
+        const SnackBar(content: Text('Please add description and photo first')),
+      );
+      return;
+    }
+
+    if (latitude == null || longitude == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please get location first')),
       );
       return;
     }
@@ -64,29 +95,24 @@ class _ClockInScreenState extends State<ClockInScreen> {
     setState(() => _loading = true);
 
     try {
-      final pos = await _determinePosition();
       final token = await getToken();
 
-      // Convert foto ke BASE64
       final bytes = await _image!.readAsBytes();
       final imgBase64 = base64Encode(bytes);
 
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.100.91:8000/api/attendance/clock-in'),
+        Uri.parse('http://192.168.111.112:8000/api/attendance/clock-in'),
       );
 
-      // HEADER
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['Accept'] = 'application/json';
 
-      // SESUAI API Laravel
       request.fields['description'] = _description;
-      request.fields['latitude'] = pos.latitude.toString();
-      request.fields['longitude'] = pos.longitude.toString();
-      request.fields['photo'] = imgBase64; // ← BASE64 dikirim string
+      request.fields['latitude'] = latitude.toString();
+      request.fields['longitude'] = longitude.toString();
+      request.fields['photo'] = imgBase64;
 
-      // KIRIM REQUEST
       final streamed = await request.send();
       final response = await http.Response.fromStream(streamed);
       final data = jsonDecode(response.body);
@@ -96,7 +122,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(data['message'])));
       } else {
-        throw Exception(data['message'] ?? 'Clock in gagal');
+        throw Exception(data['message'] ?? 'Clock in failed');
       }
     } catch (e) {
       ScaffoldMessenger.of(
@@ -113,33 +139,89 @@ class _ClockInScreenState extends State<ClockInScreen> {
       appBar: AppBar(title: const Text('Clock In')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            if (_image != null)
-              Image.file(_image!, height: 200)
-            else
-              const Text('Belum ada foto'),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: const Text('Ambil Foto'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Deskripsi aktivitas',
-                border: OutlineInputBorder(),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              if (_image != null)
+                Image.file(_image!, height: 200)
+              else
+                const Text('No photo yet'),
+
+              const SizedBox(height: 12),
+
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: const Text('Take Photo'),
               ),
-              onChanged: (v) => _description = v,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loading ? null : _submit,
-              child: _loading
-                  ? const CircularProgressIndicator()
-                  : const Text('Lanjut & Kirim Lokasi'),
-            ),
-          ],
+
+              const SizedBox(height: 12),
+
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Activity Description',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (v) => _description = v,
+              ),
+
+              const SizedBox(height: 20),
+
+              ElevatedButton(
+                onPressed: _locationLoading ? null : getCurrentLocation,
+                child: _locationLoading
+                    ? const CircularProgressIndicator()
+                    : const Text('Get Location'),
+              ),
+
+              const SizedBox(height: 12),
+
+              if (latitude != null && longitude != null) ...[
+                Text('Latitude: $latitude'),
+                Text('Longitude: $longitude'),
+                const SizedBox(height: 12),
+
+                SizedBox(
+                  height: 250,
+                  child: FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: LatLng(latitude!, longitude!),
+                      initialZoom: 16,
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: LatLng(latitude!, longitude!),
+                            width: 40,
+                            height: 40,
+                            child: const Icon(
+                              Icons.location_pin,
+                              color: Colors.red,
+                              size: 40,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+              ],
+
+              ElevatedButton(
+                onPressed: _loading ? null : submitClockIn,
+                child: _loading
+                    ? const CircularProgressIndicator()
+                    : const Text('Submit Clock In'),
+              ),
+            ],
+          ),
         ),
       ),
     );
