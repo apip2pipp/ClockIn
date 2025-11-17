@@ -1,3 +1,9 @@
+import 'package:eak_flutter/screens/attendance_history_screen.dart';
+import 'package:eak_flutter/screens/clock_in_screen.dart';
+import 'package:eak_flutter/screens/clock_out_screen.dart';
+import 'package:eak_flutter/screens/home_screen.dart';
+import 'package:eak_flutter/screens/leave_request_list_screen.dart';
+import 'package:eak_flutter/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -12,17 +18,14 @@ import 'screens/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize date formatting for Indonesian locale
   await initializeDateFormatting('id_ID', null);
   Intl.defaultLocale = 'id_ID';
 
-  // Set preferred orientations (optional - biasanya portrait untuk mobile)
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -48,10 +51,7 @@ class MyApp extends StatelessWidget {
         title: 'ClockIn App',
         debugShowCheckedModeBanner: false,
         locale: const Locale('id', 'ID'),
-        supportedLocales: const [
-          Locale('id', 'ID'), // Indonesian
-          Locale('en', 'US'), // English
-        ],
+        supportedLocales: const [Locale('id', 'ID'), Locale('en', 'US')],
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -72,6 +72,15 @@ class MyApp extends StatelessWidget {
           ),
         ),
         home: const SplashScreen(),
+
+        routes: {
+          '/home': (context) => const HomeScreen(),
+          '/clock-in': (context) => const ClockInScreen(),
+          '/clock-out': (context) => const ClockOutScreen(),
+          '/attendance-history': (context) => const AttendanceHistoryScreen(),
+          '/leave-request': (context) => const LeaveRequestListScreen(),
+          '/profile': (context) => const ProfileScreen(),
+        },
       ),
     );
   }
