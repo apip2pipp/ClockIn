@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:eak_flutter/providers/attendance_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ClockInScreen extends StatefulWidget {
@@ -23,6 +25,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
   double? latitude;
   double? longitude;
   bool _locationLoading = false;
+
+  bool _mapReady = false;
 
   final picker = ImagePicker();
 
@@ -95,39 +99,26 @@ class _ClockInScreenState extends State<ClockInScreen> {
     setState(() => _loading = true);
 
     try {
-      final token = await getToken();
+      final provider = Provider.of<AttendanceProvider>(context, listen: false);
 
-      final bytes = await _image!.readAsBytes();
-      final imgBase64 = base64Encode(bytes);
-
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('http://192.168.111.112:8000/api/attendance/clock-in'),
+      final success = await provider.clockIn(
+        latitude: latitude!,
+        longitude: longitude!,
+        photo: _image!,
+        notes: _description,
       );
 
-      request.headers['Authorization'] = 'Bearer $token';
-      request.headers['Accept'] = 'application/json';
-
-      request.fields['description'] = _description;
-      request.fields['latitude'] = latitude.toString();
-      request.fields['longitude'] = longitude.toString();
-      request.fields['photo'] = imgBase64;
-
-      final streamed = await request.send();
-      final response = await http.Response.fromStream(streamed);
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 201 && data['success'] == true) {
+      if (success) {
+        Navigator.pushReplacementNamed(context, '/clock-out');
+      } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(data['message'])));
-      } else {
-        throw Exception(data['message'] ?? 'Clock in failed');
+        ).showSnackBar(const SnackBar(content: Text('Clock in failed')));
       }
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
 
     setState(() => _loading = false);
@@ -187,6 +178,11 @@ class _ClockInScreenState extends State<ClockInScreen> {
                     options: MapOptions(
                       initialCenter: LatLng(latitude!, longitude!),
                       initialZoom: 16,
+                      onMapReady: () {
+                        setState(() => _mapReady = true);
+
+                        _mapController.move(LatLng(latitude!, longitude!), 16);
+                      },
                     ),
                     children: [
                       TileLayer(
