@@ -11,21 +11,18 @@ use App\Http\Controllers\Controller;
 
 class AttendanceController extends Controller
 {
-    // =========================
     // CLOCK IN
-    // =========================
     public function clockIn(Request $request)
     {
         $request->validate([
             'description' => 'required|string',
-            'photo' => 'required|string', // base64
+            'photo' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
         ]);
 
         $user = Auth::user();
 
-        // Simpan foto base64
         $image = base64_decode($request->photo);
         $filename = 'attendance/' . $user->id . '_clockin_' . time() . '.jpg';
         Storage::disk('public')->put($filename, $image);
@@ -48,14 +45,12 @@ class AttendanceController extends Controller
         ], 201);
     }
 
-    // =========================
     // CLOCK OUT
-    // =========================
     public function clockOut(Request $request)
     {
         $request->validate([
             'description' => 'required|string',
-            'photo' => 'required|string', // base64
+            'photo' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
         ]);
@@ -73,7 +68,6 @@ class AttendanceController extends Controller
             ], 400);
         }
 
-        // Simpan foto base64
         $image = base64_decode($request->photo);
         $filename = 'attendance/' . $user->id . '_clockout_' . time() . '.jpg';
         Storage::disk('public')->put($filename, $image);
