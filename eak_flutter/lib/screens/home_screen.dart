@@ -8,6 +8,8 @@ import 'clock_in_screen.dart';
 import 'attendance_history_screen.dart';
 import 'leave_request_list_screen.dart';
 import 'profile_screen.dart';
+import 'clock_out_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -54,16 +56,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void _updateTime() {
     DateTime now = DateTime.now();
 
-    // Atur perbedaan zona waktu manual
     switch (_selectedZone) {
       case 'WITA':
-        now = now.add(const Duration(hours: 1)); // WIB + 1
+        now = now.add(const Duration(hours: 1));
         break;
       case 'WIT':
-        now = now.add(const Duration(hours: 2)); // WIB + 2
+        now = now.add(const Duration(hours: 2));
         break;
       default:
-        break; // WIB = default
+        break;
     }
 
     setState(() {
@@ -104,7 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Welcome Card
                 Card(
                   elevation: 2,
                   child: Padding(
@@ -160,7 +160,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        // Real-time Clock with Zone Selection
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -204,7 +203,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Attendance Status Card
                 Card(
                   elevation: 2,
                   color: todayAttendance != null
@@ -276,7 +274,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Action Buttons
                 Row(
                   children: [
                     Expanded(
@@ -298,12 +295,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             ? Colors.orange
                             : Colors.grey,
                         onTap: () {
-                          if (todayAttendance == null ||
-                              todayAttendance.clockOut == null) {
+                          if (todayAttendance == null) {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => const ClockInScreen(),
+                              ),
+                            ).then((_) => _loadData());
+                          } else if (todayAttendance.clockOut == null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ClockOutScreen(),
                               ),
                             ).then((_) => _loadData());
                           }
