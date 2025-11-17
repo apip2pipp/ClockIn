@@ -94,27 +94,39 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Skip Button
-            if (!isLastPage)
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: TextButton(
-                    onPressed: _skipOnboarding,
-                    child: Text(
-                      'Skip',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+            // Logo and Skip Button
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Logo centered
+                  Center(
+                    child: Image.asset(
+                      'assets/icon_login.png',
+                      height: 40,
+                      fit: BoxFit.contain,
                     ),
                   ),
-                ),
-              )
-            else
-              const SizedBox(height: 56),
+                  // Skip Button on the right
+                  if (!isLastPage)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _skipOnboarding,
+                        child: Text(
+                          'Skip',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
 
             // Page View
             Expanded(
