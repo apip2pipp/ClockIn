@@ -6,10 +6,9 @@ import '../providers/auth_provider.dart';
 import '../providers/attendance_provider.dart';
 import 'clock_in_screen.dart';
 import 'attendance_history_screen.dart';
-import 'leave_request_list_screen.dart';
+import 'package:eak_flutter/screens/leave_request_list_screen.dart';
 import 'profile_screen.dart';
 import 'clock_out_screen.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -346,8 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const LeaveRequestListScreen(),
+                              builder: (context) => LeaveRequestListScreen(),
                             ),
                           );
                         },

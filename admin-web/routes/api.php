@@ -44,11 +44,12 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Leave Request routes
-    Route::prefix('leave-requests')->group(function () {
-        Route::get('/', [LeaveRequestController::class, 'index']);
-        Route::post('/', [LeaveRequestController::class, 'store']);
-        Route::get('/{id}', [LeaveRequestController::class, 'show']);
-        Route::delete('/{id}', [LeaveRequestController::class, 'cancel']);
-        Route::get('/statistics/summary', [LeaveRequestController::class, 'statistics']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/leave-requests', [LeaveRequestController::class, 'index']);
+        Route::post('/leave-requests', [LeaveRequestController::class, 'store']);
+        Route::get('/leave-requests/{id}', [LeaveRequestController::class, 'show']);
+        Route::delete('/leave-requests/{id}', [LeaveRequestController::class, 'cancel']);
+        Route::get('/leave-requests/statistics', [LeaveRequestController::class, 'statistics']);
     });
 });
