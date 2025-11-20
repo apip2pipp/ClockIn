@@ -21,21 +21,21 @@ class AttendanceController extends Controller
             'longitude' => 'required|numeric',
         ]);
 
-        $user = Auth::user();
+        $user = Auth::user(); // ← INI TIDAK BOLEH NULL
 
         $image = base64_decode($request->photo);
         $filename = 'attendance/' . $user->id . '_clockin_' . time() . '.jpg';
         Storage::disk('public')->put($filename, $image);
 
         $attendance = Attendance::create([
-            'user_id'               => $user->id,
-            'company_id'            => $user->company_id ?? 1,
-            'clock_in'              => Carbon::now(),
-            'clock_in_latitude'     => $request->latitude,
-            'clock_in_longitude'    => $request->longitude,
-            'clock_in_photo'        => $filename,
-            'clock_in_notes'        => $request->description,
-            'status'                => 'on_time',
+            'user_id' => $user->id,
+            'company_id' => $user->company_id ?? 1,
+            'clock_in' => Carbon::now(),
+            'clock_in_latitude' => $request->latitude,
+            'clock_in_longitude' => $request->longitude,
+            'clock_in_photo' => $filename,
+            'clock_in_notes' => $request->description,
+            'status' => 'on_time',
         ]);
 
         return response()->json([
@@ -72,26 +72,56 @@ class AttendanceController extends Controller
         $filename = 'attendance/' . $user->id . '_clockout_' . time() . '.jpg';
         Storage::disk('public')->put($filename, $image);
 
-        $duration = null;
         $clockOutTime = Carbon::now();
+        $duration = null;
+
         if ($attendance->clock_in) {
             $duration = Carbon::parse($attendance->clock_in)
                 ->diffInMinutes($clockOutTime);
         }
 
         $attendance->update([
-            'clock_out'             => $clockOutTime,
-            'clock_out_latitude'    => $request->latitude,
-            'clock_out_longitude'   => $request->longitude,
-            'clock_out_photo'       => $filename,
-            'clock_out_notes'       => $request->description,
-            'work_duration'         => $duration,
+            'clock_out' => $clockOutTime,
+            'clock_out_latitude' => $request->latitude,
+            'clock_out_longitude' => $request->longitude,
+            'clock_out_photo' => $filename,
+            'clock_out_notes' => $request->description,
+            'work_duration' => $duration,
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Clock out berhasil',
             'data' => $attendance,
+        ]);
+    }
+
+    // HISTORY
+    public function history(Request $request)
+    {
+        $user = Auth::user();
+
+        $month = $request->month;
+        $year = $request->year;
+
+        $query = Attendance::where('user_id', $user->id);
+
+        if ($month) {
+            $query->whereMonth('clock_in', $month);
+        }
+
+        if ($year) {
+            $query->whereYear('clock_in', $year);
+        }
+
+        $history = $query->orderBy('clock_in', 'desc')->paginate(
+            $request->per_page ?? 15
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'History ditemukan',
+            'data' => $history,
         ]);
     }
 }
