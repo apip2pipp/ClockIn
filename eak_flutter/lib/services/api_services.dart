@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import 'package:eak_flutter/models/user_model.dart';
+
+import 'package:eak_flutter/config/api_config.dart';
 import 'package:eak_flutter/models/attendance_model.dart';
 import 'package:eak_flutter/models/leave_request_model.dart';
-import 'package:eak_flutter/config/api_config.dart';
+import 'package:eak_flutter/models/user_model.dart';
+import 'package:eak_flutter/services/attendance_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:eak_flutter/providers/auth_provider.dart';
 
@@ -322,49 +324,6 @@ class ApiService {
     }
   }
 
-  /// Get attendance history
-  static Future<Map<String, dynamic>> getAttendanceHistory({
-    int page = 1,
-    int perPage = 15,
-    int? month,
-    int? year,
-  }) async {
-    try {
-      final headers = await getHeaders();
-      var url =
-          '${ApiConfig.getFullUrl(ApiConfig.attendanceHistoryEndpoint)}?page=$page&per_page=$perPage';
-      if (month != null) url += '&month=$month';
-      if (year != null) url += '&year=$year';
-
-      final response = await http.get(Uri.parse(url), headers: headers);
-
-      final data = json.decode(response.body);
-
-      if (response.statusCode == 200 && data['success']) {
-        final List<Attendance> attendances = (data['data']['data'] as List)
-            .map((json) => Attendance.fromJson(json))
-            .toList();
-
-        return {
-          'success': true,
-          'attendances': attendances,
-          'pagination': {
-            'current_page': data['data']['current_page'],
-            'last_page': data['data']['last_page'],
-            'total': data['data']['total'],
-          },
-        };
-      } else {
-        return {
-          'success': false,
-          'message': data['message'] ?? 'Failed to get history',
-        };
-      }
-    } catch (e) {
-      debugPrint('Get History Error: $e');
-      return {'success': false, 'message': 'Network error: $e'};
-    }
-  }
 
   // ==================== LEAVE REQUESTS ====================
 
@@ -460,5 +419,19 @@ class ApiService {
       debugPrint('Submit Leave Request Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
+    
   }
+    /// Wrapper Attendance History (dialihkan ke attendance_service.dart)
+  static Future<Map<String, dynamic>> getAttendanceHistory({
+    int page = 1,
+    int? month,
+    int? year,
+  }) async {
+    return AttendanceService.getAttendanceHistory(
+      page: page,
+      month: month,
+      year: year,
+    );
+  }
+
 }
