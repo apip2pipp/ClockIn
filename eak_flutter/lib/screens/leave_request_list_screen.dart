@@ -1,9 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../providers/leave_request_provider.dart';
-import '../models/leave_request_model.dart';
-import 'leave_request_form_screen.dart';
+import 'package:file_picker/file_picker.dart';
 
 class LeaveRequestListScreen extends StatefulWidget {
   const LeaveRequestListScreen({super.key});
@@ -13,373 +11,294 @@ class LeaveRequestListScreen extends StatefulWidget {
 }
 
 class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
-  String? _selectedStatus;
-  String? _selectedType;
-  int _currentPage = 1;
-  bool _isLoadingMore = false;
+  final _formKey = GlobalKey<FormState>();
+
+  String? _jenis;
+  DateTime? _startDate;
+  DateTime? _endDate;
+  final _reasonController = TextEditingController();
+  File? _attachment;
+
+  Future<void> _pickStartDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _startDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        _startDate = picked;
+        if (_endDate != null && _endDate!.isBefore(picked)) {
+          _endDate = null;
+        }
+      });
+    }
+  }
+
+  Future<void> _pickEndDate() async {
+    if (_startDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Pilih tanggal mulai terlebih dahulu")),
+      );
+      return;
+    }
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _endDate ?? _startDate!,
+      firstDate: _startDate!,
+      lastDate: _startDate!.add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() => _endDate = picked);
+    }
+  }
+
+  Future<void> _pickAttachment() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _attachment = File(result.files.single.path!);
+      });
+    }
+  }
+
+  void _submitForm() {
+    if (!_formKey.currentState!.validate()) return;
+    if (_startDate == null || _endDate == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Tanggal cuti harus diisi")));
+      return;
+    }
+
+    Navigator.pop(context);
+  }
 
   @override
-  void initState() {
-    super.initState();
-    _loadData();
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
   }
 
-  Future<void> _loadData() async {
-    final leaveProvider = Provider.of<LeaveRequestProvider>(
-      context,
-      listen: false,
-    );
-    await leaveProvider.loadLeaveRequests(
-      page: 1,
-      status: _selectedStatus,
-      type: _selectedType,
-    );
-    _currentPage = 1;
-  }
-
-  Future<void> _loadMore() async {
-    if (_isLoadingMore) return;
-
-    setState(() {
-      _isLoadingMore = true;
-    });
-
-    final leaveProvider = Provider.of<LeaveRequestProvider>(
-      context,
-      listen: false,
-    );
-    await leaveProvider.loadLeaveRequests(
-      page: _currentPage + 1,
-      status: _selectedStatus,
-      type: _selectedType,
-    );
-
-    setState(() {
-      _currentPage++;
-      _isLoadingMore = false;
-    });
-  }
-
-  Future<void> _showFilterDialog() async {
-    String? tempStatus = _selectedStatus;
-    String? tempType = _selectedType;
-
-    await showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Filter Pengajuan'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
+  Widget buildField({
+    required String label,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Row(
             children: [
-              // Status Filter
-              DropdownButtonFormField<String?>(
-                initialValue: tempStatus,
-                decoration: const InputDecoration(
-                  labelText: 'Status',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: null, child: Text('Semua Status')),
-                  DropdownMenuItem(value: 'pending', child: Text('Menunggu')),
-                  DropdownMenuItem(value: 'approved', child: Text('Disetujui')),
-                  DropdownMenuItem(value: 'rejected', child: Text('Ditolak')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    tempStatus = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              // Type Filter
-              DropdownButtonFormField<String?>(
-                initialValue: tempType,
-                decoration: const InputDecoration(
-                  labelText: 'Jenis',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: null, child: Text('Semua Jenis')),
-                  DropdownMenuItem(value: 'sick', child: Text('Sakit')),
-                  DropdownMenuItem(
-                    value: 'annual',
-                    child: Text('Cuti Tahunan'),
-                  ),
-                  DropdownMenuItem(value: 'permission', child: Text('Izin')),
-                  DropdownMenuItem(value: 'other', child: Text('Lainnya')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    tempType = value;
-                  });
-                },
-              ),
+              Icon(icon, color: Colors.grey[700]),
+              const SizedBox(width: 10),
+              Expanded(child: child),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                this.setState(() {
-                  _selectedStatus = tempStatus;
-                  _selectedType = tempType;
-                });
-                _loadData();
-              },
-              child: const Text('Terapkan'),
-            ),
-          ],
         ),
-      ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: const Text('Izin & Cuti'),
-        backgroundColor: Theme.of(context).primaryColor,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showFilterDialog,
-          ),
-        ],
+        title: const Text("Izin dan Cuti"),
+        backgroundColor: Colors.blue,
       ),
-      body: Consumer<LeaveRequestProvider>(
-        builder: (context, leaveProvider, child) {
-          if (leaveProvider.isLoading && leaveProvider.leaveRequests.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (leaveProvider.leaveRequests.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.event_note, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Belum ada pengajuan',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LeaveRequestFormScreen(),
-                        ),
-                      ).then((_) => _loadData());
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Ajukan Izin/Cuti'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: _loadData,
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: leaveProvider.leaveRequests.length + 1,
-              itemBuilder: (context, index) {
-                if (index == leaveProvider.leaveRequests.length) {
-                  return Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: _isLoadingMore
-                        ? const Center(child: CircularProgressIndicator())
-                        : TextButton(
-                            onPressed: _loadMore,
-                            child: const Text('Muat Lebih Banyak'),
-                          ),
-                  );
-                }
-
-                final leave = leaveProvider.leaveRequests[index];
-                return _buildLeaveCard(leave);
-              },
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const LeaveRequestFormScreen(),
-            ),
-          ).then((_) => _loadData());
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Ajukan'),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-    );
-  }
-
-  Widget _buildLeaveCard(LeaveRequest leave) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Type and Status
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade300,
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                const Center(
                   child: Text(
-                    leave.typeLabel,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.blue,
-                      fontWeight: FontWeight.w600,
+                    "Form Pengajuan Izin & Cuti",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // JENIS CUTI
+                buildField(
+                  label: "Jenis Izin",
+                  icon: Icons.category,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _jenis,
+                      hint: const Text("Pilih jenis izin"),
+                      items: const [
+                        DropdownMenuItem(value: "sick", child: Text("Sakit")),
+                        DropdownMenuItem(
+                          value: "annual",
+                          child: Text("Cuti Tahunan"),
+                        ),
+                        DropdownMenuItem(
+                          value: "permission",
+                          child: Text("Izin"),
+                        ),
+                        DropdownMenuItem(
+                          value: "other",
+                          child: Text("Lainnya"),
+                        ),
+                      ],
+                      onChanged: (val) => setState(() => _jenis = val),
                     ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+
+                const SizedBox(height: 18),
+
+                // TANGGAL MULAI
+                buildField(
+                  label: "Tanggal Mulai",
+                  icon: Icons.calendar_month,
+                  child: GestureDetector(
+                    onTap: _pickStartDate,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        _startDate == null
+                            ? "Pilih tanggal"
+                            : DateFormat('d MMM yyyy').format(_startDate!),
+                        style: TextStyle(
+                          color: _startDate == null
+                              ? Colors.grey
+                              : Colors.black,
+                        ),
+                      ),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(leave.status).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                ),
+
+                const SizedBox(height: 18),
+
+                // TANGGAL SELESAI
+                buildField(
+                  label: "Tanggal Selesai",
+                  icon: Icons.calendar_today,
+                  child: GestureDetector(
+                    onTap: _pickEndDate,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        _endDate == null
+                            ? "Pilih tanggal"
+                            : DateFormat('d MMM yyyy').format(_endDate!),
+                        style: TextStyle(
+                          color: _endDate == null ? Colors.grey : Colors.black,
+                        ),
+                      ),
+                    ),
                   ),
-                  child: Text(
-                    leave.statusLabel,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _getStatusColor(leave.status),
-                      fontWeight: FontWeight.w600,
+                ),
+
+                const SizedBox(height: 18),
+
+                // ALASAN
+                buildField(
+                  label: "Alasan",
+                  icon: Icons.edit_note,
+                  child: TextFormField(
+                    controller: _reasonController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: "Tulis alasan izin / cuti",
+                    ),
+                    validator: (val) =>
+                        val == null || val.isEmpty ? "Wajib diisi" : null,
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                // ATTACHMENT
+                buildField(
+                  label: "Lampiran (Opsional)",
+                  icon: Icons.attach_file,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _attachment != null
+                              ? _attachment!.path.split('/').last
+                              : "Belum ada file",
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _pickAttachment,
+                        child: const Text("Pilih"),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // SUBMIT BUTTON
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      "KIRIM",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-
-            // Date Range
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  '${DateFormat('d MMM y', 'id_ID').format(leave.startDate)} - ${DateFormat('d MMM y', 'id_ID').format(leave.endDate)}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-
-            // Total Days
-            Row(
-              children: [
-                const Icon(Icons.event, size: 16, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  '${leave.totalDays} hari',
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Reason
-            const Text(
-              'Alasan:',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              leave.reason,
-              style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-
-            // Rejection Reason (if rejected)
-            if (leave.status == 'rejected' &&
-                leave.rejectionReason != null) ...[
-              const SizedBox(height: 8),
-              const Divider(),
-              const Text(
-                'Alasan Ditolak:',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                leave.rejectionReason!,
-                style: const TextStyle(fontSize: 12, color: Colors.red),
-              ),
-            ],
-
-            // Attachment indicator
-            if (leave.attachment != null) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.attach_file, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Dengan lampiran',
-                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ],
-
-            // Submission date
-            const SizedBox(height: 8),
-            Text(
-              'Diajukan: ${DateFormat('d MMM y HH:mm', 'id_ID').format(leave.createdAt)}',
-              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-            ),
-          ],
+          ),
         ),
       ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'approved':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      case 'pending':
-        return Colors.orange;
-      default:
-        return Colors.grey;
-    }
   }
 }
