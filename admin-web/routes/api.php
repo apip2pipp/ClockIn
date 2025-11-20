@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/today', [AttendanceController::class, 'today']);
         Route::get('/history', [AttendanceController::class, 'history']);
         Route::get('/statistics', [AttendanceController::class, 'statistics']);
+        Route::get('/attendance/history', [AttendanceController::class, 'history']);
     });
 
     // Leave Request routes
