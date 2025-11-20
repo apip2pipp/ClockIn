@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:eak_flutter/providers/attendance_provider.dart';
 import 'package:flutter/material.dart';
@@ -6,9 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ClockInScreen extends StatefulWidget {
   const ClockInScreen({super.key});
@@ -19,29 +16,35 @@ class ClockInScreen extends StatefulWidget {
 
 class _ClockInScreenState extends State<ClockInScreen> {
   File? _image;
-  String _description = '';
+  final TextEditingController _descriptionController = TextEditingController();
   bool _loading = false;
 
   double? latitude;
   double? longitude;
   bool _locationLoading = false;
 
-  bool _mapReady = false;
-
   final picker = ImagePicker();
-
   final MapController _mapController = MapController();
 
-  Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 85,
+    );
     if (pickedFile != null) {
       setState(() => _image = File(pickedFile.path));
     }
+  }
+
+  Future<void> _retakePhoto() async {
+    setState(() => _image = null);
+    await _pickImage();
   }
 
   Future<void> getCurrentLocation() async {
@@ -82,16 +85,22 @@ class _ClockInScreenState extends State<ClockInScreen> {
   }
 
   Future<void> submitClockIn() async {
-    if (_image == null || _description.isEmpty) {
+    if (_image == null || _descriptionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add description and photo first')),
+        const SnackBar(
+          content: Text('Please add description and photo first'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
 
     if (latitude == null || longitude == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please get location first')),
+        const SnackBar(
+          content: Text('Please get location first'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -105,20 +114,36 @@ class _ClockInScreenState extends State<ClockInScreen> {
         latitude: latitude!,
         longitude: longitude!,
         photo: _image!,
-        notes: _description,
+        notes: _descriptionController.text.trim(),
       );
 
       if (success) {
-        Navigator.pushReplacementNamed(context, '/clock-out');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Clock in successful! Have a great day! 💪'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          Navigator.pop(context);
+        }
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Clock in failed')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(provider.errorMessage ?? 'Clock in failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
 
     setState(() => _loading = false);
@@ -127,60 +152,294 @@ class _ClockInScreenState extends State<ClockInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Clock In')),
-      body: Padding(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(title: const Text('Clock In'), elevation: 0),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              if (_image != null)
-                Image.file(_image!, height: 200)
-              else
-                const Text('No photo yet'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Step indicator
+            _buildStepIndicator(),
+            const SizedBox(height: 20),
 
-              const SizedBox(height: 12),
+            // Photo Card
+            _buildPhotoCard(),
+            const SizedBox(height: 16),
 
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: const Text('Take Photo'),
-              ),
+            // Description Card
+            _buildDescriptionCard(),
+            const SizedBox(height: 16),
 
-              const SizedBox(height: 12),
+            // Location Card
+            _buildLocationCard(),
+            const SizedBox(height: 24),
 
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Activity Description',
-                  border: OutlineInputBorder(),
+            // Submit Button
+            _buildSubmitButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepIndicator() {
+    final photoComplete = _image != null;
+    final descComplete = _descriptionController.text.trim().isNotEmpty;
+    final locationComplete = latitude != null && longitude != null;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildStep(1, 'Photo', photoComplete),
+            const Icon(Icons.arrow_forward, size: 16, color: Colors.grey),
+            _buildStep(2, 'Description', descComplete),
+            const Icon(Icons.arrow_forward, size: 16, color: Colors.grey),
+            _buildStep(3, 'Location', locationComplete),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStep(int number, String label, bool complete) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: complete ? Colors.green : Colors.grey[300],
+          child: complete
+              ? const Icon(Icons.check, color: Colors.white, size: 18)
+              : Text(
+                  '$number',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                onChanged: (v) => _description = v,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: complete ? Colors.green : Colors.grey,
+            fontWeight: complete ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhotoCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.camera_alt, color: Colors.blue[700]),
+                const SizedBox(width: 8),
+                const Text(
+                  'Take Photo',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (_image != null) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  _image!,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               ),
-
-              const SizedBox(height: 20),
-
-              ElevatedButton(
-                onPressed: _locationLoading ? null : getCurrentLocation,
-                child: _locationLoading
-                    ? const CircularProgressIndicator()
-                    : const Text('Get Location'),
-              ),
-
               const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _retakePhoto,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retake'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check_circle, color: Colors.green, size: 24),
+                ],
+              ),
+            ] else ...[
+              Container(
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[400]!, width: 2),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_a_photo,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No photo yet',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: _pickImage,
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Take Photo'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 
-              if (latitude != null && longitude != null) ...[
-                Text('Latitude: $latitude'),
-                Text('Longitude: $longitude'),
-                const SizedBox(height: 12),
+  Widget _buildDescriptionCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.description, color: Colors.blue[700]),
+                const SizedBox(width: 8),
+                const Text(
+                  'Activity Description',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              decoration: InputDecoration(
+                labelText: 'What are you working on today?',
+                hintText: 'E.g., Meeting with client, Project development...',
+                border: const OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.grey[50],
+                prefixIcon: const Icon(Icons.edit),
+              ),
+              maxLines: 3,
+              onChanged: (value) => setState(() {}),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                SizedBox(
-                  height: 250,
+  Widget _buildLocationCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.location_on, color: Colors.blue[700]),
+                const SizedBox(width: 8),
+                const Text(
+                  'Location',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _locationLoading ? null : getCurrentLocation,
+              icon: _locationLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.my_location),
+              label: Text(
+                _locationLoading
+                    ? 'Getting Location...'
+                    : 'Get Current Location',
+              ),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ),
+            if (latitude != null && longitude != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Latitude: ${latitude!.toStringAsFixed(6)}',
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          Text(
+                            'Longitude: ${longitude!.toStringAsFixed(6)}',
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  height: 200,
                   child: FlutterMap(
                     mapController: _mapController,
                     options: MapOptions(
                       initialCenter: LatLng(latitude!, longitude!),
                       initialZoom: 16,
                       onMapReady: () {
-                        setState(() => _mapReady = true);
-
                         _mapController.move(LatLng(latitude!, longitude!), 16);
                       },
                     ),
@@ -206,20 +465,52 @@ class _ClockInScreenState extends State<ClockInScreen> {
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 20),
-              ],
-
-              ElevatedButton(
-                onPressed: _loading ? null : submitClockIn,
-                child: _loading
-                    ? const CircularProgressIndicator()
-                    : const Text('Submit Clock In'),
               ),
             ],
-          ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    final canSubmit =
+        _image != null &&
+        _descriptionController.text.trim().isNotEmpty &&
+        latitude != null &&
+        longitude != null;
+
+    return ElevatedButton(
+      onPressed: _loading || !canSubmit ? null : submitClockIn,
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 56),
+        backgroundColor: Colors.green,
+        disabledBackgroundColor: Colors.grey[300],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: _loading
+          ? const SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.check_circle, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  canSubmit ? 'Submit Clock In' : 'Complete All Steps',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
