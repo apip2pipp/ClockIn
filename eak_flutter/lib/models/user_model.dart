@@ -1,3 +1,5 @@
+import 'package:eak_flutter/config/api_config.dart';
+
 class User {
   final int id;
   final int? companyId;
@@ -59,8 +61,7 @@ class User {
   }
 
   String get photoUrl {
-    if (photo == null) return '';
-    return 'http://127.0.0.1:8000/storage/$photo';
+    return ApiConfig.getStorageUrl(photo);
   }
 }
 

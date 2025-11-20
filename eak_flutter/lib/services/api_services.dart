@@ -5,12 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:eak_flutter/models/user_model.dart';
 import 'package:eak_flutter/models/attendance_model.dart';
 import 'package:eak_flutter/models/leave_request_model.dart';
+import 'package:eak_flutter/config/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:eak_flutter/providers/auth_provider.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.111.112:8000/api';
-
   // Get saved token from SharedPreferences
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -48,7 +47,7 @@ class ApiService {
   ) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/login'),
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.loginEndpoint)),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'email': email, 'password': password}),
       );
@@ -84,7 +83,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/register'),
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.registerEndpoint)),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'company_id': companyId,
@@ -125,7 +124,7 @@ class ApiService {
     try {
       final headers = await getHeaders();
       final response = await http.post(
-        Uri.parse('$baseUrl/logout'),
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.logoutEndpoint)),
         headers: headers,
       );
 
@@ -151,7 +150,7 @@ class ApiService {
     try {
       final headers = await getHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/profile'),
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.profileEndpoint)),
         headers: headers,
       );
 
@@ -178,7 +177,7 @@ class ApiService {
     try {
       final headers = await getHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/company'),
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.companyEndpoint)),
         headers: headers,
       );
 
@@ -219,11 +218,10 @@ class ApiService {
         'longitude': longitude,
         'photo': base64Image,
         'description': notes ?? '',
-
       });
 
       final response = await http.post(
-        Uri.parse('$baseUrl/attendance/clock-in'),
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.clockInEndpoint)),
         headers: headers,
         body: body,
       );
@@ -261,7 +259,7 @@ class ApiService {
       final imgBase64 = base64Encode(bytes);
 
       final response = await http.post(
-        Uri.parse('$baseUrl/attendance/clock-out'),
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.clockOutEndpoint)),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -299,7 +297,7 @@ class ApiService {
     try {
       final headers = await getHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/attendance/today'),
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)),
         headers: headers,
       );
 
@@ -333,7 +331,8 @@ class ApiService {
   }) async {
     try {
       final headers = await getHeaders();
-      var url = '$baseUrl/attendance/history?page=$page&per_page=$perPage';
+      var url =
+          '${ApiConfig.getFullUrl(ApiConfig.attendanceHistoryEndpoint)}?page=$page&per_page=$perPage';
       if (month != null) url += '&month=$month';
       if (year != null) url += '&year=$year';
 
@@ -377,7 +376,8 @@ class ApiService {
   }) async {
     try {
       final headers = await getHeaders();
-      var url = '$baseUrl/leave-requests?page=$page';
+      var url =
+          '${ApiConfig.getFullUrl(ApiConfig.leaveRequestsEndpoint)}?page=$page';
       if (status != null) url += '&status=$status';
       if (type != null) url += '&type=$type';
 
@@ -423,7 +423,7 @@ class ApiService {
       final token = await getToken();
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/leave-requests'),
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.leaveRequestsEndpoint)),
       );
 
       request.headers['Authorization'] = 'Bearer $token';

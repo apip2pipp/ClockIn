@@ -1,12 +1,11 @@
-import 'dart:convert';
 import 'dart:io';
+import 'package:eak_flutter/providers/attendance_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 class ClockOutScreen extends StatefulWidget {
   const ClockOutScreen({super.key});
@@ -17,7 +16,7 @@ class ClockOutScreen extends StatefulWidget {
 
 class _ClockOutScreenState extends State<ClockOutScreen> {
   File? _image;
-  String _description = '';
+  final TextEditingController _descriptionController = TextEditingController();
   bool _loading = false;
 
   double? latitude;
@@ -27,18 +26,25 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
   final picker = ImagePicker();
   final MapController _mapController = MapController();
 
-  // GET TOKEN
-  Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
   }
 
-  // PICK IMAGE
   Future<void> _pickImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 85,
+    );
     if (pickedFile != null) {
       setState(() => _image = File(pickedFile.path));
     }
+  }
+
+  Future<void> _retakePhoto() async {
+    setState(() => _image = null);
+    await _pickImage();
   }
 
   // GET LOCATION
@@ -47,9 +53,14 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('GPS is not enabled')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('GPS is not enabled'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
       setState(() => _locationLoading = false);
       return;
     }
@@ -57,9 +68,14 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
     LocationPermission permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Location permission denied')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permission denied'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
       setState(() => _locationLoading = false);
       return;
     }
@@ -81,16 +97,22 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
 
   // SUBMIT CLOCK OUT
   Future<void> submitClockOut() async {
-    if (_image == null || _description.isEmpty) {
+    if (_image == null || _descriptionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add description and photo first')),
+        const SnackBar(
+          content: Text('Please add description and photo first'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
 
     if (latitude == null || longitude == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please get location first')),
+        const SnackBar(
+          content: Text('Please get location first'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -98,38 +120,42 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
     setState(() => _loading = true);
 
     try {
-      final token = await getToken();
+      final provider = Provider.of<AttendanceProvider>(context, listen: false);
 
-      final bytes = await _image!.readAsBytes();
-      final imgBase64 = base64Encode(bytes);
-
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('http://192.168.111.112:8000/api/attendance/clock-out'),
+      final success = await provider.clockOut(
+        latitude: latitude!,
+        longitude: longitude!,
+        photo: _image!,
+        notes: _descriptionController.text.trim(),
       );
 
-      request.headers['Authorization'] = 'Bearer $token';
-      request.headers['Accept'] = 'application/json';
-
-      request.fields['description'] = _description;
-      request.fields['latitude'] = latitude.toString();
-      request.fields['longitude'] = longitude.toString();
-      request.fields['photo'] = imgBase64;
-
-      final streamed = await request.send();
-      final response = await http.Response.fromStream(streamed);
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 201 && data['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'])),
-        );
+      if (success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Clock out successful! Have a great rest! 🎉'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          Navigator.pop(context);
+        }
       } else {
-        throw Exception(data['message'] ?? 'Clock out failed');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(provider.errorMessage ?? 'Clock out failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
 
     setState(() => _loading = false);
@@ -138,52 +164,292 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Clock Out')),
-      body: Padding(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(title: const Text('Clock Out'), elevation: 0),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              if (_image != null)
-                Image.file(_image!, height: 200)
-              else
-                const Text('No photo yet'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Step indicator
+            _buildStepIndicator(),
+            const SizedBox(height: 20),
 
-              const SizedBox(height: 12),
+            // Photo Card
+            _buildPhotoCard(),
+            const SizedBox(height: 16),
 
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: const Text('Take Photo'),
-              ),
+            // Description Card
+            _buildDescriptionCard(),
+            const SizedBox(height: 16),
 
-              const SizedBox(height: 12),
+            // Location Card
+            _buildLocationCard(),
+            const SizedBox(height: 24),
 
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Activity Description',
-                  border: OutlineInputBorder(),
+            // Submit Button
+            _buildSubmitButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepIndicator() {
+    final photoComplete = _image != null;
+    final descComplete = _descriptionController.text.trim().isNotEmpty;
+    final locationComplete = latitude != null && longitude != null;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildStep(1, 'Photo', photoComplete),
+            const Icon(Icons.arrow_forward, size: 16, color: Colors.grey),
+            _buildStep(2, 'Description', descComplete),
+            const Icon(Icons.arrow_forward, size: 16, color: Colors.grey),
+            _buildStep(3, 'Location', locationComplete),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStep(int number, String label, bool complete) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: complete ? Colors.orange : Colors.grey[300],
+          child: complete
+              ? const Icon(Icons.check, color: Colors.white, size: 18)
+              : Text(
+                  '$number',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                onChanged: (v) => _description = v,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: complete ? Colors.orange : Colors.grey,
+            fontWeight: complete ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhotoCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.camera_alt, color: Colors.orange[700]),
+                const SizedBox(width: 8),
+                const Text(
+                  'Take Photo',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (_image != null) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  _image!,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               ),
-
-              const SizedBox(height: 20),
-
-              ElevatedButton(
-                onPressed: _locationLoading ? null : getCurrentLocation,
-                child: _locationLoading
-                    ? const CircularProgressIndicator()
-                    : const Text('Get Location'),
-              ),
-
               const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _retakePhoto,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retake'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.check_circle,
+                    color: Colors.orange,
+                    size: 24,
+                  ),
+                ],
+              ),
+            ] else ...[
+              Container(
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[400]!, width: 2),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_a_photo,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No photo yet',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: _pickImage,
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Take Photo'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 
-              if (latitude != null && longitude != null) ...[
-                Text('Latitude: $latitude'),
-                Text('Longitude: $longitude'),
-                const SizedBox(height: 12),
+  Widget _buildDescriptionCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.description, color: Colors.orange[700]),
+                const SizedBox(width: 8),
+                const Text(
+                  'Activity Summary',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              decoration: InputDecoration(
+                labelText: 'What did you accomplish today?',
+                hintText: 'E.g., Completed project tasks, Attended meetings...',
+                border: const OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.grey[50],
+                prefixIcon: const Icon(Icons.edit),
+              ),
+              maxLines: 3,
+              onChanged: (value) => setState(() {}),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                SizedBox(
-                  height: 250,
+  Widget _buildLocationCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.location_on, color: Colors.orange[700]),
+                const SizedBox(width: 8),
+                const Text(
+                  'Location',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _locationLoading ? null : getCurrentLocation,
+              icon: _locationLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.my_location),
+              label: Text(
+                _locationLoading
+                    ? 'Getting Location...'
+                    : 'Get Current Location',
+              ),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ),
+            if (latitude != null && longitude != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange[200]!),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.orange,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Latitude: ${latitude!.toStringAsFixed(6)}',
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          Text(
+                            'Longitude: ${longitude!.toStringAsFixed(6)}',
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  height: 200,
                   child: FlutterMap(
                     mapController: _mapController,
                     options: MapOptions(
@@ -203,7 +469,7 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
                             height: 40,
                             child: const Icon(
                               Icons.location_pin,
-                              color: Colors.blue,
+                              color: Colors.orange,
                               size: 40,
                             ),
                           ),
@@ -212,20 +478,52 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 20),
-              ],
-
-              ElevatedButton(
-                onPressed: _loading ? null : submitClockOut,
-                child: _loading
-                    ? const CircularProgressIndicator()
-                    : const Text('Submit Clock Out'),
               ),
             ],
-          ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    final canSubmit =
+        _image != null &&
+        _descriptionController.text.trim().isNotEmpty &&
+        latitude != null &&
+        longitude != null;
+
+    return ElevatedButton(
+      onPressed: _loading || !canSubmit ? null : submitClockOut,
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 56),
+        backgroundColor: Colors.orange,
+        disabledBackgroundColor: Colors.grey[300],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: _loading
+          ? const SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.check_circle, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  canSubmit ? 'Submit Clock Out' : 'Complete All Steps',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

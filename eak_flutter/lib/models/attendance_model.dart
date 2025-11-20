@@ -1,3 +1,5 @@
+import 'package:eak_flutter/config/api_config.dart';
+
 class Attendance {
   final int id;
   final int userId;
@@ -84,13 +86,11 @@ class Attendance {
   }
 
   String get clockInPhotoUrl {
-    if (clockInPhoto == null) return '';
-    return 'http://127.0.0.1:8000/storage/$clockInPhoto';
+    return ApiConfig.getStorageUrl(clockInPhoto);
   }
 
   String get clockOutPhotoUrl {
-    if (clockOutPhoto == null) return '';
-    return 'http://127.0.0.1:8000/storage/$clockOutPhoto';
+    return ApiConfig.getStorageUrl(clockOutPhoto);
   }
 
   String get formattedDuration {
