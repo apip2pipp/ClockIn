@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 class LeaveRequestController extends Controller
 {
     /**
-     * Get all leave requests for authenticated user
+     * List all leave requests
      */
     public function index(Request $request)
     {
@@ -20,23 +20,18 @@ class LeaveRequestController extends Controller
             ->with('approver')
             ->orderBy('created_at', 'desc');
 
-        // Filter by status
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
 
-        // Pagination
-        $perPage = $request->get('per_page', 15);
-        $leaveRequests = $query->paginate($perPage);
-
         return response()->json([
             'success' => true,
-            'data' => $leaveRequests
-        ], 200);
+            'data' => $query->paginate($request->get('per_page', 15))
+        ]);
     }
 
     /**
-     * Create new leave request
+     * Store leave request
      */
     public function store(Request $request)
     {
@@ -60,7 +55,7 @@ class LeaveRequestController extends Controller
 
         $data = [
             'user_id' => $user->id,
-            'company_id' => $user->company_id,
+            'company_id' => $user->company_id ?? 1, // jika local, fallback ke 1
             'type' => $request->type,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
@@ -68,11 +63,11 @@ class LeaveRequestController extends Controller
             'status' => 'pending',
         ];
 
-        // Upload attachment if provided
+        // Upload file
         if ($request->hasFile('attachment')) {
-            $attachment = $request->file('attachment');
-            $attachmentPath = $attachment->store('leave-attachments', 'public');
-            $data['attachment'] = $attachmentPath;
+            $file = $request->file('attachment');
+            $path = $file->store('leave-attachments', 'public');
+            $data['attachment'] = $path;
         }
 
         $leaveRequest = LeaveRequest::create($data);
@@ -85,18 +80,18 @@ class LeaveRequestController extends Controller
     }
 
     /**
-     * Get specific leave request detail
+     * Show detail
      */
     public function show(Request $request, $id)
     {
         $user = $request->user();
 
-        $leaveRequest = LeaveRequest::where('id', $id)
+        $data = LeaveRequest::where('id', $id)
             ->where('user_id', $user->id)
             ->with('approver')
             ->first();
 
-        if (!$leaveRequest) {
+        if (!$data) {
             return response()->json([
                 'success' => false,
                 'message' => 'Leave request not found'
@@ -105,72 +100,70 @@ class LeaveRequestController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $leaveRequest
-        ], 200);
+            'data' => $data
+        ]);
     }
 
     /**
-     * Cancel leave request (only if pending)
+     * Cancel request
      */
     public function cancel(Request $request, $id)
     {
         $user = $request->user();
 
-        $leaveRequest = LeaveRequest::where('id', $id)
+        $data = LeaveRequest::where('id', $id)
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$leaveRequest) {
+        if (!$data) {
             return response()->json([
                 'success' => false,
                 'message' => 'Leave request not found'
-            ], 404);
+            ]);
         }
 
-        if ($leaveRequest->status !== 'pending') {
+        if ($data->status !== 'pending') {
             return response()->json([
                 'success' => false,
                 'message' => 'Only pending leave requests can be cancelled'
-            ], 400);
+            ]);
         }
 
-        $leaveRequest->delete();
+        $data->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Leave request cancelled successfully'
-        ], 200);
+            'message' => 'Leave request cancelled'
+        ]);
     }
 
     /**
-     * Get leave request statistics
+     * Statistics
      */
     public function statistics(Request $request)
     {
         $user = $request->user();
-        $year = $request->get('year', date('Y'));
+        $year = $request->year ?? date('Y');
 
-        $leaveRequests = LeaveRequest::where('user_id', $user->id)
+        $leave = LeaveRequest::where('user_id', $user->id)
             ->whereYear('created_at', $year)
             ->get();
 
-        $statistics = [
-            'total_requests' => $leaveRequests->count(),
-            'pending' => $leaveRequests->where('status', 'pending')->count(),
-            'approved' => $leaveRequests->where('status', 'approved')->count(),
-            'rejected' => $leaveRequests->where('status', 'rejected')->count(),
-            'total_days_taken' => $leaveRequests->where('status', 'approved')->sum('total_days'),
-            'by_type' => [
-                'sick' => $leaveRequests->where('type', 'sick')->where('status', 'approved')->sum('total_days'),
-                'annual' => $leaveRequests->where('type', 'annual')->where('status', 'approved')->sum('total_days'),
-                'permission' => $leaveRequests->where('type', 'permission')->where('status', 'approved')->sum('total_days'),
-                'emergency' => $leaveRequests->where('type', 'emergency')->where('status', 'approved')->sum('total_days'),
-            ]
-        ];
-
         return response()->json([
             'success' => true,
-            'data' => $statistics
-        ], 200);
+            'data' => [
+                'total' => $leave->count(),
+                'pending' => $leave->where('status', 'pending')->count(),
+                'approved' => $leave->where('status', 'approved')->count(),
+                'rejected' => $leave->where('status', 'rejected')->count(),
+                'total_days' => $leave->where('status', 'approved')->sum('total_days'),
+                'by_type' => [
+                    'sick' => $leave->where('type', 'sick')->sum('total_days'),
+                    'annual' => $leave->where('type', 'annual')->sum('total_days'),
+                    'permission' => $leave->where('type', 'permission')->sum('total_days'),
+                    'emergency' => $leave->where('type', 'emergency')->sum('total_days'),
+                ]
+            ]
+        ]);
     }
 }
