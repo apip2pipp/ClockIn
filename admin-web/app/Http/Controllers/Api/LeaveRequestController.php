@@ -21,8 +21,8 @@ class LeaveRequestController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->has('jenis')) {
-            $query->where('jenis', $request->jenis);
+        if ($request->has('type')) {
+            $query->where('type', $request->type);
         }
 
         $leaveRequests = $query->orderBy('id', 'desc')->get();
@@ -36,7 +36,7 @@ class LeaveRequestController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'jenis' => 'required|string',
+            'type' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date',
             'reason' => 'nullable|string',
@@ -58,7 +58,7 @@ class LeaveRequestController extends Controller
 
         $leave = LeaveRequest::create([
             'user_id' => Auth::id(),
-            'jenis' => $request->jenis,
+            'type' => $request->type,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'reason' => $request->reason,
