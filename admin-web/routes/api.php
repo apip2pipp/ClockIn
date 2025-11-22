@@ -4,7 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
-// use App\Http\Controllers\Api\LeaveRequestController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\leaveRequestController;
 
@@ -54,8 +53,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/leave/{id}', [LeaveRequestController::class, 'update']);
 
     // Admin
-    Route::post('/leave/{id}/approve', [LeaveRequestController::class, 'approve']);
-    Route::post('/leave/{id}/reject', [LeaveRequestController::class, 'reject']);
+    Route::post('/leave/approve/{id}', [LeaveRequestController::class, 'approveRequest']);
+    Route::post('/leave/reject/{id}', [LeaveRequestController::class, 'rejectRequest']);
 
     Route::delete('/leave/{id}', [LeaveRequestController::class, 'destroy']);
 });
