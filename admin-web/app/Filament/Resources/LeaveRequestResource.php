@@ -37,7 +37,7 @@ class LeaveRequestResource extends Resource
                             ->searchable()
                             ->preload(),
 
-                        Forms\Components\Select::make('jenis')
+                        Forms\Components\Select::make('type')
                             ->label('Jenis Cuti')
                             ->required()
                             ->options([
@@ -108,7 +108,7 @@ class LeaveRequestResource extends Resource
 
                 Tables\Columns\TextColumn::make('user.employee_id')->label('Emp. ID'),
 
-                Tables\Columns\TextColumn::make('jenis')
+                Tables\Columns\TextColumn::make('type')
                     ->label('Leave Type')
                     ->formatStateUsing(fn ($state) => match ($state) {
                         'sick' => 'Sakit',
@@ -155,7 +155,7 @@ class LeaveRequestResource extends Resource
                         'rejected' => 'Rejected',
                     ]),
 
-                Tables\Filters\SelectFilter::make('jenis')
+                Tables\Filters\SelectFilter::make('type')
                     ->options([
                         'sick' => 'Sakit',
                         'annual' => 'Cuti Tahunan',
