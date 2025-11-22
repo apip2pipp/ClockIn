@@ -119,14 +119,14 @@ class LeaveRequestController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Leave request not found'
-            ]);
+            ], 404);
         }
 
         if ($data->status !== 'pending') {
             return response()->json([
                 'success' => false,
                 'message' => 'Only pending leave requests can be cancelled'
-            ]);
+            ], 400);
         }
 
         $data->delete();
