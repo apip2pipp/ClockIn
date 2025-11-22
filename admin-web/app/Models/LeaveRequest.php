@@ -2,33 +2,70 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class LeaveRequest extends Model
 {
+    use HasFactory;
+
+    protected $table = 'leave_requests';
+
     protected $fillable = [
         'user_id',
-        'company_id',
-        'type',
+        'jenis',
         'start_date',
         'end_date',
         'reason',
         'attachment',
         'status',
+        'company_id',
         'approver_id',
+        'approved_by',
+        'approved_at',
+        'rejection_reason',
     ];
 
-    protected $appends = ['total_days'];
+    protected $dates = [
+        'start_date',
+        'end_date',
+        'approved_at',
+        'created_at',
+        'updated_at',
+    ];
 
-    public function getTotalDaysAttribute()
+    public function user()
     {
-        return Carbon::parse($this->start_date)
-                ->diffInDays(Carbon::parse($this->end_date)) + 1;
+        return $this->belongsTo(User::class);
     }
 
     public function approver()
     {
         return $this->belongsTo(User::class, 'approver_id');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function isPending()
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isApproved()
+    {
+        return $this->status === 'approved';
+    }
+
+    public function isRejected()
+    {
+        return $this->status === 'rejected';
     }
 }
