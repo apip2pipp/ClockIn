@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('leave_requests', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('jenis');
+            $table->string('type');
             $table->date('start_date');
             $table->date('end_date');
             $table->text('reason')->nullable();
