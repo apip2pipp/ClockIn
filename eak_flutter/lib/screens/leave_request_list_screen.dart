@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
+import '../providers/leave_request_provider.dart';
 
 class LeaveRequestListScreen extends StatefulWidget {
   const LeaveRequestListScreen({super.key});
@@ -18,6 +20,7 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
   DateTime? _endDate;
   final _reasonController = TextEditingController();
   File? _attachment;
+  bool _isSubmitting = false;
 
   Future<void> _pickStartDate() async {
     final picked = await showDatePicker(
@@ -68,8 +71,14 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
     }
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_jenis == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Pilih jenis izin terlebih dahulu")),
+      );
+      return;
+    }
     if (_startDate == null || _endDate == null) {
       ScaffoldMessenger.of(
         context,
@@ -77,7 +86,50 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
       return;
     }
 
-    Navigator.pop(context);
+    setState(() => _isSubmitting = true);
+
+    try {
+      final provider = Provider.of<LeaveRequestProvider>(
+        context,
+        listen: false,
+      );
+
+      final success = await provider.submitLeaveRequest(
+        type: _jenis!,
+        startDate: _startDate!,
+        endDate: _endDate!,
+        reason: _reasonController.text.trim(),
+        attachment: _attachment,
+      );
+
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Pengajuan izin berhasil! ✅'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context, true); // Return true untuk refresh
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(provider.errorMessage ?? 'Gagal mengajukan izin'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
@@ -277,21 +329,33 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _submitForm,
+                    onPressed: _isSubmitting ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: Colors.blue,
+                      disabledBackgroundColor: Colors.grey[300],
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      "KIRIM",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : const Text(
+                            "KIRIM",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],

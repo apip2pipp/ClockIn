@@ -253,9 +253,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(
-                      attendance.status,
-                    ).withValues(alpha: 0.1),
+                    color: _getStatusColor(attendance.status).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -354,15 +352,18 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'on_time':
       case 'hadir':
       case 'present':
         return Colors.green;
-      case 'terlambat':
       case 'late':
+      case 'terlambat':
         return Colors.orange;
-      case 'alpha':
       case 'absent':
+      case 'alpha':
         return Colors.red;
+      case 'half_day':
+        return Colors.deepOrange;
       default:
         return Colors.grey;
     }
@@ -370,12 +371,17 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
 
   String _getStatusLabel(String status) {
     switch (status.toLowerCase()) {
+      case 'on_time':
       case 'present':
         return 'Hadir';
       case 'late':
+      case 'terlambat':
         return 'Terlambat';
       case 'absent':
+      case 'alpha':
         return 'Alpha';
+      case 'half_day':
+        return 'Setengah Hari';
       default:
         return status;
     }
