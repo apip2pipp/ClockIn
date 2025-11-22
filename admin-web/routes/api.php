@@ -47,16 +47,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/leave-requests', [LeaveRequestController::class, 'index']);
-    Route::post('/leave-request', [LeaveRequestController::class, 'store']);
-    Route::get('/leave/{id}', [LeaveRequestController::class, 'show']);
-    Route::post('/leave/{id}', [LeaveRequestController::class, 'update']);
+        Route::get('/leave-requests', [LeaveRequestController::class, 'index']);
+        Route::post('/leave-requests', [LeaveRequestController::class, 'store']);
+        Route::get('/leave-requests/{id}', [LeaveRequestController::class, 'show']);
+        Route::put('/leave-requests/{id}', [LeaveRequestController::class, 'update']);
 
-    // Admin
-    Route::post('/leave/approve/{id}', [LeaveRequestController::class, 'approveRequest']);
-    Route::post('/leave/reject/{id}', [LeaveRequestController::class, 'rejectRequest']);
+        // Admin
+        Route::post('/leave/approve/{id}', [LeaveRequestController::class, 'approveRequest']);
+        Route::post('/leave/reject/{id}', [LeaveRequestController::class, 'rejectRequest']);
 
-    Route::delete('/leave/{id}', [LeaveRequestController::class, 'destroy']);
-});
-
+        Route::delete('/leave-requests/{id}', [LeaveRequestController::class, 'destroy']);
+    });
 });
