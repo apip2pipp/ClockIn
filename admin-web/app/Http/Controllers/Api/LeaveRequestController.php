@@ -2,168 +2,168 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+
 use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 
 class LeaveRequestController extends Controller
 {
-    /**
-     * List all leave requests
-     */
-    public function index(Request $request)
+    public function index()
     {
-        $user = $request->user();
+        $user = Auth::user();
 
-        $query = LeaveRequest::where('user_id', $user->id)
-            ->with('approver')
-            ->orderBy('created_at', 'desc');
-
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $query->paginate($request->get('per_page', 15))
-        ]);
-    }
-
-    /**
-     * Store leave request
-     */
-    public function store(Request $request)
-    {
-        $user = $request->user();
-
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:sick,annual,permission,emergency',
-            'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'required|string',
-            'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $data = [
-            'user_id' => $user->id,
-            'company_id' => $user->company_id ?? 1, // jika local, fallback ke 1
-            'type' => $request->type,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'reason' => $request->reason,
-            'status' => 'pending',
-        ];
-
-        // Upload file
-        if ($request->hasFile('attachment')) {
-            $file = $request->file('attachment');
-            $path = $file->store('leave-attachments', 'public');
-            $data['attachment'] = $path;
-        }
-
-        $leaveRequest = LeaveRequest::create($data);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Leave request submitted successfully',
-            'data' => $leaveRequest
-        ], 201);
-    }
-
-    /**
-     * Show detail
-     */
-    public function show(Request $request, $id)
-    {
-        $user = $request->user();
-
-        $data = LeaveRequest::where('id', $id)
-            ->where('user_id', $user->id)
-            ->with('approver')
-            ->first();
-
-        if (!$data) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave request not found'
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $data
-        ]);
-    }
-
-    /**
-     * Cancel request
-     */
-    public function cancel(Request $request, $id)
-    {
-        $user = $request->user();
-
-        $data = LeaveRequest::where('id', $id)
-            ->where('user_id', $user->id)
-            ->first();
-
-        if (!$data) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave request not found'
-            ], 404);
-        }
-
-        if ($data->status !== 'pending') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only pending leave requests can be cancelled'
-            ], 400);
-        }
-
-        $data->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Leave request cancelled'
-        ]);
-    }
-
-    /**
-     * Statistics
-     */
-    public function statistics(Request $request)
-    {
-        $user = $request->user();
-        $year = $request->year ?? date('Y');
-
-        $leave = LeaveRequest::where('user_id', $user->id)
-            ->whereYear('created_at', $year)
+        $data = LeaveRequest::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'total' => $leave->count(),
-                'pending' => $leave->where('status', 'pending')->count(),
-                'approved' => $leave->where('status', 'approved')->count(),
-                'rejected' => $leave->where('status', 'rejected')->count(),
-                'total_days' => $leave->where('status', 'approved')->sum('total_days'),
-                'by_type' => [
-                    'sick' => $leave->where('type', 'sick')->sum('total_days'),
-                    'annual' => $leave->where('type', 'annual')->sum('total_days'),
-                    'permission' => $leave->where('type', 'permission')->sum('total_days'),
-                    'emergency' => $leave->where('type', 'emergency')->sum('total_days'),
-                ]
-            ]
+            'leave_requests' => $data,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'jenis' => 'required|string',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+            'reason' => 'nullable|string',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+        ]);
+
+        $user = Auth::user();
+
+        $fileName = null;
+        if ($request->hasFile('attachment')) {
+            $fileName = $request->file('attachment')->store('leave', 'public');
+        }
+
+        $leave = LeaveRequest::create([
+            'user_id' => $user->id,
+            'jenis' => $request->jenis,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'reason' => $request->reason,
+            'attachment' => $fileName,
+            'status' => 'pending',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Leave request submitted',
+            'data' => $leave
+        ], 201);
+    }
+
+    public function show($id)
+    {
+        $leave = LeaveRequest::with(['user', 'approver', 'approvedBy'])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $leave
+        ]);
+    }
+
+    /**
+     * Update pengajuan oleh user (hanya jika PENDING)
+     */
+    public function update(Request $request, $id)
+    {
+        $leave = LeaveRequest::findOrFail($id);
+
+        if ($leave->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only pending requests can be updated.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'type'          => 'nullable|string',
+            'start_date'    => 'nullable|date',
+            'end_date'      => 'nullable|date',
+            'reason'        => 'nullable|string',
+            'attachment'    => 'nullable|file|max:2048',
+        ]);
+
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('leave_attachments', 'public');
+            $validated['attachment'] = $attachmentPath;
+        }
+
+        $leave->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Leave request updated successfully.',
+            'data' => $leave
+        ]);
+    }
+
+    /**
+     * Approve pengajuan cuti oleh Admin
+     */
+    public function approve(Request $request, $id)
+    {
+        $leave = LeaveRequest::findOrFail($id);
+
+        $leave->update([
+            'status'        => 'approved',
+            'approver_id'   => Auth::id(),
+            'approved_by'   => Auth::id(),
+            'approved_at'   => now(),
+            'rejection_reason' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Leave request approved.',
+            'data' => $leave
+        ]);
+    }
+
+    /**
+     * Reject pengajuan cuti oleh Admin
+     */
+    public function reject(Request $request, $id)
+    {
+        $leave = LeaveRequest::findOrFail($id);
+
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string',
+        ]);
+
+        $leave->update([
+            'status'            => 'rejected',
+            'approver_id'       => Auth::id(),
+            'approved_by'       => null,
+            'approved_at'       => null,
+            'rejection_reason'  => $validated['rejection_reason'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Leave request rejected.',
+            'data' => $leave
+        ]);
+    }
+
+    /**
+     * Hapus pengajuan cuti (opsional)
+     */
+    public function destroy($id)
+    {
+        $leave = LeaveRequest::findOrFail($id);
+
+        $leave->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Leave request deleted.'
         ]);
     }
 }
