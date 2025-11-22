@@ -20,28 +20,26 @@ class LeaveRequest extends Model
         'attachment',
         'status',
         'company_id',
-        'approver_id',
         'approved_by',
         'approved_at',
+        'rejected_at',
         'rejection_reason',
     ];
+
 
     protected $dates = [
         'start_date',
         'end_date',
         'approved_at',
+        'rejected_at',
         'created_at',
         'updated_at',
     ];
 
+
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function approver()
-    {
-        return $this->belongsTo(User::class, 'approver_id');
     }
 
     public function approvedBy()

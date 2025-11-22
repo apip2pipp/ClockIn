@@ -22,11 +22,10 @@ return new class extends Migration
             $table->enum('status', ['pending', 'approved', 'rejected'])
                 ->default('pending');
             $table->unsignedBigInteger('company_id')->nullable();
-
-            $table->unsignedBigInteger('approver_id')->nullable();
             $table->unsignedBigInteger('approved_by')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->text('rejection_reason')->nullable();
+            $table->timestamp('rejected_at')->nullable();
 
             $table->timestamps();
         });
