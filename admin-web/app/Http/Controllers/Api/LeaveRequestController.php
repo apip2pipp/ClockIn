@@ -7,55 +7,71 @@ use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class LeaveRequestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
-        $data = LeaveRequest::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = LeaveRequest::where('user_id', $user->id);
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('jenis')) {
+            $query->where('jenis', $request->jenis);
+        }
+
+        $leaveRequests = $query->orderBy('id', 'desc')->get();
 
         return response()->json([
             'success' => true,
-            'leave_requests' => $data,
+            'leave_requests' => $leaveRequests
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'jenis' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date',
             'reason' => 'nullable|string',
-            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        $user = Auth::user();
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
 
-        $fileName = null;
+        $attachmentPath = null;
+
         if ($request->hasFile('attachment')) {
-            $fileName = $request->file('attachment')->store('leave', 'public');
+            $attachmentPath = $request->file('attachment')->store('leave_attachments', 'public');
         }
 
         $leave = LeaveRequest::create([
-            'user_id' => $user->id,
+            'user_id' => Auth::id(),
             'jenis' => $request->jenis,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'reason' => $request->reason,
-            'attachment' => $fileName,
+            'attachment' => $attachmentPath,
             'status' => 'pending',
+            'company_id' => Auth::user()->company_id ?? null,
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Leave request submitted',
+            'message' => 'Leave request submitted successfully.',
             'data' => $leave
-        ], 201);
+        ]);
     }
 
     public function show($id)
@@ -68,9 +84,6 @@ class LeaveRequestController extends Controller
         ]);
     }
 
-    /**
-     * Update pengajuan oleh user (hanya jika PENDING)
-     */
     public function update(Request $request, $id)
     {
         $leave = LeaveRequest::findOrFail($id);
@@ -104,20 +117,23 @@ class LeaveRequestController extends Controller
         ]);
     }
 
-    /**
-     * Approve pengajuan cuti oleh Admin
-     */
-    public function approve(Request $request, $id)
+    public function approveRequest($id)
     {
-        $leave = LeaveRequest::findOrFail($id);
+        $leave = LeaveRequest::find($id);
 
-        $leave->update([
-            'status'        => 'approved',
-            'approver_id'   => Auth::id(),
-            'approved_by'   => Auth::id(),
-            'approved_at'   => now(),
-            'rejection_reason' => null,
-        ]);
+        if (!$leave) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Leave request not found.'
+            ], 404);
+        }
+
+        $leave->status = 'approved';
+        $leave->approved_by = Auth::id();
+        $leave->approver_id = Auth::id();
+        $leave->approved_at = now();
+        $leave->rejection_reason = null;
+        $leave->save();
 
         return response()->json([
             'success' => true,
@@ -126,24 +142,34 @@ class LeaveRequestController extends Controller
         ]);
     }
 
-    /**
-     * Reject pengajuan cuti oleh Admin
-     */
-    public function reject(Request $request, $id)
+    public function rejectRequest(Request $request, $id)
     {
-        $leave = LeaveRequest::findOrFail($id);
-
-        $validated = $request->validate([
-            'rejection_reason' => 'required|string',
+        $validator = Validator::make($request->all(), [
+            'reason' => 'required|string'
         ]);
 
-        $leave->update([
-            'status'            => 'rejected',
-            'approver_id'       => Auth::id(),
-            'approved_by'       => null,
-            'approved_at'       => null,
-            'rejection_reason'  => $validated['rejection_reason'],
-        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $leave = LeaveRequest::find($id);
+
+        if (!$leave) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Leave request not found.'
+            ], 404);
+        }
+
+        $leave->status = 'rejected';
+        $leave->approved_by = Auth::id();
+        $leave->approver_id = Auth::id();
+        $leave->approved_at = null;
+        $leave->rejection_reason = $request->reason;
+        $leave->save();
 
         return response()->json([
             'success' => true,
@@ -152,9 +178,6 @@ class LeaveRequestController extends Controller
         ]);
     }
 
-    /**
-     * Hapus pengajuan cuti (opsional)
-     */
     public function destroy($id)
     {
         $leave = LeaveRequest::findOrFail($id);
