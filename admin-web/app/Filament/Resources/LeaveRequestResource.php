@@ -82,16 +82,17 @@ class LeaveRequestResource extends Resource
 
                         Forms\Components\Select::make('approved_by')
                             ->relationship('approver', 'name')
+                            ->nullable()
                             ->searchable()
                             ->preload()
-                            ->visible(fn ($get) => in_array($get('status'), ['approved', 'rejected'])),
+                            ->visible(fn($get) => in_array($get('status'), ['approved', 'rejected'])),
 
                         Forms\Components\DateTimePicker::make('approved_at')
-                            ->visible(fn ($get) => in_array($get('status'), ['approved', 'rejected'])),
+                            ->visible(fn($get) => in_array($get('status'), ['approved', 'rejected'])),
 
                         Forms\Components\Textarea::make('rejection_reason')
                             ->rows(2)
-                            ->visible(fn ($get) => $get('status') === 'rejected')
+                            ->visible(fn($get) => $get('status') === 'rejected')
                             ->columnSpanFull(),
                     ])->columns(3),
             ]);
@@ -110,7 +111,7 @@ class LeaveRequestResource extends Resource
 
                 Tables\Columns\TextColumn::make('type')
                     ->label('Leave Type')
-                    ->formatStateUsing(fn ($state) => match ($state) {
+                    ->formatStateUsing(fn($state) => match ($state) {
                         'sick' => 'Sakit',
                         'annual' => 'Cuti Tahunan',
                         'permission' => 'Izin',
@@ -118,7 +119,7 @@ class LeaveRequestResource extends Resource
                         default => $state,
                     })
                     ->badge()
-                    ->color(fn ($state) => match ($state) {
+                    ->color(fn($state) => match ($state) {
                         'sick' => 'danger',
                         'annual' => 'success',
                         'permission' => 'warning',
@@ -132,13 +133,16 @@ class LeaveRequestResource extends Resource
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->color(fn ($state) => match ($state) {
+                    ->color(fn($state) => match ($state) {
                         'pending' => 'warning',
                         'approved' => 'success',
                         'rejected' => 'danger',
                     }),
 
-                Tables\Columns\TextColumn::make('approver.name')->label('Approved By'),
+                Tables\Columns\TextColumn::make('approver.name')
+                    ->label('Approved By')
+                    ->formatStateUsing(fn($record) => $record->approver?->name ?? '-'),
+
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Requested At')
@@ -168,15 +172,15 @@ class LeaveRequestResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()
-    ->url(fn ($record) => LeaveRequestResource::getUrl('view', ['record' => $record])),
+                    ->url(fn($record) => LeaveRequestResource::getUrl('view', ['record' => $record])),
                 Tables\Actions\EditAction::make(),
 
                 Tables\Actions\Action::make('approve')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->action(fn ($record) => $record->approve(auth()->id()))
-                    ->visible(fn ($record) => $record->status === 'pending'),
+                    ->action(fn($record) => $record->approve(auth()->id()))
+                    ->visible(fn($record) => $record->status === 'pending'),
 
                 Tables\Actions\Action::make('reject')
                     ->icon('heroicon-o-x-circle')
@@ -185,10 +189,11 @@ class LeaveRequestResource extends Resource
                     ->form([
                         Forms\Components\Textarea::make('rejection_reason')->required(),
                     ])
-                    ->action(fn ($record, $data) =>
+                    ->action(
+                        fn($record, $data) =>
                         $record->reject(auth()->id(), $data['rejection_reason'])
                     )
-                    ->visible(fn ($record) => $record->status === 'pending'),
+                    ->visible(fn($record) => $record->status === 'pending'),
             ]);
     }
 
@@ -198,13 +203,12 @@ class LeaveRequestResource extends Resource
     }
 
     public static function getPages(): array
-{
-    return [
-        'index' => Pages\ListLeaveRequests::route('/'),
-        'create' => Pages\CreateLeaveRequest::route('/create'),
-        'edit' => Pages\EditLeaveRequest::route('/{record}/edit'),
-        'view' => Pages\ViewLeaveRequest::route('/{record}'),
-    ];
-}
-
+    {
+        return [
+            'index' => Pages\ListLeaveRequests::route('/'),
+            'create' => Pages\CreateLeaveRequest::route('/create'),
+            'edit' => Pages\EditLeaveRequest::route('/{record}/edit'),
+            'view' => Pages\ViewLeaveRequest::route('/{record}'),
+        ];
+    }
 }
