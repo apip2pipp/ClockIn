@@ -21,7 +21,12 @@ return [
 
     'allowed_origins' => ['*'],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        'http://192\.168\..*', 
+        'http://10\..*',       
+        'http://172\..*',      
+        'http://localhost:*',
+    ],
 
     'allowed_headers' => ['*'],
 

@@ -76,13 +76,15 @@ class LeaveRequestController extends Controller
 
     public function show($id)
     {
-        $leave = LeaveRequest::with(['user', 'approver', 'approvedBy'])->findOrFail($id);
+        $leave = LeaveRequest::with(['user', 'approver', 'approvedBy'])
+            ->findOrFail($id);
 
         return response()->json([
             'success' => true,
             'data' => $leave
         ]);
     }
+
 
     public function update(Request $request, $id)
     {
