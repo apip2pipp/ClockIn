@@ -3,17 +3,11 @@
 namespace App\Filament\Resources\CompanyResource\Pages;
 
 use App\Filament\Resources\CompanyResource;
-use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Pages\Page;
 
-class ListCompanies extends ListRecords
+class ListCompanies extends Page
 {
     protected static string $resource = CompanyResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\CreateAction::make(),
-        ];
-    }
+    protected static string $view = 'filament.resources.company-resource.pages.view';
 }
