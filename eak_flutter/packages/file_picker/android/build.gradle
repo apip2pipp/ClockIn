@@ -1,0 +1,10 @@
+android {
+    compileSdkVersion 33
+
+    namespace 'com.mr.flutter.plugin.filepicker'  // tambahkan namespace
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 33
+    }
+}

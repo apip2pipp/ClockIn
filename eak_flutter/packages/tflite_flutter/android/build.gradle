@@ -1,0 +1,10 @@
+android {
+    compileSdkVersion 33
+
+    namespace 'org.tensorflow.lite.flutter'  // tambahkan namespace
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 33
+    }
+}
