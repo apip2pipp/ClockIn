@@ -43,11 +43,6 @@ class LeaveRequest extends Model
     }
 
     public function approver()
-{
-    return $this->belongsTo(User::class, 'approved_by');
-}
-
-    public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
@@ -70,5 +65,22 @@ class LeaveRequest extends Model
     public function isRejected()
     {
         return $this->status === 'rejected';
+    }
+
+    public function approve($userId)
+    {
+        $this->approved_by = $userId;
+        $this->approved_at = now();
+        $this->status = 'approved';
+        $this->save();
+    }
+
+    public function reject($userId, $reason = null)
+    {
+        $this->approved_by = $userId;
+        $this->rejected_at = now();
+        $this->rejection_reason = $reason;
+        $this->status = 'rejected';
+        $this->save();
     }
 }

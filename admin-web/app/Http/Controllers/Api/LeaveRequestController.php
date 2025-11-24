@@ -76,7 +76,7 @@ class LeaveRequestController extends Controller
 
     public function show($id)
     {
-        $leave = LeaveRequest::with(['user', 'approver', 'approvedBy'])
+        $leave = LeaveRequest::with(['user', 'approver'])
             ->findOrFail($id);
 
         return response()->json([
@@ -132,7 +132,6 @@ class LeaveRequestController extends Controller
 
         $leave->status = 'approved';
         $leave->approved_by = Auth::id();
-        $leave->approver_id = Auth::id();
         $leave->approved_at = now();
         $leave->rejection_reason = null;
         $leave->save();
@@ -168,7 +167,6 @@ class LeaveRequestController extends Controller
 
         $leave->status = 'rejected';
         $leave->approved_by = Auth::id();
-        $leave->approver_id = Auth::id();
         $leave->approved_at = null;
         $leave->rejection_reason = $request->reason;
         $leave->save();
