@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\LeaveRequestController;
 use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\FaceEmbeddingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +22,12 @@ use App\Http\Controllers\Api\CompanyController;
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+// Embedding
+Route::post('/face/save', [FaceEmbeddingController::class, 'save']);
+Route::get('/face/get', [FaceEmbeddingController::class, 'get']);
+// Absensi
+Route::post('/attendance/check-in', [AttendanceController::class, 'checkIn']);
+Route::post('/attendance/check-out', [AttendanceController::class, 'checkOut']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
