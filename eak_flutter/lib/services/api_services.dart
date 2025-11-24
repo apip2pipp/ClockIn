@@ -324,7 +324,6 @@ class ApiService {
     }
   }
 
-
   // ==================== LEAVE REQUESTS ====================
 
   /// Get leave requests
@@ -419,9 +418,9 @@ class ApiService {
       debugPrint('Submit Leave Request Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
-    
   }
-    /// Wrapper Attendance History (dialihkan ke attendance_service.dart)
+
+  /// Wrapper Attendance History (dialihkan ke attendance_service.dart)
   static Future<Map<String, dynamic>> getAttendanceHistory({
     int page = 1,
     int? month,
@@ -434,4 +433,22 @@ class ApiService {
     );
   }
 
+  final String baseUrl = "https://domain.com/api";
+
+  Future<void> checkIn({
+    required double lat,
+    required double lng,
+    required double distance,
+  }) async {
+    final token = "TOKEN_KAMU";
+
+    await http.post(
+      Uri.parse("$baseUrl/attendance/check-in"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({"lat": lat, "lng": lng, "distance": distance}),
+    );
+  }
 }
