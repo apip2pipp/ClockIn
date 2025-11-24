@@ -72,4 +72,15 @@ class Company extends Model
     {
         return $this->hasMany(User::class)->where('is_active', true);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($company) {
+            if (empty($company->company_token)) {
+                $company->company_token = bin2hex(random_bytes(8)); // contoh: A1B2C3D4E5F6A7B8
+            }
+        });
+    }
 }

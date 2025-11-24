@@ -4,8 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
-use App\Http\Controllers\Api\LeaveRequestController;
 use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\leaveRequestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,10 +46,16 @@ Route::middleware('auth:sanctum')->group(function () {
     // Leave Request routes
 
     Route::middleware('auth:sanctum')->group(function () {
+
         Route::get('/leave-requests', [LeaveRequestController::class, 'index']);
         Route::post('/leave-requests', [LeaveRequestController::class, 'store']);
         Route::get('/leave-requests/{id}', [LeaveRequestController::class, 'show']);
-        Route::delete('/leave-requests/{id}', [LeaveRequestController::class, 'cancel']);
-        Route::get('/leave-requests/statistics', [LeaveRequestController::class, 'statistics']);
+        Route::put('/leave-requests/{id}', [LeaveRequestController::class, 'update']);
+
+        // Admin
+        Route::post('/leave/approve/{id}', [LeaveRequestController::class, 'approveRequest']);
+        Route::post('/leave/reject/{id}', [LeaveRequestController::class, 'rejectRequest']);
+
+        Route::delete('/leave-requests/{id}', [LeaveRequestController::class, 'destroy']);
     });
 });
