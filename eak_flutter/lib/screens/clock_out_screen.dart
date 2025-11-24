@@ -56,7 +56,7 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('GPS is not enabled'),
+            content: Text('GPS is not enabled!'),
             backgroundColor: Colors.orange,
           ),
         );
