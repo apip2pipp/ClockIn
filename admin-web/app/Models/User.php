@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use filament\Panel;
 
 class User extends Authenticatable
 {
@@ -99,5 +100,10 @@ class User extends Authenticatable
     public function isEmployee(): bool
     {
         return $this->role === 'employee';
+    }
+
+     public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->isAdmin() && $this->is_active;
     }
 }
