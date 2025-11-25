@@ -34,10 +34,6 @@ return [
     */
 
     'guard' => ['web'],
-    'middleware' => [
-        'verify_csrf_token' => App\Http\Middleware\VerifyCsrfToken::class,
-        'encrypt_cookies' => App\Http\Middleware\EncryptCookies::class,
-    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -50,7 +46,8 @@ return [
     |
     */
 
-    'expiration' => null,
+    // 'expiration' => null,
+    'expiration' => env('SANCTUM_EXPIRATION', 60 * 24 * 30),
 
     /*
     |--------------------------------------------------------------------------
