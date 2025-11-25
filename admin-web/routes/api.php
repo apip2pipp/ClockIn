@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\LeaveRequestController;
+use App\Http\Controllers\Api\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,22 +14,58 @@ use App\Http\Controllers\Api\LeaveRequestController;
 |--------------------------------------------------------------------------
 */
 
-// Public routes
+// ============================================================================
+// Public Routes (No Authentication Required)
+// ============================================================================
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Protected routes
+// ============================================================================
+// Protected Routes (Authentication Required)
+// ============================================================================
+
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Auth routes
-    Route::post('/logout', [AuthController::class, 'logout']);
+    // ========================================================================
+    // Auth & Profile Management
+    // ========================================================================
+    
+    Route::prefix('auth')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/logout-all', [AuthController::class, 'logoutAll']);
+        Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
+        Route::get('/tokens', [AuthController::class, 'getTokens']);
+        Route::delete('/tokens/{tokenId}', [AuthController::class, 'revokeToken']);
+    });
+    
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 
-    // Company routes
+    // ========================================================================
+    // Company Routes
+    // ========================================================================
+    
     Route::get('/company', [CompanyController::class, 'show']);
 
-    // Attendance routes
+    // ========================================================================
+    // User Management Routes (Rupadana-style API)
+    // ========================================================================
+    
+    Route::prefix('users')->group(function () {
+        Route::get('/', [UserController::class, 'index']);        // GET /api/users
+        Route::post('/', [UserController::class, 'store']);       // POST /api/users
+        Route::get('/{id}', [UserController::class, 'show']);     // GET /api/users/{id}
+        Route::put('/{id}', [UserController::class, 'update']);   // PUT /api/users/{id}
+        Route::patch('/{id}', [UserController::class, 'update']); // PATCH /api/users/{id}
+        Route::delete('/{id}', [UserController::class, 'destroy']); // DELETE /api/users/{id}
+    });
+
+    // ========================================================================
+    // Attendance Routes
+    // ========================================================================
+    
     Route::prefix('attendance')->group(function () {
         Route::post('/clock-in', [AttendanceController::class, 'clockIn']);
         Route::post('/clock-out', [AttendanceController::class, 'clockOut']);
@@ -37,7 +74,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/statistics', [AttendanceController::class, 'statistics']);
     });
 
-    // Leave Request routes
+    // ========================================================================
+    // Leave Request Routes
+    // ========================================================================
+    
     Route::prefix('leave-requests')->group(function () {
         Route::get('/', [LeaveRequestController::class, 'index']);
         Route::post('/', [LeaveRequestController::class, 'store']);
