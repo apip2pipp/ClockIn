@@ -13,17 +13,25 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
+use Rupadana\ApiService\Contracts\HasAllowedFields;
+use Rupadana\ApiService\Contracts\HasAllowedFilters;
+use Rupadana\ApiService\Contracts\HasAllowedIncludes;
+use Rupadana\ApiService\Contracts\HasAllowedSorts;
 
-class UserResource extends Resource
+class UserResource extends Resource implements
+    HasAllowedFields,
+    HasAllowedFilters,
+    HasAllowedIncludes,
+    HasAllowedSorts
 {
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    
+
     protected static ?string $navigationLabel = 'Employees';
-    
+
     protected static ?string $modelLabel = 'Employee';
-    
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -70,14 +78,14 @@ class UserResource extends Resource
                             ->directory('employee-photos')
                             ->columnSpanFull(),
                     ])->columns(2),
-                
+
                 Forms\Components\Section::make('Account Settings')
                     ->schema([
                         Forms\Components\TextInput::make('password')
                             ->password()
-                            ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                            ->dehydrated(fn ($state) => filled($state))
-                            ->required(fn (string $context): bool => $context === 'create')
+                            ->dehydrateStateUsing(fn($state) => Hash::make($state))
+                            ->dehydrated(fn($state) => filled($state))
+                            ->required(fn(string $context): bool => $context === 'create')
                             ->maxLength(255)
                             ->helperText('Leave blank to keep current password'),
                         Forms\Components\Toggle::make('is_active')
@@ -119,7 +127,7 @@ class UserResource extends Resource
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('role')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'super_admin' => 'danger',
                         'company_admin' => 'warning',
                         'employee' => 'success',
@@ -137,10 +145,24 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('company_id')
+                    ->relationship('company', 'name')
+                    ->label('Company'),
+                Tables\Filters\SelectFilter::make('role')
+                    ->options([
+                        'super_admin' => 'Super Admin',
+                        'company_admin' => 'Company Admin',
+                        'employee' => 'Employee',
+                    ]),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Active Status')
+                    ->boolean()
+                    ->trueLabel('Active')
+                    ->falseLabel('Inactive'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -162,6 +184,81 @@ class UserResource extends Resource
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
+        ];
+    }
+
+    // ========================================================================
+    // API Service Configuration
+    // ========================================================================
+
+    /**
+     * Get the fields that are allowed to be selected via API
+     */
+    public static function getAllowedFields(): array
+    {
+        return [
+            'id',
+            'company_id',
+            'name',
+            'email',
+            'phone',
+            'position',
+            'employee_id',
+            'photo',
+            'role',
+            'is_active',
+            'created_at',
+            'updated_at',
+        ];
+    }
+
+    /**
+     * Get the filters that are allowed via API
+     */
+    public static function getAllowedFilters(): array
+    {
+        return [
+            'id',
+            'company_id',
+            'name',
+            'email',
+            'employee_id',
+            'position',
+            'role',
+            'is_active',
+            'created_at',
+            'updated_at',
+        ];
+    }
+
+    /**
+     * Get the relations that are allowed to be included via API
+     */
+    public static function getAllowedIncludes(): array
+    {
+        return [
+            'company',
+            'attendances',
+            'leaveRequests',
+            'approvedLeaveRequests',
+        ];
+    }
+
+    /**
+     * Get the fields that are allowed to be sorted via API
+     */
+    public static function getAllowedSorts(): array
+    {
+        return [
+            'id',
+            'name',
+            'email',
+            'employee_id',
+            'position',
+            'role',
+            'is_active',
+            'created_at',
+            'updated_at',
         ];
     }
 }
