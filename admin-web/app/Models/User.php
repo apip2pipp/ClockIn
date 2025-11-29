@@ -35,33 +35,26 @@ class User extends Authenticatable
         'is_active' => 'boolean',
     ];
 
-    /**
-     * User belongs to a company
-     */
+    protected $attributes = [
+        'role' => 'employee',
+        'is_active' => true,
+    ];
+
     public function company()
     {
         return $this->belongsTo(Company::class);
     }
 
-    /**
-     * User has many attendances
-     */
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
     }
 
-    /**
-     * User has many leave requests
-     */
     public function leaveRequests()
     {
         return $this->hasMany(LeaveRequest::class);
     }
 
-    /**
-     * Leave requests approved by this user (if admin)
-     */
     public function approvedLeaveRequests()
     {
         return $this->hasMany(LeaveRequest::class, 'approved_by');
