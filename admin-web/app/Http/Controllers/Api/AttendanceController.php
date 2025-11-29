@@ -15,13 +15,13 @@ class AttendanceController extends Controller
     public function clockIn(Request $request)
     {
         $request->validate([
-            'description' => 'required|string',
+            'description' => 'nullable|string|max:1000',
             'photo' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
         ]);
 
-        $user = Auth::user(); // ← INI TIDAK BOLEH NULL
+        $user = Auth::user();
 
         $image = base64_decode($request->photo);
         $filename = 'attendance/' . $user->id . '_clockin_' . time() . '.jpg';
@@ -49,7 +49,7 @@ class AttendanceController extends Controller
     public function clockOut(Request $request)
     {
         $request->validate([
-            'description' => 'required|string',
+            'description' => 'nullable|string|max:1000',
             'photo' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
@@ -59,12 +59,13 @@ class AttendanceController extends Controller
 
         $attendance = Attendance::where('user_id', $user->id)
             ->whereDate('clock_in', Carbon::today())
+            ->whereNull('clock_out')
             ->first();
 
         if (!$attendance) {
             return response()->json([
                 'success' => false,
-                'message' => 'Belum melakukan clock in',
+                'message' => 'Belum melakukan clock in hari ini',
             ], 400);
         }
 
