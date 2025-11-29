@@ -3,11 +3,29 @@
 namespace App\Filament\Resources\CompanyResource\Pages;
 
 use App\Filament\Resources\CompanyResource;
-use Filament\Resources\Pages\Page;
+use Filament\Actions;
+use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\Auth;
 
-class ListCompanies extends Page
+class ListCompanies extends ListRecords
 {
     protected static string $resource = CompanyResource::class;
 
-    protected static string $view = 'filament.resources.company-resource.pages.view';
+    public function mount(): void
+    {
+        $user = Auth::user();
+
+        if ($user && $user->company_id) {
+            redirect()->to(
+                CompanyResource::getUrl('view', ['record' => $user->company_id])
+            );
+        }
+
+        parent::mount();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [];
+    }
 }

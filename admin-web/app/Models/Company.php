@@ -4,83 +4,83 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'name',
-        'email',
-        'phone',
         'address',
+        'phone',
+        'email',
+        'work_start_time',
+        'work_end_time',
         'latitude',
         'longitude',
         'radius',
-        'work_start_time',
-        'work_end_time',
-        'is_active',
-        'logo',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
         'work_start_time' => 'datetime',
         'work_end_time' => 'datetime',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
+        'radius' => 'integer',
     ];
 
     /**
-     * Get all employees for this company
+     * Get all users (employees) belonging to this company
      */
-    public function employees(): HasMany
+    public function users()
     {
         return $this->hasMany(User::class);
     }
 
     /**
-     * Get all attendances for this company
+     * Get all attendances for this company's employees
      */
-    public function attendances(): HasMany
+    public function attendances()
     {
-        return $this->hasMany(Attendance::class);
+        return $this->hasManyThrough(Attendance::class, User::class);
     }
 
     /**
-     * Get all leave requests for this company
+     * Get all leave requests for this company's employees
      */
-    public function leaveRequests(): HasMany
+    public function leaveRequests()
     {
-        return $this->hasMany(LeaveRequest::class);
+        return $this->hasManyThrough(LeaveRequest::class, User::class);
     }
 
     /**
-     * Get company admins
+     * Scope to get active employees count
      */
-    public function admins(): HasMany
+    public function scopeWithActiveUsersCount($query)
     {
-        return $this->hasMany(User::class)->where('role', 'company_admin');
+        return $query->withCount(['users' => function ($q) {
+            $q->where('is_active', true);
+        }]);
     }
 
     /**
-     * Get active employees only
+     * Get formatted work hours
      */
-    public function activeEmployees(): HasMany
+    public function getWorkHoursAttribute()
     {
-        return $this->hasMany(User::class)->where('is_active', true);
+        return $this->work_start_time->format('H:i') . ' - ' . $this->work_end_time->format('H:i');
     }
 
-    protected static function boot()
+    /**
+     * Get full address with coordinates
+     */
+    public function getFullLocationAttribute()
     {
-        parent::boot();
-
-        static::creating(function ($company) {
-            if (empty($company->company_token)) {
-                $company->company_token = bin2hex(random_bytes(8)); // contoh: A1B2C3D4E5F6A7B8
-            }
-        });
+        return [
+            'address' => $this->address,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'radius' => $this->radius,
+        ];
     }
 }
