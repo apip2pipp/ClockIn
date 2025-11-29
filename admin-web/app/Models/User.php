@@ -2,52 +2,33 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use filament\Panel;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'company_id',
         'name',
         'email',
         'password',
         'phone',
-        'position',
         'employee_id',
+        'position',
         'photo',
         'role',
         'is_active',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
@@ -55,55 +36,34 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the company that owns the user
+     * User belongs to a company
      */
-    public function company(): BelongsTo
+    public function company()
     {
         return $this->belongsTo(Company::class);
     }
 
     /**
-     * Get all attendances for this user
+     * User has many attendances
      */
-    public function attendances(): HasMany
+    public function attendances()
     {
         return $this->hasMany(Attendance::class);
     }
 
     /**
-     * Get all leave requests for this user
+     * User has many leave requests
      */
-    public function leaveRequests(): HasMany
+    public function leaveRequests()
     {
         return $this->hasMany(LeaveRequest::class);
     }
 
     /**
-     * Get leave requests approved by this user
+     * Leave requests approved by this user (if admin)
      */
-    public function approvedLeaveRequests(): HasMany
+    public function approvedLeaveRequests()
     {
         return $this->hasMany(LeaveRequest::class, 'approved_by');
-    }
-
-    /**
-     * Check if user is admin
-     */
-    public function isAdmin(): bool
-    {
-        return in_array($this->role, ['super_admin', 'company_admin']);
-    }
-
-    /**
-     * Check if user is employee
-     */
-    public function isEmployee(): bool
-    {
-        return $this->role === 'employee';
-    }
-
-     public function canAccessPanel(Panel $panel): bool
-    {
-        return $this->isAdmin() && $this->is_active;
     }
 }
