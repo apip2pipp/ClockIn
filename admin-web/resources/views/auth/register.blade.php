@@ -381,19 +381,85 @@
                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <p class="text-gray-300 text-sm">
-                                    <strong>📍 Get your office location</strong> - Click button below to detect location
+                                    <strong>📍 Set your office location</strong> - Choose method below
                                 </p>
                             </div>
 
-                            <button type="button" id="getLocationBtn"
-                                class="btn-location bg-clockin-green hover:bg-clockin-green/90 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl w-full">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {{-- TWO BUTTONS SIDE BY SIDE --}}
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {{-- Get Current Location Button --}}
+                                <button type="button" id="getLocationBtn"
+                                    class="btn-location bg-clockin-green hover:bg-clockin-green/90 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span>Get Current Location</span>
+                                </button>
+
+                                {{-- Search Location Button --}}
+                                <button type="button" id="searchLocationBtn"
+                                    class="btn-location bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <span>Search Location</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Search Box (Hidden by default) --}}
+                        <div id="searchBox" class="hidden mb-4">
+                            <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                                <div class="flex gap-2 mb-2">
+                                    <input type="text" id="searchInput" class="input-field flex-1 text-sm"
+                                        placeholder="Search location (e.g., Malang, East Java)">
+                                    <button type="button" id="doSearchBtn"
+                                        class="btn-primary px-5 whitespace-nowrap text-sm">
+                                        🔍 Search
+                                    </button>
+                                </div>
+                                <div id="searchResults"
+                                    class="mt-2 bg-gray-900 rounded-lg max-h-48 overflow-y-auto hidden border border-gray-700">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Location Badge (Hidden by default) --}}
+                        <div id="locationInfo" class="hidden">
+                            <div class="location-badge mb-4">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-clockin-green mr-3 flex-shrink-0" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <div class="flex-1 text-sm">
+                                        <div class="text-gray-300">
+                                            <strong class="text-clockin-green">Location Selected:</strong>
+                                            <span class="ml-2">Lat: <span id="displayLat" class="font-mono">-</span></span>
+                                            <span class="ml-3">Lng: <span id="displayLng" class="font-mono">-</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Map Container --}}
+                            <div class="map-container-wrapper relative mb-4">
+                                <div id="map"></div>
+                            </div>
+
+                            {{-- Change Location Button --}}
+                            <button type="button" id="changeLocationBtn"
+                                class="btn-location bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl w-full mb-4">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                <span>Get Current Location</span>
+                                <span>Change Location</span>
                             </button>
                         </div>
 
@@ -458,7 +524,7 @@
                                 </label>
                                 <input type="text" id="latitude" name="latitude" value="{{ old('latitude') }}" required
                                     readonly class="input-field bg-gray-800 text-white font-mono text-xs"
-                                    placeholder="-7.966626">
+                                    placeholder="">
                             </div>
 
                             <div class="location-coordinate">
@@ -468,7 +534,7 @@
                                 </label>
                                 <input type="text" id="longitude" name="longitude" value="{{ old('longitude') }}" required
                                     readonly class="input-field bg-gray-800 text-white font-mono text-xs"
-                                    placeholder="112.632650">
+                                    placeholder="">
                             </div>
 
                             <div class="location-coordinate">
@@ -752,6 +818,87 @@
             }
         });
 
+        // ✅ CHANGE LOCATION BUTTON (SHOW SEARCH BOX AFTER MAP LOADED)
+        document.getElementById('changeLocationBtn').addEventListener('click', function () {
+            const searchBox = document.getElementById('searchBox');
+            searchBox.classList.remove('hidden');
+            document.getElementById('searchInput').focus();
+        });
+
+        // ✅ DO SEARCH
+        document.getElementById('doSearchBtn').addEventListener('click', searchLocation);
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchLocation();
+            }
+        });
+
+        function searchLocation() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                alert('Please enter a location to search');
+                return;
+            }
+
+            const btn = document.getElementById('doSearchBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Searching...';
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=id`)
+                .then(response => response.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Search';
+
+                    const resultsDiv = document.getElementById('searchResults');
+                    resultsDiv.innerHTML = '';
+
+                    if (data.length === 0) {
+                        resultsDiv.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">No results found. Try different keywords.</div>';
+                        resultsDiv.classList.remove('hidden');
+                        return;
+                    }
+
+                    data.forEach(result => {
+                        const item = document.createElement('div');
+                        item.className = 'search-results-item p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-800 last:border-0 transition-all';
+                        item.innerHTML = `
+                        <div class="font-semibold text-white flex items-center text-sm">
+                            <svg class="w-4 h-4 mr-2 text-clockin-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            ${result.display_name.split(',')[0]}
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1 ml-6">${result.display_name}</div>
+                    `;
+                        item.addEventListener('click', function () {
+                            const lat = parseFloat(result.lat);
+                            const lng = parseFloat(result.lon);
+
+                            // ✅ TAMPILKAN MAP
+                            document.getElementById('locationInfo').classList.remove('hidden');
+
+                            initMap(lat, lng);
+                            updateLocation(lat, lng);
+
+                            resultsDiv.classList.add('hidden');
+                            document.getElementById('searchBox').classList.add('hidden');
+                            document.getElementById('searchInput').value = '';
+                        });
+                        resultsDiv.appendChild(item);
+                    });
+
+                    resultsDiv.classList.remove('hidden');
+                })
+                .catch(error => {
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Search';
+                    alert('Failed to search location. Please try again.');
+                });
+        }
+
         document.getElementById('doSearchBtn').addEventListener('click', searchLocation);
         document.getElementById('searchInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
@@ -790,15 +937,15 @@
                         const item = document.createElement('div');
                         item.className = 'search-results-item p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-800 last:border-0 transition-all';
                         item.innerHTML = `
-                            <div class="font-semibold text-white flex items-center text-sm">
-                                <svg class="w-4 h-4 mr-2 text-clockin-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                </svg>
-                                ${result.display_name.split(',')[0]}
-                            </div>
-                            <div class="text-xs text-gray-400 mt-1 ml-6">${result.display_name}</div>
-                        `;
+                                    <div class="font-semibold text-white flex items-center text-sm">
+                                        <svg class="w-4 h-4 mr-2 text-clockin-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        ${result.display_name.split(',')[0]}
+                                    </div>
+                                    <div class="text-xs text-gray-400 mt-1 ml-6">${result.display_name}</div>
+                                `;
                         item.addEventListener('click', function () {
                             const lat = parseFloat(result.lat);
                             const lng = parseFloat(result.lon);
