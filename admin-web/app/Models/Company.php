@@ -23,8 +23,8 @@ class Company extends Model
     ];
 
     protected $casts = [
-        'latitude' => 'decimal:6',
-        'longitude' => 'decimal:6',
+        'latitude' => 'float', 
+        'longitude' => 'float',
         'radius' => 'integer',
         'work_start_time' => 'datetime',
         'work_end_time' => 'datetime',
@@ -56,9 +56,8 @@ class Company extends Model
         }
 
         $earthRadius = 6371000; // meters
-
-        $latFrom = deg2rad($this->latitude);
-        $lonFrom = deg2rad($this->longitude);
+        $latFrom = deg2rad((float) $this->latitude);
+        $lonFrom = deg2rad((float) $this->longitude);
         $latTo = deg2rad($userLat);
         $lonTo = deg2rad($userLng);
 
@@ -81,11 +80,11 @@ class Company extends Model
         if (!$this->latitude || !$this->longitude) {
             return 0;
         }
-        // dalam meter semua
-        $earthRadius = 6371000;
 
-        $latFrom = deg2rad($this->latitude);
-        $lonFrom = deg2rad($this->longitude);
+        $earthRadius = 6371000; // meters
+
+        $latFrom = deg2rad((float) $this->latitude);
+        $lonFrom = deg2rad((float) $this->longitude);
         $latTo = deg2rad($userLat);
         $lonTo = deg2rad($userLng);
 
