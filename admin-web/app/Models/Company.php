@@ -11,76 +11,93 @@ class Company extends Model
 
     protected $fillable = [
         'name',
-        'address',
-        'phone',
         'email',
+        'phone',
+        'address',
+        'latitude', 
+        'longitude',
+        'radius',   
         'work_start_time',
         'work_end_time',
-        'latitude',
-        'longitude',
-        'radius',
+        'is_active',
     ];
 
     protected $casts = [
+        'latitude' => 'decimal:6',
+        'longitude' => 'decimal:6',
+        'radius' => 'integer',
         'work_start_time' => 'datetime',
         'work_end_time' => 'datetime',
-        'latitude' => 'decimal:8',
-        'longitude' => 'decimal:8',
-        'radius' => 'integer',
+        'is_active' => 'boolean',
     ];
 
-    /**
-     * Get all users (employees) belonging to this company
-     */
     public function users()
     {
         return $this->hasMany(User::class);
     }
 
-    /**
-     * Get all attendances for this company's employees
-     */
     public function attendances()
     {
-        return $this->hasManyThrough(Attendance::class, User::class);
+        return $this->hasMany(Attendance::class);
     }
 
-    /**
-     * Get all leave requests for this company's employees
-     */
-    public function leaveRequests()
+    public function getGoogleMapsUrlAttribute(): string
     {
-        return $this->hasManyThrough(LeaveRequest::class, User::class);
+        if ($this->latitude && $this->longitude) {
+            return "https://maps.google.com/?q={$this->latitude},{$this->longitude}";
+        }
+        return '#';
     }
 
-    /**
-     * Scope to get active employees count
-     */
-    public function scopeWithActiveUsersCount($query)
+    public function isWithinRadius(float $userLat, float $userLng): bool
     {
-        return $query->withCount(['users' => function ($q) {
-            $q->where('is_active', true);
-        }]);
+        if (!$this->latitude || !$this->longitude || !$this->radius) {
+            return false;
+        }
+
+        $earthRadius = 6371000; // meters
+
+        $latFrom = deg2rad($this->latitude);
+        $lonFrom = deg2rad($this->longitude);
+        $latTo = deg2rad($userLat);
+        $lonTo = deg2rad($userLng);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2) +
+            cos($latFrom) * cos($latTo) *
+            sin($lonDelta / 2) * sin($lonDelta / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        $distance = $earthRadius * $c; // meters
+
+        return $distance <= $this->radius;
     }
 
-    /**
-     * Get formatted work hours
-     */
-    public function getWorkHoursAttribute()
+    public function getDistanceFrom(float $userLat, float $userLng): float
     {
-        return $this->work_start_time->format('H:i') . ' - ' . $this->work_end_time->format('H:i');
-    }
+        if (!$this->latitude || !$this->longitude) {
+            return 0;
+        }
+        // dalam meter semua
+        $earthRadius = 6371000;
 
-    /**
-     * Get full address with coordinates
-     */
-    public function getFullLocationAttribute()
-    {
-        return [
-            'address' => $this->address,
-            'latitude' => $this->latitude,
-            'longitude' => $this->longitude,
-            'radius' => $this->radius,
-        ];
+        $latFrom = deg2rad($this->latitude);
+        $lonFrom = deg2rad($this->longitude);
+        $latTo = deg2rad($userLat);
+        $lonTo = deg2rad($userLng);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2) +
+            cos($latFrom) * cos($latTo) *
+            sin($lonDelta / 2) * sin($lonDelta / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
     }
 }
