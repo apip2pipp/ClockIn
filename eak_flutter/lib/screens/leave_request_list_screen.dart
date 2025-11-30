@@ -106,13 +106,10 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
         setState(() => _isSubmitting = false);
 
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Pengajuan izin berhasil! ✅'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.pop(context, true); // Return true untuk refresh
+          Navigator.pop(context, {
+            'success': true,
+            'message': 'Pengajuan izin berhasil dikirim! ✅',
+          });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

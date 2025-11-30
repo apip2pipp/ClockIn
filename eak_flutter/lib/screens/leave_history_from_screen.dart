@@ -1,3 +1,4 @@
+import 'package:eak_flutter/screens/leave_request_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -160,6 +161,33 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          // ✅ AWAIT RESULT DARI FORM
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const LeaveRequestListScreen(),
+            ),
+          );
+
+          if (result != null && result['success'] == true && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message'] ?? 'Berhasil!'),
+                backgroundColor: Colors.green, // ✅ HIJAU!
+                duration: const Duration(seconds: 3),
+              ),
+            );
+
+            // ✅ REFRESH LIST
+            _loadData();
+          }
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Ajukan Izin'),
+        backgroundColor: Colors.blue,
       ),
     );
   }
