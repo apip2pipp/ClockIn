@@ -209,23 +209,28 @@ class ApiService {
     String? notes,
   }) async {
     try {
-      final headers = await getHeaders();
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
 
-      // Convert image to base64
-      final bytes = await photo.readAsBytes();
-      final base64Image = base64Encode(bytes);
+      if (token == null) {
+        return {'success': false, 'message': 'Not authenticated'};
+      }
 
-      final body = json.encode({
-        'latitude': latitude,
-        'longitude': longitude,
-        'photo': base64Image,
-        'description': notes ?? '',
-      });
+      String base64Image = base64Encode(await photo.readAsBytes());
 
       final response = await http.post(
         Uri.parse(ApiConfig.getFullUrl(ApiConfig.clockInEndpoint)),
-        headers: headers,
-        body: body,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'latitude': latitude,
+          'longitude': longitude,
+          'description': notes,
+          'photo': base64Image,
+          'clock_in_time': DateTime.now().toIso8601String(),
+        }),
       );
 
       final data = json.decode(response.body);
@@ -233,7 +238,8 @@ class ApiService {
       if (response.statusCode == 201 && data['success']) {
         return {
           'success': true,
-          'attendance': data['data'], // ← INI WAJIB ADA!
+          'message': data['message'],
+          'attendance': data['data'],
         };
       } else {
         return {
@@ -248,51 +254,54 @@ class ApiService {
 
   /// Clock Out
   static Future<Map<String, dynamic>> clockOut({
-    required double latitude,
-    required double longitude,
-    required File photo,
-    required String notes, // ganti dari description → notes
-  }) async {
-    try {
-      final token = await getToken();
+  required double latitude,
+  required double longitude,
+  required File photo,
+  required String notes,
+}) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
 
-      // Convert image → base64
-      final bytes = await photo.readAsBytes();
-      final imgBase64 = base64Encode(bytes);
-
-      final response = await http.post(
-        Uri.parse(ApiConfig.getFullUrl(ApiConfig.clockOutEndpoint)),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'notes': notes, // ganti description → notes
-          'photo': imgBase64,
-          'latitude': latitude,
-          'longitude': longitude,
-        }),
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && data['success']) {
-        return {
-          'success': true,
-          'attendance': data['data'],
-          'message': data['message'],
-        };
-      } else {
-        return {
-          'success': false,
-          'message': data['message'] ?? 'Clock out failed',
-        };
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Network error: $e'};
+    if (token == null) {
+      return {'success': false, 'message': 'Not authenticated'};
     }
+
+    String base64Image = base64Encode(await photo.readAsBytes());
+
+    final response = await http.post(
+      Uri.parse(ApiConfig.getFullUrl(ApiConfig.clockOutEndpoint)),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({
+        'latitude': latitude,
+        'longitude': longitude,
+        'description': notes,
+        'photo': base64Image,
+        'clock_out_time': DateTime.now().toIso8601String(),
+      }),
+    );
+
+    final data = json.decode(response.body);
+
+    if (response.statusCode == 200 && data['success']) {
+      return {
+        'success': true,
+        'message': data['message'],
+        'attendance': data['data'],
+      };
+    } else {
+      return {
+        'success': false,
+        'message': data['message'] ?? 'Clock out failed',
+      };
+    }
+  } catch (e) {
+    return {'success': false, 'message': 'Network error: $e'};
   }
+}
 
   /// Get today's attendance
   static Future<Map<String, dynamic>> getTodayAttendance() async {
@@ -323,7 +332,6 @@ class ApiService {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
-
 
   // ==================== LEAVE REQUESTS ====================
 
@@ -419,9 +427,9 @@ class ApiService {
       debugPrint('Submit Leave Request Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
-    
   }
-    /// Wrapper Attendance History (dialihkan ke attendance_service.dart)
+
+  /// Wrapper Attendance History (dialihkan ke attendance_service.dart)
   static Future<Map<String, dynamic>> getAttendanceHistory({
     int page = 1,
     int? month,
@@ -433,5 +441,4 @@ class ApiService {
       year: year,
     );
   }
-
 }

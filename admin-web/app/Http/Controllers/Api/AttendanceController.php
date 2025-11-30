@@ -19,6 +19,7 @@ class AttendanceController extends Controller
             'photo' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'clock_in_time' => 'nullable|date',
         ]);
 
         $user = Auth::user();
@@ -27,10 +28,14 @@ class AttendanceController extends Controller
         $filename = 'attendance/' . $user->id . '_clockin_' . time() . '.jpg';
         Storage::disk('public')->put($filename, $image);
 
+        $clockInTime = $request->clock_in_time 
+            ? Carbon::parse($request->clock_in_time) 
+            : Carbon::now();
+
         $attendance = Attendance::create([
             'user_id' => $user->id,
             'company_id' => $user->company_id ?? 1,
-            'clock_in' => Carbon::now(),
+            'clock_in' => $clockInTime,
             'clock_in_latitude' => $request->latitude,
             'clock_in_longitude' => $request->longitude,
             'clock_in_photo' => $filename,
@@ -53,6 +58,7 @@ class AttendanceController extends Controller
             'photo' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'clock_out_time' => 'nullable|date',
         ]);
 
         $user = Auth::user();
@@ -73,7 +79,10 @@ class AttendanceController extends Controller
         $filename = 'attendance/' . $user->id . '_clockout_' . time() . '.jpg';
         Storage::disk('public')->put($filename, $image);
 
-        $clockOutTime = Carbon::now();
+        $clockOutTime = $request->clock_out_time 
+            ? Carbon::parse($request->clock_out_time) 
+            : Carbon::now();
+
         $duration = null;
 
         if ($attendance->clock_in) {
