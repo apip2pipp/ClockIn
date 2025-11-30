@@ -1,8 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/attendance_provider.dart';
 import '../models/attendance_model.dart';
+import '../widgets/main_layout.dart';
 
 class AttendanceHistoryScreen extends StatefulWidget {
   const AttendanceHistoryScreen({super.key});
@@ -159,65 +161,197 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Riwayat Absensi'),
-        backgroundColor: Theme.of(context).primaryColor,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showFilterDialog,
-          ),
-        ],
-      ),
-      body: Consumer<AttendanceProvider>(
-        builder: (context, attendanceProvider, child) {
-          if (attendanceProvider.isLoading &&
-              attendanceProvider.attendanceHistory.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return MainLayout(
+      selectedIndex: 1,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F7FA),
+        body: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              // Header with gradient
+              _buildHeader(context),
 
-          if (attendanceProvider.attendanceHistory.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.history, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Belum ada riwayat absensi',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            );
-          }
+              // Main content
+              SliverToBoxAdapter(
+                child: Consumer<AttendanceProvider>(
+                  builder: (context, attendanceProvider, child) {
+                    if (attendanceProvider.isLoading &&
+                        attendanceProvider.attendanceHistory.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(100),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
 
-          return RefreshIndicator(
-            onRefresh: _loadData,
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: attendanceProvider.attendanceHistory.length + 1,
-              itemBuilder: (context, index) {
-                if (index == attendanceProvider.attendanceHistory.length) {
-                  // Load more button/indicator
-                  return Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: _isLoadingMore
-                        ? const Center(child: CircularProgressIndicator())
-                        : TextButton(
-                            onPressed: _loadMore,
-                            child: const Text('Muat Lebih Banyak'),
+                    if (attendanceProvider.attendanceHistory.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(50),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF26667F,
+                                  ).withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.history,
+                                  size: 50,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                'Belum ada riwayat absensi',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
-                  );
-                }
+                        ),
+                      );
+                    }
 
-                final attendance = attendanceProvider.attendanceHistory[index];
-                return _buildAttendanceCard(attendance);
-              },
+                    return RefreshIndicator(
+                      onRefresh: _loadData,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(25),
+                        itemCount:
+                            attendanceProvider.attendanceHistory.length + 1,
+                        itemBuilder: (context, index) {
+                          if (index ==
+                              attendanceProvider.attendanceHistory.length) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: _isLoadingMore
+                                  ? const Center(
+                                      child: CircularProgressIndicator(),
+                                    )
+                                  : Center(
+                                      child: OutlinedButton.icon(
+                                        onPressed: _loadMore,
+                                        icon: const Icon(Icons.refresh),
+                                        label: const Text('Muat Lebih Banyak'),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: const Color(
+                                            0xFF26667F,
+                                          ),
+                                          side: const BorderSide(
+                                            color: Color(0xFF26667F),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                            vertical: 12,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                            );
+                          }
+
+                          final attendance =
+                              attendanceProvider.attendanceHistory[index];
+                          return _buildAttendanceCard(attendance);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return SliverAppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      pinned: true,
+      toolbarHeight: 80,
+      automaticallyImplyLeading: false,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF80CE70), Color(0xFF26667F)],
+          ),
+          border: Border(
+            bottom: BorderSide(
+              color: const Color(0xFFE5E7EB).withOpacity(0.5),
+              width: 0.6,
             ),
-          );
-        },
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // ClockIn Logo
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 47,
+                      height: 47,
+                      child: Image.asset(
+                        'assets/icon_login.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(
+                      'Riwayat Absensi',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 22,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                // Filter Button
+                InkWell(
+                  onTap: _showFilterDialog,
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.filter_list,
+                      color: Colors.white,
+                      size: 25,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -225,126 +359,291 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   Widget _buildAttendanceCard(Attendance attendance) {
     final isComplete = attendance.clockOut != null;
 
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Date and Status
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFE5E7EB).withOpacity(0.4),
+          width: 0.6,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  DateFormat(
-                    'EEEE, d MMMM y',
-                    'id_ID',
-                  ).format(attendance.clockIn),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(attendance.status).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _getStatusLabel(attendance.status),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: _getStatusColor(attendance.status),
-                      fontWeight: FontWeight.w600,
+                // Date and Status
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        DateFormat(
+                          'EEEE, d MMMM y',
+                          'id_ID',
+                        ).format(attendance.clockIn),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF181F3E),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(
+                          attendance.status,
+                        ).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _getStatusColor(
+                            attendance.status,
+                          ).withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        _getStatusLabel(attendance.status),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _getStatusColor(attendance.status),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+
+                const SizedBox(height: 16),
+
+                // Clock In
+                Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.login,
+                        size: 18,
+                        color: Colors.green,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Clock In',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        Text(
+                          DateFormat(
+                            'HH:mm',
+                            'id_ID',
+                          ).format(attendance.clockIn),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF181F3E),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // Clock Out
+                if (isComplete) ...[
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.logout,
+                          size: 18,
+                          color: Colors.orange,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Clock Out',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            DateFormat(
+                              'HH:mm',
+                              'id_ID',
+                            ).format(attendance.clockOut!),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF181F3E),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Divider
+                  Divider(
+                    color: const Color(0xFFE5E7EB).withOpacity(0.3),
+                    thickness: 0.6,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Duration
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF26667F).withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.timer,
+                          size: 18,
+                          color: Color(0xFF26667F),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Durasi Kerja',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            attendance.formattedDuration,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF124170),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ] else
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.warning,
+                          size: 18,
+                          color: Colors.red,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Belum Clock Out',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                // Notes
+                if (attendance.clockInNotes != null ||
+                    attendance.clockOutNotes != null) ...[
+                  const SizedBox(height: 12),
+                  Divider(
+                    color: const Color(0xFFE5E7EB).withOpacity(0.3),
+                    thickness: 0.6,
+                  ),
+                  const SizedBox(height: 12),
+                  if (attendance.clockInNotes != null) ...[
+                    Text(
+                      'Catatan Clock In:',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      attendance.clockInNotes!,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    ),
+                  ],
+                  if (attendance.clockOutNotes != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Catatan Clock Out:',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      attendance.clockOutNotes!,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    ),
+                  ],
+                ],
               ],
             ),
-            const SizedBox(height: 12),
-
-            // Clock In
-            Row(
-              children: [
-                const Icon(Icons.login, size: 16, color: Colors.green),
-                const SizedBox(width: 8),
-                Text(
-                  'Clock In: ${DateFormat('HH:mm', 'id_ID').format(attendance.clockIn)}',
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-
-            // Clock Out
-            if (isComplete) ...[
-              Row(
-                children: [
-                  const Icon(Icons.logout, size: 16, color: Colors.orange),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Clock Out: ${DateFormat('HH:mm', 'id_ID').format(attendance.clockOut!)}',
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.timer, size: 16, color: Colors.blue),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Durasi: ${attendance.formattedDuration}',
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ],
-              ),
-            ] else
-              Row(
-                children: [
-                  const Icon(Icons.warning, size: 16, color: Colors.red),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Belum Clock Out',
-                    style: TextStyle(fontSize: 13, color: Colors.red),
-                  ),
-                ],
-              ),
-
-            // Notes
-            if (attendance.clockInNotes != null ||
-                attendance.clockOutNotes != null) ...[
-              const SizedBox(height: 8),
-              const Divider(),
-              if (attendance.clockInNotes != null) ...[
-                const Text(
-                  'Catatan Clock In:',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  attendance.clockInNotes!,
-                  style: TextStyle(fontSize: 11, color: Colors.grey[700]),
-                ),
-              ],
-              if (attendance.clockOutNotes != null) ...[
-                const SizedBox(height: 4),
-                const Text(
-                  'Catatan Clock Out:',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  attendance.clockOutNotes!,
-                  style: TextStyle(fontSize: 11, color: Colors.grey[700]),
-                ),
-              ],
-            ],
-          ],
+          ),
         ),
       ),
     );
