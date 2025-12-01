@@ -1,0 +1,8 @@
+# Folder untuk Screenshot Mobile App
+
+Simpan screenshot dengan format:
+- Format: PNG atau JPG
+- Naming: `[nomor]-[deskripsi].png`
+- Contoh: `01-app-icon.png`, `12-checkin-popup.png`
+
+Lihat panduan lengkap di `../SCREENSHOT_GUIDE.md`

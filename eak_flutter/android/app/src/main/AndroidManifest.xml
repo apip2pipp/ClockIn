@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
-        android:label="E-Absensi Karyawan"
+        android:label="ClockIn"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
 

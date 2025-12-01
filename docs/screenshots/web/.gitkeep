@@ -1,0 +1,8 @@
+# Folder untuk Screenshot Web Admin
+
+Simpan screenshot dengan format:
+- Format: PNG atau JPG
+- Naming: `[nomor]-[deskripsi].png`
+- Contoh: `01-login-page.png`, `04-dashboard-overview.png`
+
+Lihat panduan lengkap di `../SCREENSHOT_GUIDE.md`
