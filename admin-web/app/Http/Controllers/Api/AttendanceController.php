@@ -11,6 +11,29 @@ use App\Http\Controllers\Controller;
 
 class AttendanceController extends Controller
 {
+    public function today()
+    {
+        $user = Auth::user();
+
+        $attendance = Attendance::where('user_id', $user->id)
+            ->whereDate('clock_in', Carbon::today())
+            ->first();
+
+        if ($attendance) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Today attendance found',
+                'data' => $attendance,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No attendance today',
+            'data' => null,
+        ]);
+    }
+
     // CLOCK IN
     public function clockIn(Request $request)
     {
@@ -36,8 +59,8 @@ class AttendanceController extends Controller
             'user_id' => $user->id,
             'company_id' => $user->company_id ?? 1,
             'clock_in' => $clockInTime,
-            'clock_in_latitude' => $request->latitude,
-            'clock_in_longitude' => $request->longitude,
+            'clock_in_latitude' => (float) $request->latitude,  
+            'clock_in_longitude' => (float) $request->longitude, 
             'clock_in_photo' => $filename,
             'clock_in_notes' => $request->description,
             'status' => 'on_time',
@@ -92,8 +115,8 @@ class AttendanceController extends Controller
 
         $attendance->update([
             'clock_out' => $clockOutTime,
-            'clock_out_latitude' => $request->latitude,
-            'clock_out_longitude' => $request->longitude,
+            'clock_out_latitude' => (float) $request->latitude,  
+            'clock_out_longitude' => (float) $request->longitude, 
             'clock_out_photo' => $filename,
             'clock_out_notes' => $request->description,
             'work_duration' => $duration,
