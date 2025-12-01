@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "26466421088",
+    "project_id": "pbl-presensi-karyawan",
+    "storage_bucket": "pbl-presensi-karyawan.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:26466421088:android:151c231399b59f73567605",
+        "android_client_info": {
+          "package_name": "com.example.eak_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBaBLSUjfpgDYKMJMWJCbZq7q-C3iuOvcA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
