@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:eak_flutter/config/api_config.dart';
-import 'package:eak_flutter/models/attendance_model.dart';
+// import 'package:eak_flutter/models/attendance_model.dart';
 import 'package:eak_flutter/models/leave_request_model.dart';
 import 'package:eak_flutter/models/user_model.dart';
 import 'package:eak_flutter/services/attendance_service.dart';
@@ -304,34 +304,47 @@ class ApiService {
 }
 
   /// Get today's attendance
-  static Future<Map<String, dynamic>> getTodayAttendance() async {
-    try {
-      final headers = await getHeaders();
-      final response = await http.get(
-        Uri.parse(ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)),
-        headers: headers,
-      );
+static Future<Map<String, dynamic>> getTodayAttendance() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
 
-      final data = json.decode(response.body);
-
-      if (response.statusCode == 200 && data['success']) {
-        return {
-          'success': true,
-          'attendance': data['data'] != null
-              ? Attendance.fromJson(data['data'])
-              : null,
-        };
-      } else {
-        return {
-          'success': false,
-          'message': data['message'] ?? 'Failed to get today attendance',
-        };
-      }
-    } catch (e) {
-      debugPrint('Get Today Attendance Error: $e');
-      return {'success': false, 'message': 'Network error: $e'};
+    if (token == null) {
+      return {'success': false, 'message': 'Not authenticated'};
     }
+
+    print('🔍 GET Today Attendance API Call');
+    print('   URL: ${ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)}');
+
+    final response = await http.get(
+      Uri.parse(ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print('📡 Response Status: ${response.statusCode}');
+    print('📡 Response Body: ${response.body}');
+
+    final data = json.decode(response.body);
+
+    if (response.statusCode == 200 && data['success']) {
+      return {
+        'success': true,
+        'attendance': data['data'],
+      };
+    } else {
+      return {
+        'success': false,
+        'message': data['message'] ?? 'Failed to get today attendance',
+      };
+    }
+  } catch (e) {
+    print('❌ Error getTodayAttendance: $e');
+    return {'success': false, 'message': 'Network error: $e'};
   }
+}
 
   // ==================== LEAVE REQUESTS ====================
 
