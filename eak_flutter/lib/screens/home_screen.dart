@@ -125,11 +125,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Floating Clock In Button
+            // Floating Clock In/Out Button
             Positioned(
               right: 25,
               bottom: 20,
-              child: _buildFloatingClockInButton(),
+              child: Consumer<AttendanceProvider>(
+                builder: (context, attendanceProvider, child) {
+                  return _buildFloatingButton(attendanceProvider);
+                },
+              ),
             ),
           ],
         ),
@@ -221,7 +225,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildGradientCard(user, company, todayAttendance) {
     return Container(
       width: double.infinity,
-      // height: 324,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
@@ -290,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        company?.name ?? 'PT Teknologi Maju Bersama',
+                        company?.name ?? '',
                         style: const TextStyle(
                           fontSize: 17.5,
                           color: Colors.white,
@@ -409,7 +412,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ? DateFormat('HH:mm').format(todayAttendance.clockOut!)
         : '--:--';
     final duration = todayAttendance?.clockOut != null
-        ? todayAttendance.formattedDuration
+        ? todayAttendance.formattedWorkDuration
         : '--';
 
     return Container(
@@ -552,9 +555,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.bar_chart,
                 label: 'Quick Stats',
                 color: const Color(0xFF80CE70),
-                onTap: () {
-                  // TODO: Navigate to Quick Stats
-                },
+                onTap: () {},
               ),
             ),
             const SizedBox(width: 20),
@@ -587,7 +588,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => LeaveRequestListScreen(),
+                      builder: (context) => const LeaveRequestListScreen(),
                     ),
                   );
                 },
@@ -656,68 +657,193 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFloatingClockInButton() {
-    return Consumer<AttendanceProvider>(
-      builder: (context, attendanceProvider, child) {
-        final todayAttendance = attendanceProvider.todayAttendance;
+  Widget _buildFloatingButton(AttendanceProvider attendanceProvider) {
+    final todayAttendance = attendanceProvider.todayAttendance;
 
-        return GestureDetector(
-          onTap: () {
-            if (todayAttendance == null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ClockInScreen()),
-              ).then((_) => _loadData());
-            } else if (todayAttendance.clockOut == null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ClockOutScreen()),
-              ).then((_) => _loadData());
-            }
-          },
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFF26667F).withOpacity(0.56),
-                  const Color(0xFF26667F),
-                ],
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  blurRadius: 50,
-                  offset: const Offset(0, 25),
-                ),
-              ],
+    print('🔍 DEBUG Button State:');
+    print('   todayAttendance: ${todayAttendance?.id}');
+    print('   clockIn: ${todayAttendance?.clockIn}');
+    print('   clockOut: ${todayAttendance?.clockOut}');
+
+    if (todayAttendance == null) {
+      print('→ Showing CLOCK IN button');
+      return _buildClockInButton();
+    }
+
+    if (todayAttendance.clockOut == null) {
+      print('→ Showing CLOCK OUT button');
+      return _buildClockOutButton();
+    }
+
+    print('→ Showing DONE button');
+    return _buildDoneButton();
+  }
+
+  Widget _buildClockInButton() {
+    return GestureDetector(
+      onTap: () async {
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('🚀 Button Tapped: Navigate to Clock In Screen');
+
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ClockInScreen()),
+        );
+
+        print('🔙 Returned from Clock In Screen');
+
+        if (mounted) {
+          print('🔄 Refreshing attendance...');
+          final provider = Provider.of<AttendanceProvider>(
+            context,
+            listen: false,
+          );
+
+          await provider.loadTodayAttendance();
+
+          print('✅ loadTodayAttendance() completed');
+          print('   Current attendance: ${provider.todayAttendance?.id}');
+          print('   Clock Out: ${provider.todayAttendance?.clockOut}');
+
+          setState(() {});
+
+          print('✅ setState() called - Widget should rebuild');
+          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        }
+      },
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF26667F).withOpacity(0.56),
+              const Color(0xFF26667F),
+            ],
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 50,
+              offset: const Offset(0, 25),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.access_time, color: Colors.white, size: 32),
-                const SizedBox(height: 3),
-                Text(
-                  todayAttendance == null
-                      ? 'Clock In'
-                      : todayAttendance.clockOut == null
-                      ? 'Clock Out'
-                      : 'Done',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.access_time, color: Colors.white, size: 32),
+            SizedBox(height: 3),
+            Text(
+              'Clock In',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClockOutButton() {
+    return GestureDetector(
+      onTap: () async {
+        print('🚀 Navigate to Clock Out Screen');
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ClockOutScreen()),
+        );
+
+        if (mounted) {
+          print('🔄 Refreshing attendance after clock out...');
+          final provider = Provider.of<AttendanceProvider>(
+            context,
+            listen: false,
+          );
+          await provider.loadTodayAttendance();
+          setState(() {});
+        }
+      },
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF26667F).withOpacity(0.56),
+              const Color(0xFF26667F),
+            ],
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 50,
+              offset: const Offset(0, 25),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.access_time, color: Colors.white, size: 32),
+            SizedBox(height: 3),
+            Text(
+              'Clock Out',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDoneButton() {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.grey.withOpacity(0.56), Colors.grey],
+        ),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 50,
+            offset: const Offset(0, 25),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.access_time, color: Colors.white, size: 32),
+          SizedBox(height: 3),
+          Text(
+            'Done',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
