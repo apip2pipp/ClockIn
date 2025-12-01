@@ -68,6 +68,12 @@ dependencies:
   
   file_picker: ^8.0.0
 
+  # Firebase
+  firebase_core: ^2.24.2
+  firebase_messaging: ^14.7.9
+  flutter_local_notifications: ^16.3.0
+  timezone: ^0.9.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
