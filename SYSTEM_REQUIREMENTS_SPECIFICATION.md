@@ -1,4 +1,4 @@
-# ClockIn+ System Requirements Specification (SRS)
+# ClockIn System Requirements Specification (SRS)
 
 ## 📱 Project Overview
 

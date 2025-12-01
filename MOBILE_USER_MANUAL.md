@@ -1,4 +1,4 @@
-# 📱 ClockIn+ Mobile App - User Manual
+# 📱 ClockIn Mobile App - User Manual
 
 > **Panduan Lengkap Penggunaan Aplikasi Mobile ClockIn+**  
 > Dari install sampai absen setiap hari dengan mudah!

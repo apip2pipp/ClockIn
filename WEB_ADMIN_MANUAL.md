@@ -1,4 +1,4 @@
-# 💻 ClockIn+ Web Admin - User Manual
+# 💻 ClockIn Web Admin - User Manual
 
 > **Panduan Lengkap Penggunaan Web Admin ClockIn+**  
 > Untuk Admin, HRD, dan Management dalam mengelola sistem absensi karyawan
