@@ -4,27 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'company_id',
+        'user_id',
         'clock_in',
+        'clock_out',
         'clock_in_latitude',
         'clock_in_longitude',
-        'clock_in_photo',
-        'clock_in_notes',
-        'clock_out',
         'clock_out_latitude',
         'clock_out_longitude',
+        'clock_in_photo',
         'clock_out_photo',
+        'clock_in_notes',
         'clock_out_notes',
-        'work_duration',
         'status',
+        'work_duration',
+        'is_valid',
+        'validation_notes',
+        'validated_at',
+        'validated_by',
     ];
 
     protected $casts = [
@@ -34,36 +37,38 @@ class Attendance extends Model
         'clock_in_longitude' => 'decimal:8',
         'clock_out_latitude' => 'decimal:8',
         'clock_out_longitude' => 'decimal:8',
+        'validated_at' => 'datetime',
     ];
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function company(): BelongsTo
+    // Relationships
+    public function company()
     {
         return $this->belongsTo(Company::class);
     }
 
-    public function calculateDuration(): ?int
+    public function user()
     {
-        if (!$this->clock_out) return null;
-        return $this->clock_in->diffInMinutes($this->clock_out);
+        return $this->belongsTo(User::class);
     }
 
-    public function isLate(): bool
+    public function validator()
     {
-        if (!$this->company) return false;
-        $workStartTime = $this->company->work_start_time;
-        return $this->clock_in->format('H:i:s') > $workStartTime;
+        return $this->belongsTo(User::class, 'validated_by');
     }
 
-    public function getFormattedDuration(): string
+    // Helpers
+    public function isPending(): bool
     {
-        if (!$this->work_duration) return '-';
-        $hours = floor($this->work_duration / 60);
-        $minutes = $this->work_duration % 60;
-        return sprintf('%d jam %d menit', $hours, $minutes);
+        return $this->is_valid === 'pending';
+    }
+
+    public function isValid(): bool
+    {
+        return $this->is_valid === 'valid';
+    }
+
+    public function isInvalid(): bool
+    {
+        return $this->is_valid === 'invalid';
     }
 }

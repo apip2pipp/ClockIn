@@ -152,31 +152,100 @@ class _ClockInScreenState extends State<ClockInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(title: const Text('Clock In'), elevation: 0),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      backgroundColor: const Color(0xFFF5F7FA),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Step indicator
-            _buildStepIndicator(),
-            const SizedBox(height: 20),
+            // Custom Header
+            _buildHeader(context),
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(25),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Step indicator
+                    _buildStepIndicator(),
+                    const SizedBox(height: 20),
 
-            // Photo Card
-            _buildPhotoCard(),
-            const SizedBox(height: 16),
+                    // Photo Card
+                    _buildPhotoCard(),
+                    const SizedBox(height: 16),
 
-            // Description Card
-            _buildDescriptionCard(),
-            const SizedBox(height: 16),
+                    // Description Card
+                    _buildDescriptionCard(),
+                    const SizedBox(height: 16),
 
-            // Location Card
-            _buildLocationCard(),
-            const SizedBox(height: 24),
+                    // Location Card
+                    _buildLocationCard(),
+                    const SizedBox(height: 24),
 
-            // Submit Button
-            _buildSubmitButton(),
+                    // Submit Button
+                    _buildSubmitButton(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      height: 80,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF80CE70), Color(0xFF26667F)],
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: const Color(0xFFE5E7EB).withOpacity(0.5),
+            width: 0.6,
+          ),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 15),
+        child: Row(
+          children: [
+            // Back Button
+            InkWell(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Logo
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: Image.asset('assets/icon_login.png', fit: BoxFit.contain),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Clock In',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 22,
+                color: Colors.white,
+              ),
+            ),
           ],
         ),
       ),
