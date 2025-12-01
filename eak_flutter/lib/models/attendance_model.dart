@@ -5,15 +5,15 @@ class Attendance {
   final int userId;
   final int companyId;
   final DateTime clockIn;
+  final DateTime? clockOut;
+  final String? clockInNotes;
+  final String? clockOutNotes;
   final double? clockInLatitude;
   final double? clockInLongitude;
-  final String? clockInPhoto;
-  final String? clockInNotes;
-  final DateTime? clockOut;
   final double? clockOutLatitude;
   final double? clockOutLongitude;
+  final String? clockInPhoto;
   final String? clockOutPhoto;
-  final String? clockOutNotes;
   final int? workDuration;
   final String status;
 
@@ -22,15 +22,15 @@ class Attendance {
     required this.userId,
     required this.companyId,
     required this.clockIn,
+    this.clockOut,
+    this.clockInNotes,
+    this.clockOutNotes,
     this.clockInLatitude,
     this.clockInLongitude,
-    this.clockInPhoto,
-    this.clockInNotes,
-    this.clockOut,
     this.clockOutLatitude,
     this.clockOutLongitude,
+    this.clockInPhoto,
     this.clockOutPhoto,
-    this.clockOutNotes,
     this.workDuration,
     required this.status,
   });
@@ -41,28 +41,36 @@ class Attendance {
       userId: json['user_id'],
       companyId: json['company_id'],
       clockIn: DateTime.parse(json['clock_in']),
-      clockInLatitude: json['clock_in_latitude'] != null
-          ? double.parse(json['clock_in_latitude'].toString())
+      clockOut: json['clock_out'] != null 
+          ? DateTime.parse(json['clock_out']) 
           : null,
-      clockInLongitude: json['clock_in_longitude'] != null
-          ? double.parse(json['clock_in_longitude'].toString())
-          : null,
-      clockInPhoto: json['clock_in_photo'],
       clockInNotes: json['clock_in_notes'],
-      clockOut: json['clock_out'] != null
-          ? DateTime.parse(json['clock_out'])
-          : null,
-      clockOutLatitude: json['clock_out_latitude'] != null
-          ? double.parse(json['clock_out_latitude'].toString())
-          : null,
-      clockOutLongitude: json['clock_out_longitude'] != null
-          ? double.parse(json['clock_out_longitude'].toString())
-          : null,
-      clockOutPhoto: json['clock_out_photo'],
       clockOutNotes: json['clock_out_notes'],
+      
+      // ✅ FIX: Parse String/int/double ke double
+      clockInLatitude: _parseDouble(json['clock_in_latitude']),
+      clockInLongitude: _parseDouble(json['clock_in_longitude']),
+      clockOutLatitude: _parseDouble(json['clock_out_latitude']),
+      clockOutLongitude: _parseDouble(json['clock_out_longitude']),
+      
+      clockInPhoto: json['clock_in_photo'] != null
+          ? ApiConfig.getFullUrl('/storage/${json['clock_in_photo']}')
+          : null,
+      clockOutPhoto: json['clock_out_photo'] != null
+          ? ApiConfig.getFullUrl('/storage/${json['clock_out_photo']}')
+          : null,
       workDuration: json['work_duration'],
-      status: json['status'],
+      status: json['status'] ?? 'on_time',
     );
+  }
+
+  // ✅ HELPER METHOD untuk convert dynamic ke double
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -71,34 +79,30 @@ class Attendance {
       'user_id': userId,
       'company_id': companyId,
       'clock_in': clockIn.toIso8601String(),
+      'clock_out': clockOut?.toIso8601String(),
+      'clock_in_notes': clockInNotes,
+      'clock_out_notes': clockOutNotes,
       'clock_in_latitude': clockInLatitude,
       'clock_in_longitude': clockInLongitude,
-      'clock_in_photo': clockInPhoto,
-      'clock_in_notes': clockInNotes,
-      'clock_out': clockOut?.toIso8601String(),
       'clock_out_latitude': clockOutLatitude,
       'clock_out_longitude': clockOutLongitude,
+      'clock_in_photo': clockInPhoto,
       'clock_out_photo': clockOutPhoto,
-      'clock_out_notes': clockOutNotes,
       'work_duration': workDuration,
       'status': status,
     };
   }
 
-  String get clockInPhotoUrl {
-    return ApiConfig.getStorageUrl(clockInPhoto);
-  }
+  String get clockInTime => '${clockIn.hour.toString().padLeft(2, '0')}:${clockIn.minute.toString().padLeft(2, '0')}';
+  
+  String get clockOutTime => clockOut != null
+      ? '${clockOut!.hour.toString().padLeft(2, '0')}:${clockOut!.minute.toString().padLeft(2, '0')}'
+      : '-';
 
-  String get clockOutPhotoUrl {
-    return ApiConfig.getStorageUrl(clockOutPhoto);
-  }
-
-  String get formattedDuration {
+  String get formattedWorkDuration {
     if (workDuration == null) return '-';
     final hours = workDuration! ~/ 60;
     final minutes = workDuration! % 60;
     return '${hours}h ${minutes}m';
   }
-
-  bool get isClockOutAvailable => clockOut == null;
 }

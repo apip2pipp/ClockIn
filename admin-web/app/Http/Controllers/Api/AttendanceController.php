@@ -11,28 +11,56 @@ use App\Http\Controllers\Controller;
 
 class AttendanceController extends Controller
 {
+    public function today()
+    {
+        $user = Auth::user();
+
+        $attendance = Attendance::where('user_id', $user->id)
+            ->whereDate('clock_in', Carbon::today())
+            ->first();
+
+        if ($attendance) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Today attendance found',
+                'data' => $attendance,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No attendance today',
+            'data' => null,
+        ]);
+    }
+
     // CLOCK IN
     public function clockIn(Request $request)
     {
         $request->validate([
-            'description' => 'required|string',
+            'description' => 'nullable|string|max:1000',
             'photo' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'clock_in_time' => 'nullable|date',
         ]);
 
-        $user = Auth::user(); // ← INI TIDAK BOLEH NULL
+        $user = Auth::user();
 
         $image = base64_decode($request->photo);
         $filename = 'attendance/' . $user->id . '_clockin_' . time() . '.jpg';
         Storage::disk('public')->put($filename, $image);
 
+        $clockInTime = $request->clock_in_time 
+            ? Carbon::parse($request->clock_in_time) 
+            : Carbon::now();
+
         $attendance = Attendance::create([
             'user_id' => $user->id,
             'company_id' => $user->company_id ?? 1,
-            'clock_in' => Carbon::now(),
-            'clock_in_latitude' => $request->latitude,
-            'clock_in_longitude' => $request->longitude,
+            'clock_in' => $clockInTime,
+            'clock_in_latitude' => (float) $request->latitude,  
+            'clock_in_longitude' => (float) $request->longitude, 
             'clock_in_photo' => $filename,
             'clock_in_notes' => $request->description,
             'status' => 'on_time',
@@ -49,22 +77,24 @@ class AttendanceController extends Controller
     public function clockOut(Request $request)
     {
         $request->validate([
-            'description' => 'required|string',
+            'description' => 'nullable|string|max:1000',
             'photo' => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'clock_out_time' => 'nullable|date',
         ]);
 
         $user = Auth::user();
 
         $attendance = Attendance::where('user_id', $user->id)
             ->whereDate('clock_in', Carbon::today())
+            ->whereNull('clock_out')
             ->first();
 
         if (!$attendance) {
             return response()->json([
                 'success' => false,
-                'message' => 'Belum melakukan clock in',
+                'message' => 'Belum melakukan clock in hari ini',
             ], 400);
         }
 
@@ -72,7 +102,10 @@ class AttendanceController extends Controller
         $filename = 'attendance/' . $user->id . '_clockout_' . time() . '.jpg';
         Storage::disk('public')->put($filename, $image);
 
-        $clockOutTime = Carbon::now();
+        $clockOutTime = $request->clock_out_time 
+            ? Carbon::parse($request->clock_out_time) 
+            : Carbon::now();
+
         $duration = null;
 
         if ($attendance->clock_in) {
@@ -82,8 +115,8 @@ class AttendanceController extends Controller
 
         $attendance->update([
             'clock_out' => $clockOutTime,
-            'clock_out_latitude' => $request->latitude,
-            'clock_out_longitude' => $request->longitude,
+            'clock_out_latitude' => (float) $request->latitude,  
+            'clock_out_longitude' => (float) $request->longitude, 
             'clock_out_photo' => $filename,
             'clock_out_notes' => $request->description,
             'work_duration' => $duration,
