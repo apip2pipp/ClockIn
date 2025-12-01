@@ -16,21 +16,45 @@ class AttendanceProvider with ChangeNotifier {
 
   /// Load today's attendance
   Future<void> loadTodayAttendance() async {
-    _isLoading = true;
-    notifyListeners();
+    try {
+      _isLoading = true;
+      notifyListeners();
 
-    final result = await ApiService.getTodayAttendance();
+      print('📥 Loading today attendance...');
 
-    if (result['success']) {
-      _todayAttendance = Attendance.fromJson(result['attendance']);
+      final result = await ApiService.getTodayAttendance();
 
-      _errorMessage = null;
-    } else {
-      _errorMessage = result['message'];
+      print('📡 API Response getTodayAttendance:');
+      print('   Success: ${result['success']}');
+      print('   Attendance Data: ${result['attendance']}');
+
+      if (result['success']) {
+        if (result['attendance'] != null) {
+          _todayAttendance = Attendance.fromJson(result['attendance']);
+          _errorMessage = null;
+
+          print('✅ Today attendance loaded:');
+          print('   ID: ${_todayAttendance?.id}');
+          print('   Clock In: ${_todayAttendance?.clockIn}');
+          print('   Clock Out: ${_todayAttendance?.clockOut}');
+        } else {
+          _todayAttendance = null;
+          print('ℹ️ No attendance data (null)');
+        }
+      } else {
+        _errorMessage = result['message'];
+        _todayAttendance = null;
+        print('ℹ️ No attendance today: $_errorMessage');
+      }
+    } catch (e) {
+      print('❌ Error loading today attendance: $e');
+      print('❌ Stack trace: ${StackTrace.current}');
+      _errorMessage = e.toString();
+      _todayAttendance = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   /// Clock In
@@ -40,29 +64,63 @@ class AttendanceProvider with ChangeNotifier {
     required File photo,
     String? notes,
   }) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    final result = await ApiService.clockIn(
-      latitude: latitude,
-      longitude: longitude,
-      photo: photo,
-      notes: notes,
-
-    );
-
-    if (result['success']) {
-      _todayAttendance = Attendance.fromJson(result['attendance']);
-
+    try {
+      _isLoading = true;
       _errorMessage = null;
+      notifyListeners();
+
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('🔄 Clock In START');
+      print('   Loading: $_isLoading');
+
+      final result = await ApiService.clockIn(
+        latitude: latitude,
+        longitude: longitude,
+        photo: photo,
+        notes: notes,
+      );
+
+      print('📡 Clock In API Response:');
+      print('   Success: ${result['success']}');
+      print('   Message: ${result['message']}');
+      print('   Attendance Data: ${result['attendance']}');
+
+      if (result['success']) {
+        // ✅ PARSE RESPONSE
+        _todayAttendance = Attendance.fromJson(result['attendance']);
+        _errorMessage = null;
+
+        print('✅ Clock In SUCCESS');
+        print('   Attendance ID: ${_todayAttendance?.id}');
+        print('   Clock In: ${_todayAttendance?.clockIn}');
+        print('   Clock Out: ${_todayAttendance?.clockOut}');
+        print('   Clock Out is null? ${_todayAttendance?.clockOut == null}');
+
+        _isLoading = false;
+        notifyListeners();
+
+        print('   Notified listeners');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        return true;
+      } else {
+        _errorMessage = result['message'];
+        _isLoading = false;
+        notifyListeners();
+
+        print('❌ Clock In FAILED');
+        print('   Error: $_errorMessage');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        return false;
+      }
+    } catch (e, stackTrace) {
+      _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
-      return true;
-    } else {
-      _errorMessage = result['message'];
-      _isLoading = false;
-      notifyListeners();
+
+      print('💥 Clock In EXCEPTION');
+      print('   Error: $e');
+      print('   StackTrace: $stackTrace');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       return false;
     }
   }
@@ -74,28 +132,43 @@ class AttendanceProvider with ChangeNotifier {
     required File photo,
     String? notes,
   }) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    final result = await ApiService.clockOut(
-      latitude: latitude,
-      longitude: longitude,
-      photo: photo,
-      notes: notes!,
-    );
-
-    if (result['success']) {
-      _todayAttendance = Attendance.fromJson(result['attendance']);
-
+    try {
+      _isLoading = true;
       _errorMessage = null;
+      notifyListeners();
+      print('🔄 Clock Out START - Loading: $_isLoading');
+
+      final result = await ApiService.clockOut(
+        latitude: latitude,
+        longitude: longitude,
+        photo: photo,
+        notes: notes!,
+      );
+
+      print('📡 API Response: $result');
+
+      if (result['success']) {
+        _todayAttendance = Attendance.fromJson(result['attendance']);
+        _errorMessage = null;
+        _isLoading = false;
+        notifyListeners();
+
+        print('✅ Clock Out SUCCESS - Loading: $_isLoading');
+        return true;
+      } else {
+        _errorMessage = result['message'];
+        _isLoading = false;
+        notifyListeners();
+        print(
+          '❌ Clock Out FAILED - Loading: $_isLoading, Error: $_errorMessage',
+        );
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
-      return true;
-    } else {
-      _errorMessage = result['message'];
-      _isLoading = false;
-      notifyListeners();
+      print('💥 Clock Out ERROR: $e - Loading: $_isLoading');
       return false;
     }
   }
@@ -106,28 +179,33 @@ class AttendanceProvider with ChangeNotifier {
     int? month,
     int? year,
   }) async {
-    _isLoading = true;
-    notifyListeners();
+    try {
+      _isLoading = true;
+      notifyListeners();
 
-    final result = await ApiService.getAttendanceHistory(
-      page: page,
-      month: month,
-      year: year,
-    );
+      final result = await ApiService.getAttendanceHistory(
+        page: page,
+        month: month,
+        year: year,
+      );
 
-    if (result['success']) {
-      if (page == 1) {
-        _attendanceHistory = result['attendances'];
+      if (result['success']) {
+        if (page == 1) {
+          _attendanceHistory = result['attendances'];
+        } else {
+          _attendanceHistory.addAll(result['attendances']);
+        }
+        _errorMessage = null;
       } else {
-        _attendanceHistory.addAll(result['attendances']);
+        _errorMessage = result['message'];
       }
-      _errorMessage = null;
-    } else {
-      _errorMessage = result['message'];
+    } catch (e) {
+      _errorMessage = e.toString();
+      print('❌ Error loading attendance history: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   /// Clear error message
