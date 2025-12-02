@@ -72,6 +72,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
     }
 
     Position pos = await Geolocator.getCurrentPosition(
+      // ignore: deprecated_member_use
       desiredAccuracy: LocationAccuracy.high,
     );
 

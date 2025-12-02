@@ -81,6 +81,7 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
     }
 
     Position pos = await Geolocator.getCurrentPosition(
+      // ignore: deprecated_member_use
       desiredAccuracy: LocationAccuracy.high,
     );
 
