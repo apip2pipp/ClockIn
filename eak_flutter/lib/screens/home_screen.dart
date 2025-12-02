@@ -59,6 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
+      print('🔍 Loading leave requests...');
+      print('   Token: ${token.substring(0, 20)}...');
+      print('   URL: ${ApiConfig.leaveUrl}');
+
       final response = await http.get(
         Uri.parse(ApiConfig.leaveUrl),
         headers: {
@@ -67,20 +71,28 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
 
+      print('📥 Response status: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final leaveRequests = data['leave_requests'] as List;
 
+        print('✅ Leave requests loaded: ${leaveRequests.length} items');
+
         setState(() {
-          // Ambil 3 leave request terbaru
           _leaveRequests = leaveRequests
               .take(3)
               .map((req) => req as Map<String, dynamic>)
               .toList();
         });
+
+        print('✅ Displayed: ${_leaveRequests.length} items');
+      } else {
+        print('❌ Failed to load leave requests: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading leave requests: $e');
+      print('❌ Error loading leave requests: $e');
     }
   }
 
@@ -653,7 +665,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     IconButton(
                       icon: const Icon(Icons.refresh, size: 22),
                       color: const Color(0xFF26667F),
-                      onPressed: _loadLeaveRequests,
+                      onPressed: () {
+                        print('🔄 Refresh button pressed');
+                        _loadLeaveRequests();
+                      },
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -664,12 +679,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     ? Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
-                          child: Text(
-                            'No leave requests yet',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: const Color(0xFF6B7280).withOpacity(0.7),
-                            ),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.inbox_outlined,
+                                size: 48,
+                                color: const Color(0xFF6B7280).withOpacity(0.3),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'No leave requests yet',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: const Color(
+                                    0xFF6B7280,
+                                  ).withOpacity(0.7),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       )
@@ -678,37 +705,44 @@ class _HomeScreenState extends State<HomeScreen> {
                             .map((request) => _buildLeaveRequestItem(request))
                             .toList(),
                       ),
-                const SizedBox(height: 10),
-                Center(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LeaveRequestListScreen(),
-                        ),
-                      );
-                    },
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'View All',
-                          style: TextStyle(
-                            color: Color(0xFF26667F),
-                            fontWeight: FontWeight.w600,
+                if (_leaveRequests.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () {
+                        print(
+                          '📋 View All pressed - Navigate to Leave Request List',
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const LeaveRequestListScreen(),
                           ),
-                        ),
-                        SizedBox(width: 5),
-                        Icon(
-                          Icons.arrow_forward,
-                          size: 16,
+                        ).then((_) {
+                          // Refresh data when coming back
+                          print(
+                            '🔙 Returned from Leave Request List - Refreshing',
+                          );
+                          _loadLeaveRequests();
+                        });
+                      },
+                      icon: const Icon(
+                        Icons.list_alt,
+                        size: 18,
+                        color: Color(0xFF26667F),
+                      ),
+                      label: const Text(
+                        'View All Leave Requests',
+                        style: TextStyle(
                           color: Color(0xFF26667F),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -718,16 +752,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildLeaveRequestItem(Map<String, dynamic> request) {
-    final status = request['status'] as String;
-    final type = request['type'] as String;
-    final startDate = DateTime.parse(request['start_date']);
+    print('🏷️ Building leave request item: ${request.toString()}');
+
+    final status = request['status'] as String? ?? 'pending';
+    final type = request['type'] as String? ?? 'unknown';
+    final startDate = request['start_date'] != null
+        ? DateTime.parse(request['start_date'])
+        : DateTime.now();
+
+    print('   Status: $status');
+    print('   Type: $type');
+    print('   Date: $startDate');
 
     // Status colors and labels
     Color statusColor;
     String statusLabel;
     IconData statusIcon;
 
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'approved':
         statusColor = const Color(0xFF80CE70);
         statusLabel = 'Approved';
@@ -746,21 +788,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Type labels
     String typeLabel;
-    switch (type) {
+    IconData typeIcon;
+
+    switch (type.toLowerCase()) {
       case 'sick':
         typeLabel = 'Sick Leave';
+        typeIcon = Icons.local_hospital_outlined;
         break;
       case 'annual':
         typeLabel = 'Annual Leave';
+        typeIcon = Icons.beach_access_outlined;
         break;
       case 'permission':
         typeLabel = 'Permission';
+        typeIcon = Icons.edit_calendar_outlined;
         break;
       case 'emergency':
         typeLabel = 'Emergency Leave';
+        typeIcon = Icons.warning_amber_outlined;
         break;
       default:
         typeLabel = type;
+        typeIcon = Icons.event_note;
     }
 
     return Container(
@@ -769,10 +818,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: statusColor.withOpacity(0.08),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: statusColor.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: statusColor.withOpacity(0.3), width: 1),
       ),
       child: Row(
         children: [
@@ -783,11 +829,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: statusColor.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              statusIcon,
-              color: statusColor,
-              size: 26,
-            ),
+            child: Icon(typeIcon, color: statusColor, size: 26),
           ),
           const SizedBox(width: 15),
           Expanded(
@@ -803,12 +845,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  DateFormat('dd MMM yyyy').format(startDate),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: const Color(0xFF6B7280).withOpacity(0.8),
-                  ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: 12,
+                      color: const Color(0xFF6B7280).withOpacity(0.8),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      DateFormat('dd MMM yyyy').format(startDate),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: const Color(0xFF6B7280).withOpacity(0.8),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -818,14 +870,28 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               color: statusColor,
               borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: statusColor.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: Text(
-              statusLabel,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(statusIcon, color: Colors.white, size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  statusLabel,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
