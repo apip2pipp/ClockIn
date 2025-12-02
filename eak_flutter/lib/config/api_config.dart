@@ -20,6 +20,9 @@ class ApiConfig {
 
   static const String baseUrl = 'http://192.168.1.127:8000/api';
 
+  //Base URL untuk leave requests
+  static String get leaveUrl => baseUrl + leaveRequestsEndpoint;
+
   // Base URL untuk storage (foto, dokumen, dll)
   static const String storageUrl = 'http://192.168.1.127:8000/storage';
 
