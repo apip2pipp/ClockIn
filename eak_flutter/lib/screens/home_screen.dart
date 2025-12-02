@@ -55,13 +55,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final token = await AuthProvider.getToken();
 
       if (token == null || token.isEmpty) {
-        print('No token found');
+        // print('No token found');
         return;
       }
 
-      print('🔍 Loading leave requests...');
-      print('   Token: ${token.substring(0, 20)}...');
-      print('   URL: ${ApiConfig.leaveUrl}');
+      // print('🔍 Loading leave requests...');
+      // print('   Token: ${token.substring(0, 20)}...');
+      // print('   URL: ${ApiConfig.leaveUrl}');
 
       final response = await http.get(
         Uri.parse(ApiConfig.leaveUrl),
@@ -71,14 +71,14 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
 
-      print('📥 Response status: ${response.statusCode}');
-      print('📥 Response body: ${response.body}');
+      // print('📥 Response status: ${response.statusCode}');
+      // print('📥 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final leaveRequests = data['leave_requests'] as List;
 
-        print('✅ Leave requests loaded: ${leaveRequests.length} items');
+        // print('✅ Leave requests loaded: ${leaveRequests.length} items');
 
         setState(() {
           _leaveRequests = leaveRequests
@@ -87,12 +87,12 @@ class _HomeScreenState extends State<HomeScreen> {
               .toList();
         });
 
-        print('✅ Displayed: ${_leaveRequests.length} items');
+        // print('✅ Displayed: ${_leaveRequests.length} items');
       } else {
-        print('❌ Failed to load leave requests: ${response.statusCode}');
+        // print('❌ Failed to load leave requests: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error loading leave requests: $e');
+      // print('❌ Error loading leave requests: $e');
     }
   }
 
@@ -671,7 +671,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: const Icon(Icons.refresh, size: 22),
                       color: const Color(0xFF26667F),
                       onPressed: () {
-                        print('🔄 Refresh button pressed');
+                        // print('🔄 Refresh button pressed');
                         _loadLeaveRequests();
                       },
                       padding: EdgeInsets.zero,
@@ -717,9 +717,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   Center(
                     child: TextButton.icon(
                       onPressed: () {
-                        print(
-                          '📋 View All pressed - Navigate to Leave Request List',
-                        );
+                        // print(
+                        //   '📋 View All pressed - Navigate to Leave Request List',
+                        // );
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -727,10 +727,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 const LeaveRequestListScreen(),
                           ),
                         ).then((_) {
-                          // Refresh data when coming back
-                          print(
-                            '🔙 Returned from Leave Request List - Refreshing',
-                          );
+                          // print(
+                          //   '🔙 Returned from Leave Request List - Refreshing',
+                          // );
                           _loadLeaveRequests();
                         });
                       },
@@ -759,7 +758,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildLeaveRequestItem(Map<String, dynamic> request) {
-    print('🏷️ Building leave request item: ${request.toString()}');
+    // print('🏷️ Building leave request item: ${request.toString()}');
 
     final status = request['status'] as String? ?? 'pending';
     final type = request['type'] as String? ?? 'unknown';
@@ -767,9 +766,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ? DateTime.parse(request['start_date'])
         : DateTime.now();
 
-    print('   Status: $status');
-    print('   Type: $type');
-    print('   Date: $startDate');
+    // print('   Status: $status');
+    // print('   Type: $type');
+    // print('   Date: $startDate');
 
     // Status colors and labels
     Color statusColor;
@@ -962,7 +961,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: 'Settings',
                 color: const Color(0xFF7E57C2),
                 onTap: () {
-                  // TODO: Navigate to Settings
                 },
               ),
             ),
@@ -1043,18 +1041,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildClockInButton() {
     return GestureDetector(
       onTap: () async {
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('🚀 Button Tapped: Navigate to Clock In Screen');
+        // print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        // print('🚀 Button Tapped: Navigate to Clock In Screen');
 
         await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ClockInScreen()),
         );
 
-        print('🔙 Returned from Clock In Screen');
+        // print('🔙 Returned from Clock In Screen');
 
         if (mounted) {
-          print('🔄 Refreshing attendance...');
+          // print('🔄 Refreshing attendance...');
           final provider = Provider.of<AttendanceProvider>(
             context,
             listen: false,
@@ -1062,14 +1060,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
           await provider.loadTodayAttendance();
 
-          print('✅ loadTodayAttendance() completed');
-          print('   Current attendance: ${provider.todayAttendance?.id}');
-          print('   Clock Out: ${provider.todayAttendance?.clockOut}');
+          // print('✅ loadTodayAttendance() completed');
+          // print('   Current attendance: ${provider.todayAttendance?.id}');
+          // print('   Clock Out: ${provider.todayAttendance?.clockOut}');
 
           setState(() {});
 
-          print('✅ setState() called - Widget should rebuild');
-          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          // print('✅ setState() called - Widget should rebuild');
+          // print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         }
       },
       child: Container(
@@ -1115,14 +1113,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildClockOutButton() {
     return GestureDetector(
       onTap: () async {
-        print('🚀 Navigate to Clock Out Screen');
+        // print('🚀 Navigate to Clock Out Screen');
         await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ClockOutScreen()),
         );
 
         if (mounted) {
-          print('🔄 Refreshing attendance after clock out...');
+          // print('🔄 Refreshing attendance after clock out...');
           final provider = Provider.of<AttendanceProvider>(
             context,
             listen: false,

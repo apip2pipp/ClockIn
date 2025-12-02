@@ -313,8 +313,8 @@ static Future<Map<String, dynamic>> getTodayAttendance() async {
       return {'success': false, 'message': 'Not authenticated'};
     }
 
-    print('🔍 GET Today Attendance API Call');
-    print('   URL: ${ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)}');
+    // print('🔍 GET Today Attendance API Call');
+    // print('   URL: ${ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)}');
 
     final response = await http.get(
       Uri.parse(ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)),
@@ -324,8 +324,8 @@ static Future<Map<String, dynamic>> getTodayAttendance() async {
       },
     );
 
-    print('📡 Response Status: ${response.statusCode}');
-    print('📡 Response Body: ${response.body}');
+    // print('📡 Response Status: ${response.statusCode}');
+    // print('📡 Response Body: ${response.body}');
 
     final data = json.decode(response.body);
 
@@ -341,7 +341,7 @@ static Future<Map<String, dynamic>> getTodayAttendance() async {
       };
     }
   } catch (e) {
-    print('❌ Error getTodayAttendance: $e');
+    // print('❌ Error getTodayAttendance: $e');
     return {'success': false, 'message': 'Network error: $e'};
   }
 }
