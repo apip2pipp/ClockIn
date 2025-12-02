@@ -1014,10 +1014,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildFloatingButton(AttendanceProvider attendanceProvider) {
     final todayAttendance = attendanceProvider.todayAttendance;
 
-    print('🔍 DEBUG Button State:');
-    print('   todayAttendance: ${todayAttendance?.id}');
-    print('   clockIn: ${todayAttendance?.clockIn}');
-    print('   clockOut: ${todayAttendance?.clockOut}');
+    // print('🔍 DEBUG Button State:');
+    // print('   todayAttendance: ${todayAttendance?.id}');
+    // print('   clockIn: ${todayAttendance?.clockIn}');
+    // print('   clockOut: ${todayAttendance?.clockOut}');
 
     if (todayAttendance == null) {
       print('→ Showing CLOCK IN button');
