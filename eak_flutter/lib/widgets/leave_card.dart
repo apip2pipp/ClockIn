@@ -7,12 +7,12 @@ class LeaveCard extends StatelessWidget {
   final String status;
 
   const LeaveCard({
-    Key? key,
+    super.key,
     required this.jenis,
     required this.start,
     required this.end,
     required this.status,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
