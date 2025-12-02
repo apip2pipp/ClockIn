@@ -5,7 +5,7 @@
 
 
     <application
-        android:label="ClockIn"
+        android:label="E-Absensi Karyawan"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

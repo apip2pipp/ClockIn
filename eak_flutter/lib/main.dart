@@ -17,28 +17,23 @@ import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await initializeDateFormatting('id_ID', null);
   Intl.defaultLocale = 'id_ID';
-
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -72,7 +67,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
         home: const SplashScreen(),
-
         routes: {
           '/home': (context) => const HomeScreen(),
           '/clock-in': (context) => const ClockInScreen(),

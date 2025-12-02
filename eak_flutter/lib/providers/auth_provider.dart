@@ -23,7 +23,7 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final token = await ApiService.getToken();
+    final token = await getToken();
     if (token != null) {
       // Try to get user profile
       await loadUserProfile();
@@ -45,6 +45,9 @@ class AuthProvider with ChangeNotifier {
       _user = result['user'];
       _isAuthenticated = true;
       _errorMessage = null;
+
+      await loadCompany();
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -132,7 +135,7 @@ class AuthProvider with ChangeNotifier {
     } else {
       // Token might be expired
       _isAuthenticated = false;
-      await ApiService.removeToken();
+      await removeToken();
       notifyListeners();
     }
   }
@@ -153,18 +156,26 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Save token to SharedPreferences
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(tokenKey, token);
   }
 
+  /// Get token from SharedPreferences
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(tokenKey);
   }
 
-  static Future<void> clearToken() async {
+  /// Remove token from SharedPreferences
+  static Future<void> removeToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(tokenKey);
+  }
+
+  /// Clear all tokens (alias for removeToken)
+  static Future<void> clearToken() async {
+    await removeToken();
   }
 }
