@@ -204,7 +204,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
         ),
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFFE5E7EB).withOpacity(0.5),
+            color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
             width: 0.6,
           ),
         ),
@@ -220,7 +220,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

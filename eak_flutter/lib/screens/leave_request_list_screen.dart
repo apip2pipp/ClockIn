@@ -158,15 +158,15 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
                   padding: const EdgeInsets.all(25),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(
-                        color: const Color(0xFFE5E7EB).withOpacity(0.4),
+                        color: const Color(0xFFE5E7EB).withValues(alpha: 0.4),
                         width: 0.6,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -429,7 +429,7 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
           ),
           border: Border(
             bottom: BorderSide(
-              color: const Color(0xFFE5E7EB).withOpacity(0.5),
+              color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
               width: 0.6,
             ),
           ),
@@ -491,10 +491,10 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFF26667F).withOpacity(0.05),
+            color: const Color(0xFF26667F).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
-              color: const Color(0xFFE5E7EB).withOpacity(0.5),
+              color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
               width: 1,
             ),
           ),
