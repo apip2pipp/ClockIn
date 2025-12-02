@@ -45,6 +45,9 @@ class AuthProvider with ChangeNotifier {
       _user = result['user'];
       _isAuthenticated = true;
       _errorMessage = null;
+
+      await loadCompany();
+
       _isLoading = false;
       notifyListeners();
       return true;
