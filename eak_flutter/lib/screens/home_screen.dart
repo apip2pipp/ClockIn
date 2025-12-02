@@ -349,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        company?.name ?? '',
+                        company?.name ?? 'PT. Contoh Jaya',
                         style: const TextStyle(
                           fontSize: 17.5,
                           color: Colors.white,
@@ -1020,16 +1020,16 @@ class _HomeScreenState extends State<HomeScreen> {
     // print('   clockOut: ${todayAttendance?.clockOut}');
 
     if (todayAttendance == null) {
-      print('→ Showing CLOCK IN button');
+      // print('→ Showing CLOCK IN button');
       return _buildClockInButton();
     }
 
     if (todayAttendance.clockOut == null) {
-      print('→ Showing CLOCK OUT button');
+      // print('→ Showing CLOCK OUT button');
       return _buildClockOutButton();
     }
 
-    print('→ Showing DONE button');
+    // print('→ Showing DONE button');
     return _buildDoneButton();
   }
 
