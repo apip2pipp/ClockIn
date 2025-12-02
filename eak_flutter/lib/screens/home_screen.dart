@@ -136,6 +136,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   final company = authProvider.company;
                   final todayAttendance = attendanceProvider.todayAttendance;
 
+                  // print('🏢 Company Data: ${company?.name}');
+                  // print('👤 User Data: ${user?.name}');
+
                   if (attendanceProvider.isLoading && todayAttendance == null) {
                     return const Center(child: CircularProgressIndicator());
                   }
@@ -338,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Halo, ${user?.name ?? 'Budi Santoso'}!',
+                        'Halo, ${user?.name ?? 'User'}!',
                         style: const TextStyle(
                           fontSize: 22.5,
                           fontWeight: FontWeight.w700,
@@ -349,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        company?.name ?? 'PT. Contoh Jaya',
+                        company?.name ?? 'PT. Example',
                         style: const TextStyle(
                           fontSize: 17.5,
                           color: Colors.white,
