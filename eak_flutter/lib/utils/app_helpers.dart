@@ -34,13 +34,11 @@ class OnboardingPreferences {
 class AppRouter {
   /// Navigate to home screen (TODO: implement when home screen is ready)
   static void navigateToHome(context) {
-    // TODO: Replace with actual home screen
     // Navigator.of(context).pushReplacementNamed('/home');
   }
 
   /// Navigate to login screen (TODO: implement when login screen is ready)
   static void navigateToLogin(context) {
-    // TODO: Replace with actual login screen
     // Navigator.of(context).pushReplacementNamed('/login');
   }
 
