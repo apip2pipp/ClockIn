@@ -173,6 +173,7 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
           );
 
           if (result != null && result['success'] == true && mounted) {
+            if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(result['message'] ?? 'Berhasil!'),
