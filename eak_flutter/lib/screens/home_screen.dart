@@ -55,13 +55,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final token = await AuthProvider.getToken();
 
       if (token == null || token.isEmpty) {
-        print('No token found');
+        // print('No token found');
         return;
       }
 
-      print('🔍 Loading leave requests...');
-      print('   Token: ${token.substring(0, 20)}...');
-      print('   URL: ${ApiConfig.leaveUrl}');
+      // print('🔍 Loading leave requests...');
+      // print('   Token: ${token.substring(0, 20)}...');
+      // print('   URL: ${ApiConfig.leaveUrl}');
 
       final response = await http.get(
         Uri.parse(ApiConfig.leaveUrl),
@@ -71,14 +71,14 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
 
-      print('📥 Response status: ${response.statusCode}');
-      print('📥 Response body: ${response.body}');
+      // print('📥 Response status: ${response.statusCode}');
+      // print('📥 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final leaveRequests = data['leave_requests'] as List;
 
-        print('✅ Leave requests loaded: ${leaveRequests.length} items');
+        // print('✅ Leave requests loaded: ${leaveRequests.length} items');
 
         setState(() {
           _leaveRequests = leaveRequests
@@ -87,12 +87,12 @@ class _HomeScreenState extends State<HomeScreen> {
               .toList();
         });
 
-        print('✅ Displayed: ${_leaveRequests.length} items');
+        // print('✅ Displayed: ${_leaveRequests.length} items');
       } else {
-        print('❌ Failed to load leave requests: ${response.statusCode}');
+        // print('❌ Failed to load leave requests: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error loading leave requests: $e');
+      // print('❌ Error loading leave requests: $e');
     }
   }
 
@@ -215,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           border: Border(
             bottom: BorderSide(
-              color: const Color(0xFFE5E7EB).withOpacity(0.5),
+              color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
               width: 0.6,
             ),
           ),
@@ -263,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -292,12 +292,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: const Color(0xFFE5E7EB).withOpacity(0.3),
+          color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
           width: 0.6,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 3,
             offset: const Offset(0, 1),
           ),
@@ -319,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),
@@ -384,7 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     width: 8,
                   ),
                 ),
@@ -406,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 24,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE5E7EB).withOpacity(0.5),
+                          color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(13),
                         ),
                         child: Row(
@@ -477,15 +477,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: const Color(0xFFE5E7EB).withOpacity(0.4),
+          color: const Color(0xFFE5E7EB).withValues(alpha: 0.4),
           width: 0.6,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 15,
             offset: const Offset(0, 10),
           ),
@@ -504,7 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 60,
                   height: 60,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF26667F).withOpacity(0.1),
+                    color: const Color(0xFF26667F).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -525,7 +525,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 17.5,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF181F3E).withOpacity(0.7),
+                        color: const Color(0xFF181F3E).withValues(alpha: 0.7),
                       ),
                     ),
                     Text(
@@ -550,7 +550,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 17.5,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF181F3E).withOpacity(0.7),
+                        color: const Color(0xFF181F3E).withValues(alpha: 0.7),
                       ),
                     ),
                     Text(
@@ -568,7 +568,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // Divider
                 Divider(
-                  color: const Color(0xFFE5E7EB).withOpacity(0.3),
+                  color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
                   thickness: 0.6,
                 ),
 
@@ -583,7 +583,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 17.5,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF181F3E).withOpacity(0.7),
+                        color: const Color(0xFF181F3E).withValues(alpha: 0.7),
                       ),
                     ),
                     Text(
@@ -608,15 +608,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: const Color(0xFFE5E7EB).withOpacity(0.4),
+          color: const Color(0xFFE5E7EB).withValues(alpha: 0.4),
           width: 0.6,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 15,
             offset: const Offset(0, 10),
           ),
@@ -641,7 +641,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 45,
                             height: 45,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFA726).withOpacity(0.1),
+                              color: const Color(
+                                0xFFFFA726,
+                              ).withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -669,7 +671,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: const Icon(Icons.refresh, size: 22),
                       color: const Color(0xFF26667F),
                       onPressed: () {
-                        print('🔄 Refresh button pressed');
+                        // print('🔄 Refresh button pressed');
                         _loadLeaveRequests();
                       },
                       padding: EdgeInsets.zero,
@@ -687,7 +689,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 Icons.inbox_outlined,
                                 size: 48,
-                                color: const Color(0xFF6B7280).withOpacity(0.3),
+                                color: const Color(
+                                  0xFF6B7280,
+                                ).withValues(alpha: 0.3),
                               ),
                               const SizedBox(height: 12),
                               Text(
@@ -696,7 +700,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fontSize: 14,
                                   color: const Color(
                                     0xFF6B7280,
-                                  ).withOpacity(0.7),
+                                  ).withValues(alpha: 0.7),
                                 ),
                               ),
                             ],
@@ -713,9 +717,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   Center(
                     child: TextButton.icon(
                       onPressed: () {
-                        print(
-                          '📋 View All pressed - Navigate to Leave Request List',
-                        );
+                        // print(
+                        //   '📋 View All pressed - Navigate to Leave Request List',
+                        // );
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -723,10 +727,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 const LeaveRequestListScreen(),
                           ),
                         ).then((_) {
-                          // Refresh data when coming back
-                          print(
-                            '🔙 Returned from Leave Request List - Refreshing',
-                          );
+                          // print(
+                          //   '🔙 Returned from Leave Request List - Refreshing',
+                          // );
                           _loadLeaveRequests();
                         });
                       },
@@ -755,7 +758,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildLeaveRequestItem(Map<String, dynamic> request) {
-    print('🏷️ Building leave request item: ${request.toString()}');
+    // print('🏷️ Building leave request item: ${request.toString()}');
 
     final status = request['status'] as String? ?? 'pending';
     final type = request['type'] as String? ?? 'unknown';
@@ -763,9 +766,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ? DateTime.parse(request['start_date'])
         : DateTime.now();
 
-    print('   Status: $status');
-    print('   Type: $type');
-    print('   Date: $startDate');
+    // print('   Status: $status');
+    // print('   Type: $type');
+    // print('   Date: $startDate');
 
     // Status colors and labels
     Color statusColor;
@@ -819,9 +822,9 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.08),
+        color: statusColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: statusColor.withOpacity(0.3), width: 1),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         children: [
@@ -829,7 +832,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.2),
+              color: statusColor.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(typeIcon, color: statusColor, size: 26),
@@ -853,14 +856,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(
                       Icons.calendar_today,
                       size: 12,
-                      color: const Color(0xFF6B7280).withOpacity(0.8),
+                      color: const Color(0xFF6B7280).withValues(alpha: 0.8),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       DateFormat('dd MMM yyyy').format(startDate),
                       style: TextStyle(
                         fontSize: 13,
-                        color: const Color(0xFF6B7280).withOpacity(0.8),
+                        color: const Color(0xFF6B7280).withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -875,7 +878,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: statusColor.withOpacity(0.3),
+                  color: statusColor.withValues(alpha: 0.3),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -958,7 +961,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: 'Settings',
                 color: const Color(0xFF7E57C2),
                 onTap: () {
-                  // TODO: Navigate to Settings
                 },
               ),
             ),
@@ -983,12 +985,12 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFFE5E7EB).withOpacity(0.3),
+            color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
             width: 0.6,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 3,
               offset: const Offset(0, 1),
             ),
@@ -1039,18 +1041,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildClockInButton() {
     return GestureDetector(
       onTap: () async {
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('🚀 Button Tapped: Navigate to Clock In Screen');
+        // print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        // print('🚀 Button Tapped: Navigate to Clock In Screen');
 
         await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ClockInScreen()),
         );
 
-        print('🔙 Returned from Clock In Screen');
+        // print('🔙 Returned from Clock In Screen');
 
         if (mounted) {
-          print('🔄 Refreshing attendance...');
+          // print('🔄 Refreshing attendance...');
           final provider = Provider.of<AttendanceProvider>(
             context,
             listen: false,
@@ -1058,14 +1060,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
           await provider.loadTodayAttendance();
 
-          print('✅ loadTodayAttendance() completed');
-          print('   Current attendance: ${provider.todayAttendance?.id}');
-          print('   Clock Out: ${provider.todayAttendance?.clockOut}');
+          // print('✅ loadTodayAttendance() completed');
+          // print('   Current attendance: ${provider.todayAttendance?.id}');
+          // print('   Clock Out: ${provider.todayAttendance?.clockOut}');
 
           setState(() {});
 
-          print('✅ setState() called - Widget should rebuild');
-          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          // print('✅ setState() called - Widget should rebuild');
+          // print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         }
       },
       child: Container(
@@ -1076,14 +1078,14 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color(0xFF26667F).withOpacity(0.56),
+              const Color(0xFF26667F).withValues(alpha: 0.56),
               const Color(0xFF26667F),
             ],
           ),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.25),
+              color: Colors.black.withValues(alpha: 0.25),
               blurRadius: 50,
               offset: const Offset(0, 25),
             ),
@@ -1111,14 +1113,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildClockOutButton() {
     return GestureDetector(
       onTap: () async {
-        print('🚀 Navigate to Clock Out Screen');
+        // print('🚀 Navigate to Clock Out Screen');
         await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ClockOutScreen()),
         );
 
         if (mounted) {
-          print('🔄 Refreshing attendance after clock out...');
+          // print('🔄 Refreshing attendance after clock out...');
           final provider = Provider.of<AttendanceProvider>(
             context,
             listen: false,
@@ -1135,14 +1137,14 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color(0xFF26667F).withOpacity(0.56),
+              const Color(0xFF26667F).withValues(alpha: 0.56),
               const Color(0xFF26667F),
             ],
           ),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.25),
+              color: Colors.black.withValues(alpha: 0.25),
               blurRadius: 50,
               offset: const Offset(0, 25),
             ),
@@ -1175,12 +1177,12 @@ class _HomeScreenState extends State<HomeScreen> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.grey.withOpacity(0.56), Colors.grey],
+          colors: [Colors.grey.withValues(alpha: 0.56), Colors.grey],
         ),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: Colors.black.withValues(alpha: 0.25),
             blurRadius: 50,
             offset: const Offset(0, 25),
           ),

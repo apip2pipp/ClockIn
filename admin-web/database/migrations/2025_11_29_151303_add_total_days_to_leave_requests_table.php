@@ -9,14 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('leave_requests', function (Blueprint $table) {
-            $table->integer('total_days')->default(1)->after('end_date');
+            if (!Schema::hasColumn('leave_requests', 'total_days')) {
+                $table->integer('total_days')->default(1)->after('end_date');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('leave_requests', function (Blueprint $table) {
-            $table->dropColumn('total_days');
+            if (Schema::hasColumn('leave_requests', 'total_days')) {
+                $table->dropColumn('total_days');
+            }
         });
     }
 };

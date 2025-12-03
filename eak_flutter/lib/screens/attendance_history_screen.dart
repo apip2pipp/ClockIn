@@ -198,7 +198,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                 decoration: BoxDecoration(
                                   color: const Color(
                                     0xFF26667F,
-                                  ).withOpacity(0.1),
+                                  ).withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
@@ -298,7 +298,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           ),
           border: Border(
             bottom: BorderSide(
-              color: const Color(0xFFE5E7EB).withOpacity(0.5),
+              color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
               width: 0.6,
             ),
           ),
@@ -338,7 +338,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -362,15 +362,15 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFFE5E7EB).withOpacity(0.4),
+          color: const Color(0xFFE5E7EB).withValues(alpha: 0.4),
           width: 0.6,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -411,12 +411,12 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                       decoration: BoxDecoration(
                         color: _getStatusColor(
                           attendance.status,
-                        ).withOpacity(0.15),
+                        ).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _getStatusColor(
                             attendance.status,
-                          ).withOpacity(0.3),
+                          ).withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -441,7 +441,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -487,7 +487,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
+                          color: Colors.orange.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -527,7 +527,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
 
                   // Divider
                   Divider(
-                    color: const Color(0xFFE5E7EB).withOpacity(0.3),
+                    color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
                     thickness: 0.6,
                   ),
 
@@ -540,7 +540,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF26667F).withOpacity(0.1),
+                          color: const Color(0xFF26667F).withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -579,7 +579,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -605,7 +605,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                     attendance.clockOutNotes != null) ...[
                   const SizedBox(height: 12),
                   Divider(
-                    color: const Color(0xFFE5E7EB).withOpacity(0.3),
+                    color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
                     thickness: 0.6,
                   ),
                   const SizedBox(height: 12),

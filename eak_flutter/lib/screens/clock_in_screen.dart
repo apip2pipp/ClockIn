@@ -52,6 +52,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('GPS is not enabled')));
@@ -62,6 +63,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
     LocationPermission permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Location permission denied')),
       );
@@ -70,6 +72,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
     }
 
     Position pos = await Geolocator.getCurrentPosition(
+      // ignore: deprecated_member_use
       desiredAccuracy: LocationAccuracy.high,
     );
 
@@ -204,7 +207,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
         ),
         border: Border(
           bottom: BorderSide(
-            color: const Color(0xFFE5E7EB).withOpacity(0.5),
+            color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
             width: 0.6,
           ),
         ),
@@ -220,7 +223,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
