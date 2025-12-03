@@ -51,54 +51,77 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
 
     await showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Filter Status'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<String?>(
-                title: const Text('Semua'),
-                value: null,
-                groupValue: tempStatus,
-                onChanged: (value) => setState(() => tempStatus = value),
+      builder: (context) {
+        String? dialogStatus = tempStatus;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Filter Status'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: const Text('Semua'),
+                  leading: Radio<String?>(
+                    value: null,
+                    groupValue: dialogStatus,
+                    onChanged: (value) =>
+                        setDialogState(() => dialogStatus = value),
+                  ),
+                  onTap: () => setDialogState(() => dialogStatus = null),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                ListTile(
+                  title: const Text('Pending'),
+                  leading: Radio<String?>(
+                    value: 'pending',
+                    groupValue: dialogStatus,
+                    onChanged: (value) =>
+                        setDialogState(() => dialogStatus = value),
+                  ),
+                  onTap: () => setDialogState(() => dialogStatus = 'pending'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                ListTile(
+                  title: const Text('Approved'),
+                  leading: Radio<String?>(
+                    value: 'approved',
+                    groupValue: dialogStatus,
+                    onChanged: (value) =>
+                        setDialogState(() => dialogStatus = value),
+                  ),
+                  onTap: () => setDialogState(() => dialogStatus = 'approved'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                ListTile(
+                  title: const Text('Rejected'),
+                  leading: Radio<String?>(
+                    value: 'rejected',
+                    groupValue: dialogStatus,
+                    onChanged: (value) =>
+                        setDialogState(() => dialogStatus = value),
+                  ),
+                  onTap: () => setDialogState(() => dialogStatus = 'rejected'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Batal'),
               ),
-              RadioListTile<String?>(
-                title: const Text('Pending'),
-                value: 'pending',
-                groupValue: tempStatus,
-                onChanged: (value) => setState(() => tempStatus = value),
-              ),
-              RadioListTile<String?>(
-                title: const Text('Approved'),
-                value: 'approved',
-                groupValue: tempStatus,
-                onChanged: (value) => setState(() => tempStatus = value),
-              ),
-              RadioListTile<String?>(
-                title: const Text('Rejected'),
-                value: 'rejected',
-                groupValue: tempStatus,
-                onChanged: (value) => setState(() => tempStatus = value),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() => _selectedStatus = dialogStatus);
+                  _loadData();
+                },
+                child: const Text('Terapkan'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                setState(() => _selectedStatus = tempStatus);
-                _loadData();
-              },
-              child: const Text('Terapkan'),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -164,7 +187,6 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          // ✅ AWAIT RESULT DARI FORM
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
@@ -172,17 +194,17 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
             ),
           );
 
-          if (result != null && result['success'] == true && mounted) {
+          if (result != null && result['success'] == true) {
             if (!mounted) return;
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(result['message'] ?? 'Berhasil!'),
-                backgroundColor: Colors.green, // ✅ HIJAU!
+                backgroundColor: Colors.green,
                 duration: const Duration(seconds: 3),
               ),
             );
 
-            // ✅ REFRESH LIST
             _loadData();
           }
         },
