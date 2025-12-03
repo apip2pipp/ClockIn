@@ -6,32 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('phone')->nullable();
-            $table->string('employee_id')->unique()->nullable();
-            $table->string('position')->nullable();
-            $table->string('photo')->nullable();
-            $table->enum('role', ['super_admin', 'company_admin', 'employee'])->default('employee');
-            $table->boolean('is_active')->default(true); // ← PASTIKAN ADA DEFAULT TRUE
             $table->rememberToken();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');
