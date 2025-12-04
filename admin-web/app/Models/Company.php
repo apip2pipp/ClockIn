@@ -9,6 +9,26 @@ class Company extends Model
 {
     use HasFactory;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($company) {
+            if (empty($company->company_token)) {
+                $company->company_token = self::generateUniqueToken();
+            }
+        });
+    }
+
+    private static function generateUniqueToken(): string
+    {
+        do {
+            $token = strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+        } while (self::where('company_token', $token)->exists());
+
+        return $token;
+    }
+
     protected $fillable = [
         'name',
         'email',
@@ -20,6 +40,7 @@ class Company extends Model
         'work_start_time',
         'work_end_time',
         'is_active',
+        'company_token',
     ];
 
     protected $casts = [
