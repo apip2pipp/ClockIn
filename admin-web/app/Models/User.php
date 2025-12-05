@@ -61,12 +61,20 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin', 'company_admin']);
+    }
+
+    /**
      * Determine if the user can access the Filament admin panel.
      * Only users with 'admin' or 'company_admin' role can access.
      */
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
         // Allow access for admin and company_admin roles
-        return in_array($this->role, ['admin', 'company_admin']);
+        return $this->isAdmin();
     }
 }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('position')->nullable()->after('phone');
             $table->string('employee_id')->nullable()->after('position');
             $table->string('photo')->nullable()->after('employee_id');
-            $table->enum('role', ['super_admin', 'company_admin', 'employee'])->default('employee')->after('photo');
+            $table->enum('role', ['admin', 'super_admin', 'company_admin', 'employee'])->default('employee')->after('photo');
             $table->boolean('is_active')->default(true)->after('role');
         });
     }
