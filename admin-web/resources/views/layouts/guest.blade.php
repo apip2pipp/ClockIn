@@ -55,7 +55,7 @@
                     <img src="{{ asset('logo_web.png') }}" alt="ClockIn Logo" class="w-8 h-8 object-contain">
                     <span class="text-white font-semibold">ClockIn</span>
                 </div>
-                <p class="text-gray-400 text-sm">
+                <p class="text-white/80 text-sm">
                     © {{ date('Y') }} ClockIn. All rights reserved.
                 </p>
             </div>

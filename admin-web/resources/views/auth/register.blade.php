@@ -196,7 +196,7 @@
                 <h1 class="text-3xl lg:text-4xl font-bold text-white mb-3">
                     Company Registration
                 </h1>
-                <p class="text-gray-300 text-lg">
+                <p class="text-white/80 text-lg">
                     Complete the form below to register your company
                 </p>
             </div>
@@ -250,13 +250,13 @@
                             </div>
                             <div>
                                 <h3 class="text-xl font-bold text-white">Personal Information</h3>
-                                <p class="text-sm text-gray-400">Your contact details</p>
+                                <p class="text-sm text-white/80">Your contact details</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="name" class="block text-sm font-semibold text-gray-200 mb-2">
+                                <label for="name" class="block text-sm font-semibold text-white mb-2">
                                     Full Name <span class="text-red-400">*</span>
                                 </label>
                                 <input type="text" id="name" name="name" value="{{ old('name') }}" required
@@ -264,7 +264,7 @@
                             </div>
 
                             <div>
-                                <label for="position" class="block text-sm font-semibold text-gray-200 mb-2">
+                                <label for="position" class="block text-sm font-semibold text-white mb-2">
                                     Position/Title <span class="text-red-400">*</span>
                                 </label>
                                 <select id="position" name="position" required class="input-field">
@@ -282,7 +282,7 @@
                             </div>
 
                             <div>
-                                <label for="email" class="block text-sm font-semibold text-gray-200 mb-2">
+                                <label for="email" class="block text-sm font-semibold text-white mb-2">
                                     Email <span class="text-red-400">*</span>
                                 </label>
                                 <input type="email" id="email" name="email" value="{{ old('email') }}" required
@@ -290,7 +290,7 @@
                             </div>
 
                             <div>
-                                <label for="phone" class="block text-sm font-semibold text-gray-200 mb-2">
+                                <label for="phone" class="block text-sm font-semibold text-white mb-2">
                                     Phone Number <span class="text-red-400">*</span>
                                 </label>
                                 <input type="tel" id="phone" name="phone" value="{{ old('phone') }}" required
@@ -311,13 +311,13 @@
                             </div>
                             <div>
                                 <h3 class="text-xl font-bold text-white">Company Information</h3>
-                                <p class="text-sm text-gray-400">Business details</p>
+                                <p class="text-sm text-white/80">Business details</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="company_name" class="block text-sm font-semibold text-gray-200 mb-2">
+                                <label for="company_name" class="block text-sm font-semibold text-white mb-2">
                                     Company Name <span class="text-red-400">*</span>
                                 </label>
                                 <input type="text" id="company_name" name="company_name" value="{{ old('company_name') }}"
@@ -325,7 +325,7 @@
                             </div>
 
                             <div>
-                                <label for="employee_count" class="block text-sm font-semibold text-gray-200 mb-2">
+                                <label for="employee_count" class="block text-sm font-semibold text-white mb-2">
                                     Number of Employees <span class="text-red-400">*</span>
                                 </label>
                                 <select id="employee_count" name="employee_count" required class="input-field">
@@ -344,7 +344,7 @@
                             </div>
 
                             <div class="md:col-span-2">
-                                <label for="company_address" class="block text-sm font-semibold text-gray-200 mb-2">
+                                <label for="company_address" class="block text-sm font-semibold text-white mb-2">
                                     Office Address <span class="text-red-400">*</span>
                                 </label>
                                 <textarea id="company_address" name="company_address" rows="3" required
@@ -368,7 +368,7 @@
                             </div>
                             <div>
                                 <h3 class="text-xl font-bold text-white">Office Location</h3>
-                                <p class="text-sm text-gray-400">Set office coordinates for attendance system</p>
+                                <p class="text-sm text-white/80">Set office coordinates for attendance system</p>
                             </div>
                         </div>
 
@@ -380,7 +380,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <p class="text-gray-300 text-sm">
+                                <p class="text-white text-sm">
                                     <strong>📍 Set your office location</strong> - Choose method below
                                 </p>
                             </div>
@@ -438,7 +438,7 @@
                                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <div class="flex-1 text-sm">
-                                        <div class="text-gray-300">
+                                        <div class="text-white">
                                             <strong class="text-clockin-green">Location Selected:</strong>
                                             <span class="ml-2">Lat: <span id="displayLat" class="font-mono">-</span></span>
                                             <span class="ml-3">Lng: <span id="displayLng" class="font-mono">-</span></span>
@@ -473,7 +473,7 @@
                                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <div class="flex-1 text-sm">
-                                        <div class="text-gray-300">
+                                        <div class="text-white">
                                             <strong class="text-clockin-green">Location Detected:</strong>
                                             <span class="ml-2">Lat: <span id="displayLat" class="font-mono">-</span></span>
                                             <span class="ml-3">Lng: <span id="displayLng" class="font-mono">-</span></span>
@@ -519,7 +519,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="location-coordinate">
                                 <label for="latitude"
-                                    class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">
+                                    class="block text-xs font-semibold text-white mb-1.5 uppercase tracking-wide">
                                     Latitude <span class="text-red-400">*</span>
                                 </label>
                                 <input type="text" id="latitude" name="latitude" value="{{ old('latitude') }}" required
@@ -529,7 +529,7 @@
 
                             <div class="location-coordinate">
                                 <label for="longitude"
-                                    class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">
+                                    class="block text-xs font-semibold text-white mb-1.5 uppercase tracking-wide">
                                     Longitude <span class="text-red-400">*</span>
                                 </label>
                                 <input type="text" id="longitude" name="longitude" value="{{ old('longitude') }}" required
@@ -539,13 +539,13 @@
 
                             <div class="location-coordinate">
                                 <label for="radius"
-                                    class="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">
+                                    class="block text-xs font-semibold text-white mb-1.5 uppercase tracking-wide">
                                     Radius (meters) <span class="text-red-400">*</span>
                                 </label>
                                 <input type="number" id="radius" name="radius" value="{{ old('radius', 100) }}" required
                                     class="input-field bg-gray-800 text-white font-mono text-xs" placeholder="100" min="10"
                                     max="5000">
-                                <p class="text-xs text-gray-500 mt-1">Range: 10-5000 meters</p>
+                                <p class="text-xs text-white mt-1">Range: 10-5000 meters</p>
                             </div>
                         </div>
                     </div>
@@ -562,13 +562,13 @@
                             </div>
                             <div>
                                 <h3 class="text-xl font-bold text-white">Account Security</h3>
-                                <p class="text-sm text-gray-400">Create a strong password</p>
+                                <p class="text-sm text-white/80">Create a strong password</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="password" class="block text-sm font-semibold text-gray-200 mb-2">
+                                <label for="password" class="block text-sm font-semibold text-white mb-2">
                                     Password <span class="text-red-400">*</span>
                                 </label>
                                 <input type="password" id="password" name="password" required class="input-field"
@@ -576,7 +576,7 @@
                             </div>
 
                             <div>
-                                <label for="password_confirmation" class="block text-sm font-semibold text-gray-200 mb-2">
+                                <label for="password_confirmation" class="block text-sm font-semibold text-white mb-2">
                                     Confirm Password <span class="text-red-400">*</span>
                                 </label>
                                 <input type="password" id="password_confirmation" name="password_confirmation" required
@@ -591,7 +591,7 @@
                             class="flex items-start p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-clockin-green/50 transition-colors cursor-pointer">
                             <input type="checkbox" name="terms" required
                                 class="mt-1 h-5 w-5 text-clockin-green focus:ring-clockin-green border-gray-600 rounded bg-gray-700">
-                            <span class="ml-3 text-sm text-gray-300">
+                            <span class="ml-3 text-sm text-white/80">
                                 I agree to the <a href="#" class="text-clockin-green hover:underline font-semibold">Terms &
                                     Conditions</a>
                                 and <a href="#" class="text-clockin-green hover:underline font-semibold">Privacy Policy</a>
@@ -610,7 +610,7 @@
                             </svg>
                             Register Now
                         </span>
-                        <span id="loadingText" class="hidden flex items-center justify-center">
+                        <span id="loadingText" class="hidden items-center justify-center">
                             <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -624,7 +624,7 @@
                     </button>
 
                     <div class="text-center pt-6 border-t border-gray-700">
-                        <p class="text-gray-300">
+                        <p class="text-white/80">
                             Already have an account?
                             <a href="{{ route('login') }}"
                                 class="text-clockin-green hover:underline font-semibold inline-flex items-center">
@@ -855,7 +855,7 @@
                     resultsDiv.innerHTML = '';
 
                     if (data.length === 0) {
-                        resultsDiv.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">No results found. Try different keywords.</div>';
+                        resultsDiv.innerHTML = '<div class="p-4 text-center text-white text-sm">No results found. Try different keywords.</div>';
                         resultsDiv.classList.remove('hidden');
                         return;
                     }
@@ -871,7 +871,7 @@
                             </svg>
                             ${result.display_name.split(',')[0]}
                         </div>
-                        <div class="text-xs text-gray-400 mt-1 ml-6">${result.display_name}</div>
+                        <div class="text-xs text-white mt-1 ml-6">${result.display_name}</div>
                     `;
                         item.addEventListener('click', function () {
                             const lat = parseFloat(result.lat);
@@ -928,7 +928,7 @@
                     resultsDiv.innerHTML = '';
 
                     if (data.length === 0) {
-                        resultsDiv.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">No results found</div>';
+                        resultsDiv.innerHTML = '<div class="p-4 text-center text-white text-sm">No results found</div>';
                         resultsDiv.classList.remove('hidden');
                         return;
                     }
@@ -944,7 +944,7 @@
                                         </svg>
                                         ${result.display_name.split(',')[0]}
                                     </div>
-                                    <div class="text-xs text-gray-400 mt-1 ml-6">${result.display_name}</div>
+                                    <div class="text-xs text-white mt-1 ml-6">${result.display_name}</div>
                                 `;
                         item.addEventListener('click', function () {
                             const lat = parseFloat(result.lat);

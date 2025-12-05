@@ -9,14 +9,14 @@
             Presensi Karyawan dengan aplikasi
             <span class="text-clockin-green">ClockIn</span>
         </h1>
-        <p class="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+        <p class="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
             Solusi praktis dan efisien untuk bisnis. ClockIn memberikan kemudahan untuk dapat melakukan presensi online dari mana saja
         </p>
     </div>
     
     <div class="max-w-2xl mx-auto card text-center">
         <div class="mb-6">
-            <p class="text-lg text-gray-200 mb-2">
+            <p class="text-lg text-white/80 mb-2">
                 Jika Anda adalah perusahaan yang ingin memulai menggunakan ClockIn, mulai dengan
             </p>
         </div>
@@ -27,7 +27,7 @@
         
         <div class="pt-6 border-t border-white/10">
             <h3 class="text-clockin-green font-semibold mb-4 text-lg">Daftar Perusahaan</h3>
-            <p class="text-gray-300 text-sm leading-relaxed">
+            <p class="text-white/80 text-sm leading-relaxed">
                 Kami mengadakan proses dan langkah awal dengan Signup untuk mendaftarkan data Anda dan menjadikan pengelolaan perusahaan menjadi lebih mudah dengan ClockIn
             </p>
         </div>
@@ -43,7 +43,7 @@
                 </svg>
             </div>
             <h3 class="text-xl font-semibold text-white mb-3">Real-Time Attendance</h3>
-            <p class="text-gray-300 text-sm">
+            <p class="text-white/80 text-sm">
                 Karyawan dapat melakukan clock in/out secara real-time dengan verifikasi GPS dan foto
             </p>
         </div>
@@ -55,7 +55,7 @@
                 </svg>
             </div>
             <h3 class="text-xl font-semibold text-white mb-3">Analytics Dashboard</h3>
-            <p class="text-gray-300 text-sm">
+            <p class="text-white/80 text-sm">
                 Monitor aktivitas karyawan dengan dashboard lengkap dan laporan yang detail
             </p>
         </div>
@@ -67,7 +67,7 @@
                 </svg>
             </div>
             <h3 class="text-xl font-semibold text-white mb-3">Leave Management</h3>
-            <p class="text-gray-300 text-sm">
+            <p class="text-white/80 text-sm">
                 Kelola pengajuan izin dan cuti karyawan dengan mudah dan terstruktur
             </p>
         </div>
@@ -79,7 +79,7 @@
         <h2 class="text-3xl font-bold text-white mb-4">
             Siap Memulai dengan ClockIn?
         </h2>
-        <p class="text-gray-300 mb-8 text-lg">
+        <p class="text-white/80 mb-8 text-lg">
             Bergabunglah dengan ratusan perusahaan yang sudah mempercayai ClockIn untuk manajemen kehadiran karyawan
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
