@@ -1,12 +1,16 @@
 import { defineConfig } from "vite";
 import laravel from "laravel-vite-plugin";
 
-const currentIP = "https://clockin.cloud";
+const currentIP = "192.168.18.67";
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: ["resources/css/app.css", "resources/js/app.js"],
+            input: [
+                "resources/css/app.css",
+                "resources/js/app.js",
+                "resources/css/filament-admin.css",
+            ],
             refresh: true,
         }),
     ],
