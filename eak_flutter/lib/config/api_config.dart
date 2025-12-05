@@ -18,13 +18,14 @@ class ApiConfig {
   // - Jangan gunakan 127.0.0.1 atau localhost (tidak bisa diakses dari HP)
   // - Gunakan IP address komputer (contoh: 192.168.1.100)
 
-  static const String baseUrl = 'http://192.168.110.144:8000/api';
+  // PRODUCTION URL
+  static const String baseUrl = 'https://clockin.cloud/api';
 
   //Base URL untuk leave requests
   static String get leaveUrl => baseUrl + leaveRequestsEndpoint;
 
   // Base URL untuk storage (foto, dokumen, dll)
-  static const String storageUrl = 'http://192.168.110.144:8000/storage';
+  static const String storageUrl = 'https://clockin.cloud/storage';
 
   // ==================== TIMEOUT ====================
   static const Duration connectionTimeout = Duration(seconds: 30);

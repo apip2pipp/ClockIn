@@ -15,7 +15,9 @@ class UserSeeder extends Seeder
          User::create([
             'name' => 'Admin Filament',
             'email' => 'admin@gmail.com',
-            'password' => Hash::make('rahasia'), // ganti sesuai keinginan
+            'password' => Hash::make('rahasia'),
+            'role' => 'admin', // ⚠️ PENTING: tanpa ini tidak bisa akses panel
+            'is_active' => true,
         ]);
     }
 }
