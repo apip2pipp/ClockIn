@@ -8,11 +8,9 @@ import 'package:http/http.dart' as http;
 import '../providers/auth_provider.dart';
 import '../providers/attendance_provider.dart';
 import '../config/api_config.dart';
-import 'clock_in_screen.dart';
 import 'attendance_history_screen.dart';
 import 'package:eak_flutter/screens/leave_request_list_screen.dart';
 import 'profile_screen.dart';
-import 'clock_out_screen.dart';
 import '../widgets/main_layout.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -126,75 +124,55 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedIndex: 0,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
-        body: Stack(
-          children: [
-            // Main Content
-            SafeArea(
-              child: Consumer2<AuthProvider, AttendanceProvider>(
-                builder: (context, authProvider, attendanceProvider, child) {
-                  final user = authProvider.user;
-                  final company = authProvider.company;
-                  final todayAttendance = attendanceProvider.todayAttendance;
+        body: SafeArea(
+          child: Consumer2<AuthProvider, AttendanceProvider>(
+            builder: (context, authProvider, attendanceProvider, child) {
+              final user = authProvider.user;
+              final company = authProvider.company;
+              final todayAttendance = attendanceProvider.todayAttendance;
 
-                  // print('🏢 Company Data: ${company?.name}');
-                  // print('👤 User Data: ${user?.name}');
+              // print('🏢 Company Data: ${company?.name}');
+              // print('👤 User Data: ${user?.name}');
 
-                  if (attendanceProvider.isLoading && todayAttendance == null) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+              if (attendanceProvider.isLoading && todayAttendance == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                  return CustomScrollView(
-                    slivers: [
-                      // Header with ClockIn logo and profile button
-                      _buildHeader(context),
+              return CustomScrollView(
+                slivers: [
+                  // Header with ClockIn logo and profile button
+                  _buildHeader(context),
 
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.all(25),
-                          child: Column(
-                            children: [
-                              // Gradient Card with User Info and Clock
-                              _buildGradientCard(
-                                user,
-                                company,
-                                todayAttendance,
-                              ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(25),
+                      child: Column(
+                        children: [
+                          // Gradient Card with User Info and Clock
+                          _buildGradientCard(user, company, todayAttendance),
 
-                              const SizedBox(height: 30),
+                          const SizedBox(height: 30),
 
-                              // Attendance Status Card
-                              _buildAttendanceCard(todayAttendance),
+                          // Attendance Status Card
+                          _buildAttendanceCard(todayAttendance),
 
-                              const SizedBox(height: 30),
+                          const SizedBox(height: 30),
 
-                              // Leave Requests Card
-                              _buildLeaveRequestsCard(),
+                          // Leave Requests Card
+                          _buildLeaveRequestsCard(),
 
-                              const SizedBox(height: 30),
+                          const SizedBox(height: 30),
 
-                              // Action Buttons Grid
-                              _buildActionGrid(),
-                            ],
-                          ),
-                        ),
+                          // Action Buttons Grid
+                          _buildActionGrid(),
+                        ],
                       ),
-                    ],
-                  );
-                },
-              ),
-            ),
-
-            // Floating Clock In/Out Button
-            Positioned(
-              right: 25,
-              bottom: 20,
-              child: Consumer<AttendanceProvider>(
-                builder: (context, attendanceProvider, child) {
-                  return _buildFloatingButton(attendanceProvider);
-                },
-              ),
-            ),
-          ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -960,8 +938,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.settings,
                 label: 'Settings',
                 color: const Color(0xFF7E57C2),
-                onTap: () {
-                },
+                onTap: () {},
               ),
             ),
           ],
@@ -1012,196 +989,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingButton(AttendanceProvider attendanceProvider) {
-    final todayAttendance = attendanceProvider.todayAttendance;
-
-    // print('🔍 DEBUG Button State:');
-    // print('   todayAttendance: ${todayAttendance?.id}');
-    // print('   clockIn: ${todayAttendance?.clockIn}');
-    // print('   clockOut: ${todayAttendance?.clockOut}');
-
-    if (todayAttendance == null) {
-      // print('→ Showing CLOCK IN button');
-      return _buildClockInButton();
-    }
-
-    if (todayAttendance.clockOut == null) {
-      // print('→ Showing CLOCK OUT button');
-      return _buildClockOutButton();
-    }
-
-    // print('→ Showing DONE button');
-    return _buildDoneButton();
-  }
-
-  Widget _buildClockInButton() {
-    return GestureDetector(
-      onTap: () async {
-        // print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        // print('🚀 Button Tapped: Navigate to Clock In Screen');
-
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ClockInScreen()),
-        );
-
-        // print('🔙 Returned from Clock In Screen');
-
-        if (mounted) {
-          // print('🔄 Refreshing attendance...');
-          final provider = Provider.of<AttendanceProvider>(
-            context,
-            listen: false,
-          );
-
-          await provider.loadTodayAttendance();
-
-          // print('✅ loadTodayAttendance() completed');
-          // print('   Current attendance: ${provider.todayAttendance?.id}');
-          // print('   Clock Out: ${provider.todayAttendance?.clockOut}');
-
-          setState(() {});
-
-          // print('✅ setState() called - Widget should rebuild');
-          // print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        }
-      },
-      child: Container(
-        width: 80,
-        height: 80,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF26667F).withValues(alpha: 0.56),
-              const Color(0xFF26667F),
-            ],
-          ),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 50,
-              offset: const Offset(0, 25),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.access_time, color: Colors.white, size: 32),
-            SizedBox(height: 3),
-            Text(
-              'Clock In',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildClockOutButton() {
-    return GestureDetector(
-      onTap: () async {
-        // print('🚀 Navigate to Clock Out Screen');
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ClockOutScreen()),
-        );
-
-        if (mounted) {
-          // print('🔄 Refreshing attendance after clock out...');
-          final provider = Provider.of<AttendanceProvider>(
-            context,
-            listen: false,
-          );
-          await provider.loadTodayAttendance();
-          setState(() {});
-        }
-      },
-      child: Container(
-        width: 80,
-        height: 80,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF26667F).withValues(alpha: 0.56),
-              const Color(0xFF26667F),
-            ],
-          ),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 50,
-              offset: const Offset(0, 25),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.access_time, color: Colors.white, size: 32),
-            SizedBox(height: 3),
-            Text(
-              'Clock Out',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDoneButton() {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.grey.withValues(alpha: 0.56), Colors.grey],
-        ),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 50,
-            offset: const Offset(0, 25),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.access_time, color: Colors.white, size: 32),
-          SizedBox(height: 3),
-          Text(
-            'Done',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ],
       ),
     );
   }

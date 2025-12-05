@@ -44,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      selectedIndex: 3,
+      selectedIndex: 4,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         body: SafeArea(

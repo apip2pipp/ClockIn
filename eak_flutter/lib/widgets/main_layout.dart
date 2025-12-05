@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../screens/home_screen.dart';
 import '../screens/attendance_history_screen.dart';
 import '../screens/leave_request_list_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/clock_in_screen.dart';
+import '../screens/clock_out_screen.dart';
+import '../providers/attendance_provider.dart';
 
 class MainLayout extends StatefulWidget {
   final Widget child;
@@ -15,7 +19,43 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  void _onNavItemTapped(int index) {
+  void _onNavItemTapped(int index) async {
+    // Handle Clock In/Out button (index 2)
+    if (index == 2) {
+      final attendanceProvider = Provider.of<AttendanceProvider>(
+        context,
+        listen: false,
+      );
+
+      final todayAttendance = attendanceProvider.todayAttendance;
+
+      // If no attendance today, navigate to Clock In
+      if (todayAttendance == null) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ClockInScreen()),
+        );
+      }
+      // If clocked in but not clocked out, navigate to Clock Out
+      else if (todayAttendance.clockOut == null) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ClockOutScreen()),
+        );
+      }
+      // If already clocked out, do nothing
+      else {
+        return;
+      }
+
+      // Refresh attendance after returning
+      if (mounted) {
+        await attendanceProvider.loadTodayAttendance();
+        setState(() {});
+      }
+      return;
+    }
+
     if (index == widget.selectedIndex) return;
 
     Widget destination;
@@ -26,10 +66,10 @@ class _MainLayoutState extends State<MainLayout> {
       case 1:
         destination = const AttendanceHistoryScreen();
         break;
-      case 2:
+      case 3:
         destination = const LeaveRequestListScreen();
         break;
-      case 3:
+      case 4:
         destination = const ProfileScreen();
         break;
       default:
@@ -55,6 +95,12 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Widget _buildBottomNavBar() {
+    final attendanceProvider = Provider.of<AttendanceProvider>(
+      context,
+      listen: true,
+    );
+    final todayAttendance = attendanceProvider.todayAttendance;
+
     return Container(
       height: 80,
       decoration: BoxDecoration(
@@ -76,33 +122,111 @@ class _MainLayoutState extends State<MainLayout> {
       child: SafeArea(
         top: false,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildNavItem(
-              icon: Icons.home,
-              label: 'Home',
-              index: 0,
-              isSelected: widget.selectedIndex == 0,
+            Expanded(
+              child: _buildNavItem(
+                icon: Icons.home,
+                label: 'Home',
+                index: 0,
+                isSelected: widget.selectedIndex == 0,
+              ),
             ),
-            _buildNavItem(
-              icon: Icons.history,
-              label: 'History',
-              index: 1,
-              isSelected: widget.selectedIndex == 1,
+            Expanded(
+              child: _buildNavItem(
+                icon: Icons.history,
+                label: 'History',
+                index: 1,
+                isSelected: widget.selectedIndex == 1,
+              ),
             ),
-            _buildNavItem(
-              icon: Icons.note_alt_outlined,
-              label: 'Leave',
-              index: 2,
-              isSelected: widget.selectedIndex == 2,
+            Expanded(child: _buildClockButton(todayAttendance)),
+            Expanded(
+              child: _buildNavItem(
+                icon: Icons.note_alt_outlined,
+                label: 'Leave',
+                index: 3,
+                isSelected: widget.selectedIndex == 3,
+              ),
             ),
-            _buildNavItem(
-              icon: Icons.person_outline,
-              label: 'Profile',
-              index: 3,
-              isSelected: widget.selectedIndex == 3,
+            Expanded(
+              child: _buildNavItem(
+                icon: Icons.person_outline,
+                label: 'Profile',
+                index: 4,
+                isSelected: widget.selectedIndex == 4,
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClockButton(dynamic todayAttendance) {
+    bool isClockOut =
+        todayAttendance != null && todayAttendance.clockOut == null;
+    bool isDone = todayAttendance != null && todayAttendance.clockOut != null;
+
+    Color gradientStart;
+    Color gradientEnd;
+    String label;
+    IconData icon;
+
+    if (isDone) {
+      gradientStart = Colors.grey.withValues(alpha: 0.56);
+      gradientEnd = Colors.grey;
+      label = 'Done';
+      icon = Icons.check;
+    } else if (isClockOut) {
+      gradientStart = const Color(0xFFE57373);
+      gradientEnd = const Color(0xFFD32F2F);
+      label = 'Out';
+      icon = Icons.logout;
+    } else {
+      gradientStart = const Color(0xFF80CE70);
+      gradientEnd = const Color(0xFF26667F);
+      label = 'In';
+      icon = Icons.login;
+    }
+
+    return GestureDetector(
+      onTap: isDone ? null : () => _onNavItemTapped(2),
+      child: Center(
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [gradientStart, gradientEnd],
+            ),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: gradientEnd.withValues(alpha: 0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 24),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -121,27 +245,28 @@ class _MainLayoutState extends State<MainLayout> {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (isSelected)
               Container(
-                width: 50,
-                height: 4,
+                width: 40,
+                height: 3,
                 decoration: BoxDecoration(
                   color: const Color(0xFF26667F),
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-            const SizedBox(height: 4),
+            SizedBox(height: isSelected ? 4 : 7),
             Icon(
               icon,
               color: isSelected ? const Color(0xFF26667F) : Colors.grey[500],
-              size: 26,
+              size: 24,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? const Color(0xFF26667F) : Colors.grey[500],
               ),
