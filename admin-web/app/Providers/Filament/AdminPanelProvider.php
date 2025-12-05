@@ -27,8 +27,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login(false) // Disable Filament login page
-            ->authGuard('web') // Use the same web guard as custom login
+            ->login() // Enable Filament login page
+            ->authGuard('web')
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -55,7 +55,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                FilamentAdminAccess::class, // Add custom admin access check
             ])
             ->plugin(
                 \Rupadana\ApiService\ApiServicePlugin::make()

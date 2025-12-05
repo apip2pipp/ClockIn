@@ -20,7 +20,7 @@ class FilamentAdminAccess
         }
 
         // Check if user has admin role
-        if (!in_array(Auth::user()->role, ['super_admin', 'company_admin'])) {
+        if (!in_array(Auth::user()->role, ['admin', 'super_admin', 'company_admin'])) {
             Auth::logout();
             return redirect()->route('login')
                 ->with('error', 'Akses ditolak. Halaman ini hanya untuk admin perusahaan.');
