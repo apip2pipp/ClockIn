@@ -36,6 +36,14 @@ Panduan lengkap penggunaan aplikasi mobile dari install sampai absen harian
 💻 **[Web Admin Manual](WEB_ADMIN_MANUAL.md)**  
 Panduan lengkap mengelola sistem absensi, approval, dan generate laporan
 
+### **Untuk DevOps / System Administrator:**
+🔧 **[Admin Panel Deployment Fix](DOCUMENTATION_INDEX.md)**  
+Panduan fix masalah 403 Forbidden & deployment ke VPS production  
+📋 **Quick Links:**
+- 🚀 [Quick Start Deployment](QUICKSTART.md)
+- 🐛 [Debug Guide](QUICK_DEBUG_GUIDE.md)
+- 📘 [Complete Fix Guide](DEPLOYMENT_FIX_GUIDE.md)
+
 ### **Untuk Developer / Tim Dokumentasi:**
 - 📸 **[Screenshot Guide](docs/screenshots/SCREENSHOT_GUIDE.md)** - Checklist & panduan lengkap screenshot
 - 🚀 **[Quick Start Guide](docs/screenshots/QUICK_START.md)** - Cara cepat input screenshot
@@ -54,7 +62,7 @@ Panduan lengkap mengelola sistem absensi, approval, dan generate laporan
 **Detail lengkap:** Lihat [Mobile User Manual](MOBILE_USER_MANUAL.md)
 
 ### **Web Admin**
-1. Akses web admin di browser: `https://admin.clockinplus.com`
+1. Akses web admin di browser: `https://clockin.cloud/admin`
 2. Login dengan akun admin
 3. Dashboard akan menampilkan monitoring real-time kehadiran
 4. Kelola karyawan, approval izin, dan generate laporan

@@ -27,7 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login(false) // Disable Filament login, use custom login
+            ->login('/login') // Use custom login page
             ->authGuard('web')
             ->favicon(asset('logo_web.png'))
             ->darkMode(true)

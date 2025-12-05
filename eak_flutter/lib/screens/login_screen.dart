@@ -17,8 +17,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
 
-  // URL website untuk registrasi perusahaan
-  static const String _registerWebUrl = 'http://192.168.18.67:8000/register';
+  // URL website untuk registrasi perusahaan (PRODUCTION)
+  static const String _registerWebUrl = 'https://clockin.cloud/register';
+
+  // DEVELOPMENT URL (Uncomment untuk development)
+  // static const String _registerWebUrl = 'http://192.168.18.67:8000/register';
 
   @override
   void dispose() {

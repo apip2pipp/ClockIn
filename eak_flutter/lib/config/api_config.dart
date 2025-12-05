@@ -5,27 +5,30 @@
 class ApiConfig {
   // ==================== BASE URL ====================
   //
-  // PRODUCTION: Ganti dengan domain production Anda
-  // static const String baseUrl = 'https://yourdomain.com/api';
-  //
-  // DEVELOPMENT (Local Network): Ganti dengan IP komputer server Laravel
+  // PRODUCTION: Domain production aktif
+  static const String baseUrl = 'https://clockin.cloud/api';
+
+  // DEVELOPMENT (Local Network): Uncomment untuk testing lokal
   // Cara cek IP:
   // - Windows: buka CMD → ketik "ipconfig" → lihat IPv4 Address
   // - Mac/Linux: buka Terminal → ketik "ifconfig" → lihat inet
   //
-  // PENTING:
+  // PENTING untuk development:
   // - Pastikan handphone dan komputer dalam jaringan WiFi yang sama
   // - Jangan gunakan 127.0.0.1 atau localhost (tidak bisa diakses dari HP)
   // - Gunakan IP address komputer (contoh: 192.168.1.100)
 
-  // DEVELOPMENT URL (Local Network)
-  static const String baseUrl = 'http://192.168.18.67:8000/api';
+  // DEVELOPMENT URL (Uncomment untuk development)
+  // static const String baseUrl = 'http://192.168.18.67:8000/api';
 
   //Base URL untuk leave requests
   static String get leaveUrl => baseUrl + leaveRequestsEndpoint;
 
   // Base URL untuk storage (foto, dokumen, dll)
-  static const String storageUrl = 'http://192.168.18.67:8000/storage';
+  static const String storageUrl = 'https://clockin.cloud/storage';
+
+  // DEVELOPMENT storage URL (Uncomment untuk development)
+  // static const String storageUrl = 'http://192.168.18.67:8000/storage';
 
   // ==================== TIMEOUT ====================
   static const Duration connectionTimeout = Duration(seconds: 30);

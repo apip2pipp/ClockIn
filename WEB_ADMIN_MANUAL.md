@@ -39,7 +39,7 @@
 
 **Cara Pakai:**
 1. Buka browser (Chrome, Firefox, Edge, Safari)
-2. Ketik URL: **https://admin.clockinplus.com** atau sesuai domain perusahaan
+2. Ketik URL: **https://clockin.cloud/admin**
 3. Tekan Enter
 4. Akan muncul halaman login admin
 
@@ -765,7 +765,7 @@
 1. Klik tab **"Notifications"**
 2. Konfigurasi:
    - **Email Server:** SMTP settings
-   - **Sender Email:** noreply@clockinplus.com
+   - **Sender Email:** noreply@clockin.cloud
    - **Notification Rules:**
      - ✅ Send email saat approval izin
      - ✅ Reminder Check In via push notification
@@ -848,10 +848,10 @@
 ## 📞 Support & Bantuan
 
 Jika mengalami kendala atau butuh bantuan:
-- 📧 Email: admin-support@clockinplus.com
+- 📧 Email: admin-support@clockin.cloud
 - 💬 WhatsApp: +62 xxx-xxxx-xxxx
-- 🎫 Ticket System: support.clockinplus.com
-- 📚 Documentation: docs.clockinplus.com
+- 🌐 Website: https://clockin.cloud
+- 📚 Documentation: https://clockin.cloud/docs
 
 **Tim Support:**
 - **Technical Support:** Senin-Jumat, 08:00-17:00

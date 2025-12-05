@@ -505,7 +505,7 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 ## 📞 Butuh Bantuan?
 
 Jika kamu mengalami kendala atau butuh bantuan:
-- 📧 Email: support@clockinplus.com
+- 📧 Email: support@clockin.cloud
 - 💬 WhatsApp: +62 xxx-xxxx-xxxx
 - 🏢 Hubungi HRD kantor kamu
 
