@@ -27,10 +27,24 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login() // Enable Filament login page
+            ->login(false) // Disable Filament login, use custom login
             ->authGuard('web')
+            ->favicon(asset('logo_web.png'))
+            ->darkMode(true)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => [
+                    50 => '#f0fdf4',
+                    100 => '#dcfce7',
+                    200 => '#bbf7d0',
+                    300 => '#86efac',
+                    400 => '#4ade80',
+                    500 => '#22c55e',
+                    600 => '#16a34a',
+                    700 => '#15803d',
+                    800 => '#166534',
+                    900 => '#14532d',
+                    950 => '#052e16',
+                ],
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -56,6 +70,7 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+            ->viteTheme('resources/css/filament-admin.css')
             ->plugin(
                 \Rupadana\ApiService\ApiServicePlugin::make()
             );

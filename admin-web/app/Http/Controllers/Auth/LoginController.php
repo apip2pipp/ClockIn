@@ -37,12 +37,15 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            // Check if user is super_admin or company_admin
-            if (in_array(Auth::user()->role, ['super_admin', 'company_admin'])) {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            
+            // Check if user is admin
+            if ($user && $user->isAdmin()) {
                 return redirect()->intended('/admin');
             }
 
-            // If employee, logout and show error
+            // If not admin (employee), logout and show error
             Auth::logout();
             return redirect()->back()
                 ->withInput($request->only('email'))
@@ -64,6 +67,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/')->with('success', 'Berhasil logout.');
+        return redirect()->route('login')->with('success', 'Berhasil logout.');
     }
 }

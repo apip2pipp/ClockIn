@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ClockIn Custom Theme for Filament */
+.dark {
+    /* Background Colors */
+    --gray-950: 30, 41, 59; /* clockin-dark #1E293B */
+    --gray-900: 45, 62, 95; /* clockin-blue #2D3E5F */
+    --gray-800: 51, 65, 85;
+    --gray-700: 71, 85, 105;
+    
+    /* Primary Green Colors */
+    --primary-50: 240, 253, 244;
+    --primary-100: 220, 252, 231;
+    --primary-200: 187, 247, 208;
+    --primary-300: 134, 239, 172;
+    --primary-400: 74, 222, 128; /* clockin-green #4ADE80 */
+    --primary-500: 34, 197, 94; /* clockin-green-dark #22C55E */
+    --primary-600: 22, 163, 74;
+    --primary-700: 21, 128, 61;
+    --primary-800: 22, 101, 52;
+    --primary-900: 20, 83, 45;
+}
+
+/* Sidebar Gradient Background */
+.fi-sidebar {
+    background: linear-gradient(180deg, #2D3E5F 0%, #1E293B 100%);
+}
+
+/* Active Sidebar Item */
+.fi-sidebar-item-button[aria-current="page"] {
+    background-color: rgba(74, 222, 128, 0.1);
+    border-left: 3px solid #4ADE80;
+}
+
+/* Hover Sidebar Item */
+.fi-sidebar-item-button:hover {
+    background-color: rgba(74, 222, 128, 0.05);
+}
+
+/* Topbar */
+.fi-topbar {
+    background-color: #1E293B;
+    border-bottom-color: rgba(74, 222, 128, 0.1);
+}
+
+/* Main Content Background */
+.fi-main {
+    background-color: #1E293B;
+}
+
+/* Section/Card Backgrounds */
+.fi-section,
+.fi-card {
+    background-color: #2D3E5F;
+    border-color: rgba(74, 222, 128, 0.1);
+}
+
+/* Table Header */
+.fi-ta-header-cell {
+    background-color: rgba(74, 222, 128, 0.05);
+}
+
+/* Table Row Hover */
+.fi-ta-row:hover {
+    background-color: rgba(74, 222, 128, 0.03);
+}
