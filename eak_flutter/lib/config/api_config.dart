@@ -6,7 +6,7 @@ class ApiConfig {
   // ==================== BASE URL ====================
   //
   // PRODUCTION: Domain production aktif
-  static const String baseUrl = 'https://clockin.cloud/api';
+  static const String baseUrl = 'http://192.168.18.126:8000/api';
 
   // DEVELOPMENT (Local Network): Uncomment untuk testing lokal
   // Cara cek IP:
@@ -25,7 +25,7 @@ class ApiConfig {
   static String get leaveUrl => baseUrl + leaveRequestsEndpoint;
 
   // Base URL untuk storage (foto, dokumen, dll)
-  static const String storageUrl = 'https://clockin.cloud/storage';
+  static const String storageUrl = 'http://192.168.18.126:8000/storage';
 
   // DEVELOPMENT storage URL (Uncomment untuk development)
   // static const String storageUrl = 'http://192.168.18.67:8000/storage';
