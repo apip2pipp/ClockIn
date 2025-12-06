@@ -23,12 +23,6 @@
 
 ## 1. Instalasi Aplikasi
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `01-app-icon.png`
-> - `02-splash-screen.png` (untuk section berikutnya)
-
 ![Icon App di Home Scre](docs/screenshots/mobile/01-app-icon.png.jpg)
 
 ### 📝 Deskripsi
@@ -55,11 +49,7 @@
 
 ## 2. Splash Screen
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:** `02-splash-screen.png`
-
-![Splash Screen dengan Logo ClockIn](docs/screenshots/mobile/02-splash-screen.png)
+![Splash Screen dengan Logo ClockIn](docs\screenshots\mobile\02-splash-screen.jpg)
 
 ### 📝 Deskripsi
 **Ini adalah tampilan pertama saat kamu membuka aplikasi**
@@ -81,14 +71,9 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 3. Onboarding
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `03-onboarding-1.png`, `04-onboarding-2.png`, `05-onboarding-3.png`
-
-![Onboarding Slide 1 - Check In/Out](docs/screenshots/mobile/03-onboarding-1.png)
-![Onboarding Slide 2 - Location Tracking](docs/screenshots/mobile/04-onboarding-2.png)
-![Onboarding Slide 3 - Report & History](docs/screenshots/mobile/05-onboarding-3.png)
+![Onboarding Slide 1 - Check In/Out](docs\screenshots\mobile\03-onboarding-1.png.jpg)
+![Onboarding Slide 2 - Location Tracking](docs\screenshots\mobile\04-onboarding-2.jpg)
+![Onboarding Slide 3 - Report & History](docs\screenshots\mobile\05-onboarding-3.jpg)
 
 ### 📝 Deskripsi
 **Halaman pengenalan fitur-fitur utama ClockIn untuk user baru**
@@ -112,14 +97,9 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 4. Login
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `06-login-page.png`, `07-login-loading.png`, `08-login-error.png`
-
-![Halaman Login](docs/screenshots/mobile/06-login-page.png)
-![Login Loading](docs/screenshots/mobile/07-login-loading.png)
-![Login Error](docs/screenshots/mobile/08-login-error.png)
+![Halaman Login](docs\screenshots\mobile\06-login-page.png.jpg)
+![Login Loading](docs\screenshots\mobile\07-login-loading.jpg)
+![Login Error](docs\screenshots\mobile\08-login-error.jpg)
 
 ### 📝 Deskripsi
 **Halaman untuk masuk ke akun kamu dan mulai menggunakan ClockIn**
@@ -150,14 +130,9 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 5. Home Screen / Dashboard
 
-### 📸 Screenshot
+![Home Screen - Selamat Pagi](docs\screenshots\mobile\09-home-morning.png.jpg)
+![Status Belum Check In](docs\screenshots\mobile\10-home-status-belum-checkin.jpg)
 
-> **Simpan screenshot dengan nama file:**
-> - `09-home-morning.png`, `10-home-status-belum-checkin.png`, `11-home-summary.png`
-
-![Home Screen - Selamat Pagi](docs/screenshots/mobile/09-home-morning.png)
-![Status Belum Check In](docs/screenshots/mobile/10-home-status-belum-checkin.png)
-![Summary Absensi](docs/screenshots/mobile/11-home-summary.png)
 
 ### 📝 Deskripsi
 **Halaman utama aplikasi, pusat semua aktivitas absensi kamu**
@@ -190,15 +165,10 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 6. Check In
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `12-checkin-popup.png`, `13-checkin-location.png`, `14-checkin-camera.png`, `15-checkin-success.png`
-
-![Pop-up Konfirmasi Check In](docs/screenshots/mobile/12-checkin-popup.png)
-![Akses Lokasi](docs/screenshots/mobile/13-checkin-location.png)
-![Kamera Selfie](docs/screenshots/mobile/14-checkin-camera.png)
-![Check In Success](docs/screenshots/mobile/15-checkin-success.png)
+![Pop-up Konfirmasi Check In](docs/screenshots/mobile/12-checkin-popup.jpg)
+![Akses Lokasi](docs/screenshots/mobile/13-checkin-location.jpg)
+![Kamera Selfie](docs\screenshots\mobile\14-checkin-camera.jpg)
+![Check In Success](docs\screenshots\mobile\15-checkin-success.jpg)
 
 ### 📝 Deskripsi
 **Fitur untuk absen masuk setiap hari saat datang ke kantor**
@@ -241,14 +211,9 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 7. Check Out
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `16-checkout-popup.png`, `17-checkout-camera.png`, `18-checkout-success.png`
-
-![Pop-up Konfirmasi Check Out](docs/screenshots/mobile/16-checkout-popup.png)
-![Kamera Check Out](docs/screenshots/mobile/17-checkout-camera.png)
-![Check Out Success dengan Durasi](docs/screenshots/mobile/18-checkout-success.png)
+![Pop-up Konfirmasi Check Out](docs\screenshots\mobile\16-checkout-popup.jpg)
+![Kamera Check Out](docs\screenshots\mobile\17-checkout-camera.jpg)
+![Check Out Success dengan Durasi](docs\screenshots\mobile\18-checkout-success.jpg)
 
 ### 📝 Deskripsi
 **Fitur untuk absen pulang setiap hari saat meninggalkan kantor**
@@ -289,14 +254,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 8. Riwayat Kehadiran
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `19-history-list.png`, `20-history-detail.png`, `21-history-filter.png`
-
-![List Riwayat Kehadiran](docs/screenshots/mobile/19-history-list.png)
-![Detail Kehadiran per Hari](docs/screenshots/mobile/20-history-detail.png)
-![Filter Riwayat](docs/screenshots/mobile/21-history-filter.png)
+![List Riwayat Kehadiran](docs\screenshots\mobile\19-history-list.png.jpg)
+![Filter Riwayat](docs\screenshots\mobile\20-history-filter.jpg)
 
 ### 📝 Deskripsi
 **Halaman untuk melihat history absensi kamu dari waktu ke waktu**
@@ -333,31 +292,17 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ### 📸 Screenshot
 
-> **Simpan screenshot dengan nama file:**
-> - `22-profile-page.png`, `23-profile-edit.png`, `24-change-password.png`
-
-![Halaman Profile](docs/screenshots/mobile/22-profile-page.png)
-![Edit Profile](docs/screenshots/mobile/23-profile-edit.png)
-![Ubah Password](docs/screenshots/mobile/24-change-password.png)
+![Halaman Profile](docs\screenshots\mobile\22-profile-page.jpg)
 
 ### 📝 Deskripsi
 **Halaman untuk melihat dan mengedit informasi akun kamu**
 
 **Fungsi:**
 - Melihat data pribadi (nama, email, jabatan, divisi)
-- Edit foto profile
-- Ubah password
-- Pengaturan notifikasi
 - Informasi perusahaan
 
 **Cara Pakai:**
 1. Dari bottom navigation, tap icon **"Profile"**
-2. Untuk **edit profile**, tap tombol "Edit" di pojok kanan atas
-3. Ubah data yang ingin diubah (foto, nama, dll)
-4. Tap **"Save"** untuk menyimpan perubahan
-5. Untuk **ubah password**, tap menu "Ubah Password"
-6. Masukkan password lama dan password baru
-7. Tap **"Update Password"**
 
 **Data yang Ditampilkan:**
 - 👤 Nama lengkap
@@ -377,14 +322,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 10. Izin & Cuti
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `25-leave-form.png`, `26-leave-type.png`, `27-leave-status.png`
-
-![Form Pengajuan Izin](docs/screenshots/mobile/25-leave-form.png)
-![Pilihan Jenis Izin](docs/screenshots/mobile/26-leave-type.png)
-![Status Pengajuan](docs/screenshots/mobile/27-leave-status.png)
+![Form Pengajuan Izin](docs\screenshots\mobile\25-leave-form.jpg)
+![Pilihan Jenis Izin](docs\screenshots\mobile\25-leave-form2.jpg)
 
 ### 📝 Deskripsi
 **Fitur untuk mengajukan izin tidak masuk atau cuti**
@@ -424,11 +363,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 11. Logout
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:** `30-logout-confirmation.png`
-
-![Menu Logout](docs/screenshots/mobile/30-logout-confirmation.png)
+![Menu Logout](docs\screenshots\mobile\30-logout-confirmation.jpg)
+![Menu Logout2](docs\screenshots\mobile\30-logout-confirmation2.jpg)
 
 ### 📝 Deskripsi
 **Fitur untuk keluar dari akun dan mengakhiri session**
