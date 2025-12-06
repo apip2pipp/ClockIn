@@ -23,7 +23,7 @@
 
 ## 1. Instalasi Aplikasi
 
-![Icon App di Home Scre](docs/screenshots/mobile/01-app-icon.png.jpg)
+<img src="docs/screenshots/mobile/01-app-icon.png.jpg" alt="Icon App di Home Screen" width="300"/>
 
 ### 📝 Deskripsi
 **Halaman ini adalah langkah pertama kamu untuk menggunakan ClockIn**
@@ -49,7 +49,7 @@
 
 ## 2. Splash Screen
 
-![Splash Screen dengan Logo ClockIn](docs/screenshots/mobile/02-splash-screen.jpg)
+<img src="docs/screenshots/mobile/02-splash-screen.jpg" alt="Splash Screen dengan Logo ClockIn" width="300"/>
 
 ### 📝 Deskripsi
 **Ini adalah tampilan pertama saat kamu membuka aplikasi**
@@ -71,9 +71,9 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 3. Onboarding
 
-![Onboarding Slide 1 - Check In/Out](docs/screenshots/mobile/03-onboarding-1.png.jpg)
-![Onboarding Slide 2 - Location Tracking](docs/screenshots/mobile/04-onboarding-2.jpg)
-![Onboarding Slide 3 - Report & History](docs/screenshots/mobile/05-onboarding-3.jpg)
+<img src="docs/screenshots/mobile/03-onboarding-1.png.jpg" alt="Onboarding Slide 1 - Check In/Out" width="300"/>
+<img src="docs/screenshots/mobile/04-onboarding-2.jpg" alt="Onboarding Slide 2 - Location Tracking" width="300"/>
+<img src="docs/screenshots/mobile/05-onboarding-3.jpg" alt="Onboarding Slide 3 - Report & History" width="300"/>
 
 ### 📝 Deskripsi
 **Halaman pengenalan fitur-fitur utama ClockIn untuk user baru**
@@ -97,9 +97,9 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 4. Login
 
-![Halaman Login](docs/screenshots/mobile/06-login-page.png.jpg)
-![Login Loading](docs/screenshots/mobile/07-login-loading.jpg)
-![Login Error](docs/screenshots/mobile/08-login-error.jpg)
+<img src="docs/screenshots/mobile/06-login-page.png.jpg" alt="Halaman Login" width="300"/>
+<img src="docs/screenshots/mobile/07-login-loading.jpg" alt="Login Loading" width="300"/>
+<img src="docs/screenshots/mobile/08-login-error.jpg" alt="Login Error" width="300"/>
 
 ### 📝 Deskripsi
 **Halaman untuk masuk ke akun kamu dan mulai menggunakan ClockIn**
@@ -130,9 +130,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 5. Home Screen / Dashboard
 
-![Home Screen - Selamat Pagi](docs/screenshots/mobile/09-home-morning.png.jpg)
-![Status Belum Check In](docs/screenshots/mobile/10-home-status-belum-checkin.jpg)
-
+<img src="docs/screenshots/mobile/09-home-morning.png.jpg" alt="Home Screen - Selamat Pagi" width="300"/>
+<img src="docs/screenshots/mobile/10-home-status-belum-checkin.jpg" alt="Status Belum Check In" width="300"/>
 
 ### 📝 Deskripsi
 **Halaman utama aplikasi, pusat semua aktivitas absensi kamu**
@@ -165,10 +164,10 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 6. Check In
 
-![Pop-up Konfirmasi Check In](docs/screenshots/mobile/12-checkin-popup.jpg)
-![Akses Lokasi](docs/screenshots/mobile/13-checkin-location.jpg)
-![Kamera Selfie](docs/screenshots/mobile/14-checkin-camera.jpg)
-![Check In Success](docs/screenshots/mobile/15-checkin-success.jpg)
+<img src="docs/screenshots/mobile/12-checkin-popup.jpg" alt="Pop-up Konfirmasi Check In" width="300"/>
+<img src="docs/screenshots/mobile/13-checkin-location.jpg" alt="Akses Lokasi" width="300"/>
+<img src="docs/screenshots/mobile/14-checkin-camera.jpg" alt="Kamera Selfie" width="300"/>
+<img src="docs/screenshots/mobile/15-checkin-success.jpg" alt="Check In Success" width="300"/>
 
 ### 📝 Deskripsi
 **Fitur untuk absen masuk setiap hari saat datang ke kantor**
@@ -211,9 +210,9 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 7. Check Out
 
-![Pop-up Konfirmasi Check Out](docs/screenshots/mobile/16-checkout-popup.jpg)
-![Kamera Check Out](docs/screenshots/mobile/17-checkout-camera.jpg)
-![Check Out Success dengan Durasi](docs/screenshots/mobile/18-checkout-success.jpg)
+<img src="docs/screenshots/mobile/16-checkout-popup.jpg" alt="Pop-up Konfirmasi Check Out" width="300"/>
+<img src="docs/screenshots/mobile/17-checkout-camera.jpg" alt="Kamera Check Out" width="300"/>
+<img src="docs/screenshots/mobile/18-checkout-success.jpg" alt="Check Out Success dengan Durasi" width="300"/>
 
 ### 📝 Deskripsi
 **Fitur untuk absen pulang setiap hari saat meninggalkan kantor**
@@ -254,8 +253,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 8. Riwayat Kehadiran
 
-![List Riwayat Kehadiran](docs/screenshots/mobile/19-history-list.png.jpg)
-![Filter Riwayat](docs/screenshots/mobile/20-history-filter.jpg)
+<img src="docs/screenshots/mobile/19-history-list.png.jpg" alt="List Riwayat Kehadiran" width="300"/>
+<img src="docs/screenshots/mobile/20-history-filter.jpg" alt="Filter Riwayat" width="300"/>
 
 ### 📝 Deskripsi
 **Halaman untuk melihat history absensi kamu dari waktu ke waktu**
@@ -292,7 +291,7 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ### 📸 Screenshot
 
-![Halaman Profile](docs/screenshots/mobile/22-profile-page.jpg)
+<img src="docs/screenshots/mobile/22-profile-page.jpg" alt="Halaman Profile" width="300"/>
 
 ### 📝 Deskripsi
 **Halaman untuk melihat dan mengedit informasi akun kamu**
@@ -322,8 +321,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 10. Izin & Cuti
 
-![Form Pengajuan Izin](docs/screenshots/mobile/25-leave-form.jpg)
-![Pilihan Jenis Izin](docs/screenshots/mobile/25-leave-form2.jpg)
+<img src="docs/screenshots/mobile/25-leave-form.jpg" alt="Form Pengajuan Izin" width="300"/>
+<img src="docs/screenshots/mobile/25-leave-form2.jpg" alt="Pilihan Jenis Izin" width="300"/>
 
 ### 📝 Deskripsi
 **Fitur untuk mengajukan izin tidak masuk atau cuti**
@@ -363,8 +362,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 11. Logout
 
-![Menu Logout](docs/screenshots/mobile/30-logout-confirmation.jpg)
-![Menu Logout2](docs/screenshots/mobile/30-logout-confirmation2.jpg)
+<img src="docs/screenshots/mobile/30-logout-confirmation.jpg" alt="Menu Logout" width="300"/>
+<img src="docs/screenshots/mobile/30-logout-confirmation2.jpg" alt="Menu Logout2" width="300"/>
 
 ### 📝 Deskripsi
 **Fitur untuk keluar dari akun dan mengakhiri session**
