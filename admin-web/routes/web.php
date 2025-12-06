@@ -36,22 +36,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'attempt'])->name('login.attempt');
 });
 
-// login for admin only
+// Logout
 Route::middleware('auth')->group(function () {
-    // Admin Dashboard
-    Route::get('/admin', function () {
-        Log::info('Admin route accessed', [
-            'user_id' => auth()->id(),
-            'email' => auth()->user()->email ?? 'not authenticated',
-            'is_authenticated' => auth()->check(),
-            'session_id' => session()->getId(),
-        ]);
-        
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
-    
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });
-
-// Logout
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

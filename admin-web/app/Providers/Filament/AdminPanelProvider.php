@@ -68,6 +68,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                FilamentAdminAccess::class, // Tambahkan ini
             ])
             ->viteTheme('resources/css/filament-admin.css')
             ->plugin(
