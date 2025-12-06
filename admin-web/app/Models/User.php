@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -35,11 +37,18 @@ class User extends Authenticatable
         'is_active' => 'boolean',
     ];
 
-    protected $attributes = [
-        'role' => 'employee',
-        'is_active' => true,
-    ];
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Hanya admin yang bisa akses Filament
+        return $this->isAdmin() && $this->is_active;
+    }
 
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin', 'company_admin']);
+    }
+
+    // Relationships
     public function company()
     {
         return $this->belongsTo(Company::class);
@@ -58,23 +67,5 @@ class User extends Authenticatable
     public function approvedLeaveRequests()
     {
         return $this->hasMany(LeaveRequest::class, 'approved_by');
-    }
-
-    /**
-     * Check if user is admin
-     */
-    public function isAdmin(): bool
-    {
-        return in_array($this->role, ['admin', 'super_admin', 'company_admin']);
-    }
-
-    /**
-     * Determine if the user can access the Filament admin panel.
-     * Only users with 'admin' or 'company_admin' role can access.
-     */
-    public function canAccessPanel(\Filament\Panel $panel): bool
-    {
-        // Allow access for admin and company_admin roles
-        return $this->isAdmin();
     }
 }
