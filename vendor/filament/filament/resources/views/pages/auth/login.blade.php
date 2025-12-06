@@ -35,12 +35,14 @@
             @endif
 
             <div class="bg-white/5 backdrop-blur-lg rounded-xl p-8 border border-white/10 shadow-2xl">
-                {{ $this->form }}
+                <x-filament-panels::form wire:submit="authenticate">
+                    {{ $this->form }}
 
-                <x-filament-panels::form.actions
-                    :actions="$this->getCachedFormActions()"
-                    :full-width="$this->hasFullWidthFormActions()"
-                />
+                    <x-filament-panels::form.actions
+                        :actions="$this->getCachedFormActions()"
+                        :full-width="$this->hasFullWidthFormActions()"
+                    />
+                </x-filament-panels::form>
             </div>
 
             <div class="mt-6 text-center">
@@ -64,6 +66,7 @@
     </section>
 
     <style>
+        /* Custom styling untuk Filament form - Matching Laravel login */
         body {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
         }
@@ -166,14 +169,6 @@
             margin-top: 0.5rem !important;
         }
 
-        /* Remember Me & Forgot Password Row */
-        .fi-simple-layout-footer {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            margin-bottom: 1.5rem !important;
-        }
-
         /* Hide Filament Branding */
         .fi-simple-footer {
             display: none !important;
@@ -182,6 +177,15 @@
         /* Adjust spacing */
         .fi-fo-field-wrp {
             margin-bottom: 1.5rem !important;
+        }
+
+        /* Password visibility toggle */
+        .fi-input-wrp-suffix {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        .fi-input-wrp-suffix:hover {
+            color: rgba(255, 255, 255, 0.8) !important;
         }
     </style>
 </x-filament-panels::page.simple>
