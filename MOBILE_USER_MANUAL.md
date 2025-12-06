@@ -1,6 +1,6 @@
 # 📱 ClockIn Mobile App - User Manual
 
-> **Panduan Lengkap Penggunaan Aplikasi Mobile ClockIn+**  
+> **Panduan Lengkap Penggunaan Aplikasi Mobile ClockIn**  
 > Dari install sampai absen setiap hari dengan mudah!
 
 ---
@@ -29,21 +29,21 @@
 > - `01-app-icon.png`
 > - `02-splash-screen.png` (untuk section berikutnya)
 
-![Icon App di Home Screen](docs/screenshots/mobile/01-app-icon.png)
+![Icon App di Home Screen](docs\screenshots\mobile\01-app-icon.png.jpg)
 
 ### 📝 Deskripsi
-**Halaman ini adalah langkah pertama kamu untuk menggunakan ClockIn+**
+**Halaman ini adalah langkah pertama kamu untuk menggunakan ClockIn**
 
 **Fungsi:**
-- Download dan install aplikasi ClockIn+ di smartphone kamu
+- Download dan install aplikasi ClockIn di smartphone kamu
 - Pastikan aplikasi berhasil terinstall dan muncul icon di home screen
 
 **Cara Pakai:**
 1. Buka **Google Play Store** (Android) atau **App Store** (iOS)
-2. Cari aplikasi dengan keyword **"ClockIn+"**
+2. Cari aplikasi dengan keyword **"ClockIn"**
 3. Tekan tombol **Install** / **Download**
 4. Tunggu sampai proses download dan instalasi selesai
-5. Icon aplikasi ClockIn+ akan muncul di home screen kamu
+5. Icon aplikasi ClockIn akan muncul di home screen kamu
 6. Tap icon untuk membuka aplikasi
 
 **Tips:**
@@ -59,14 +59,14 @@
 
 > **Simpan screenshot dengan nama file:** `02-splash-screen.png`
 
-![Splash Screen dengan Logo ClockIn+](docs/screenshots/mobile/02-splash-screen.png)
+![Splash Screen dengan Logo ClockIn](docs/screenshots/mobile/02-splash-screen.png)
 
 ### 📝 Deskripsi
 **Ini adalah tampilan pertama saat kamu membuka aplikasi**
 
 **Fungsi:**
 - Loading awal aplikasi
-- Menampilkan branding ClockIn+
+- Menampilkan branding ClockIn
 - Menyiapkan sistem aplikasi sebelum masuk ke halaman utama
 
 **Apa yang Terjadi:**
@@ -91,7 +91,7 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 ![Onboarding Slide 3 - Report & History](docs/screenshots/mobile/05-onboarding-3.png)
 
 ### 📝 Deskripsi
-**Halaman pengenalan fitur-fitur utama ClockIn+ untuk user baru**
+**Halaman pengenalan fitur-fitur utama ClockIn untuk user baru**
 
 **Fungsi:**
 - Memberikan gambaran fitur-fitur yang tersedia
@@ -122,7 +122,7 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 ![Login Error](docs/screenshots/mobile/08-login-error.png)
 
 ### 📝 Deskripsi
-**Halaman untuk masuk ke akun kamu dan mulai menggunakan ClockIn+**
+**Halaman untuk masuk ke akun kamu dan mulai menggunakan ClockIn**
 
 **Fungsi:**
 - Autentikasi user dengan email dan password
@@ -419,49 +419,10 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 - Lengkapi dengan dokumen untuk mempercepat approval
 - Cek sisa kuota cuti sebelum mengajukan
 
----
-
-## 11. Notifikasi
-
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `28-notification-list.png`, `29-notification-detail.png`
-
-![List Notifikasi](docs/screenshots/mobile/28-notification-list.png)
-![Detail Notifikasi](docs/screenshots/mobile/29-notification-detail.png)
-
-### 📝 Deskripsi
-**Halaman untuk melihat semua notifikasi dan pengingat**
-
-**Fungsi:**
-- Reminder untuk Check In/Out
-- Notifikasi approval izin/cuti
-- Pengumuman dari HRD atau management
-- Alert jika ada keterlambatan atau pelanggaran
-
-**Jenis Notifikasi:**
-- 🔔 **Reminder Check In:** Pengingat untuk absen masuk (jam 07:45)
-- 🔔 **Reminder Check Out:** Pengingat untuk absen pulang (jam 17:00)
-- ✅ **Approval Izin:** Izin kamu disetujui/ditolak
-- 📢 **Pengumuman:** Info penting dari perusahaan
-- ⚠️ **Warning:** Terlambat atau lupa Check Out
-
-**Cara Pakai:**
-1. Tap icon **lonceng** di pojok kanan atas Home Screen
-2. Akan muncul list notifikasi terbaru
-3. Tap pada notifikasi untuk lihat detail
-4. Notifikasi yang belum dibaca akan ada **badge merah**
-5. Swipe untuk hapus notifikasi yang sudah dibaca
-
-**Tips:**
-- Aktifkan notifikasi push di settings HP
-- Jangan skip notifikasi reminder agar tidak lupa absen
-- Baca pengumuman penting dari HRD
 
 ---
 
-## 12. Logout
+## 11. Logout
 
 ### 📸 Screenshot
 
@@ -529,5 +490,5 @@ Jika kamu mengalami kendala atau butuh bantuan:
 
 ---
 
-**© 2025 ClockIn+ by Team Kelompok 4 Sehat 5 Sempurna**  
+**© 2025 ClockIn by Team Kelompok 4 Sehat 5 Sempurna**  
 *Ngoding sehat, hasil sempurna... kadang-kadang.* 😄
