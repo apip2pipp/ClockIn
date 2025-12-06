@@ -26,7 +26,7 @@ class AdminPanelProvider extends PanelProvider
             // ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(\App\Filament\Pages\Auth\Login::class)
             ->authGuard('web')
             ->favicon(asset('logo_web.png'))
             ->brandName('ClockIn Admin')
