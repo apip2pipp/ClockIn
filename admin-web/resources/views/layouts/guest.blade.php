@@ -19,24 +19,22 @@
         <div class="container mx-auto px-6 py-4">
             <div class="flex items-center justify-between">
                 <!-- Logo -->
-                <a href="{{ route('landing') }}" class="flex items-center space-x-3">
+                <a href="/" class="flex items-center space-x-3">
                     <img src="{{ asset('logo_web.png') }}" alt="ClockIn Logo" class="w-10 h-10 object-contain">
                     <span class="text-2xl font-bold text-white">ClockIn</span>
                 </a>
                 
                 <!-- Navigation Links -->
                 <div class="flex items-center space-x-4">
-                    @if(Route::currentRouteName() !== 'register')
-                        <a href="{{ route('register') }}" class="px-6 py-2 text-sm font-medium text-clockin-green hover:text-white border border-clockin-green hover:bg-clockin-green/20 rounded-lg transition-all duration-200">
-                            Daftar
-                        </a>
-                    @endif
+                    {{-- Biarkan dulu untuk register --}}
+                    <a href="#" class="px-6 py-2 text-sm font-medium text-clockin-green hover:text-white border border-clockin-green hover:bg-clockin-green/20 rounded-lg transition-all duration-200">
+                        Daftar
+                    </a>
                     
-                    @if(Route::currentRouteName() !== 'login')
-                        <a href="{{ route('login') }}" class="px-6 py-2 text-sm font-medium text-white bg-clockin-green hover:bg-clockin-green-dark rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
-                            Login
-                        </a>
-                    @endif
+                    {{-- Fix: redirect ke Filament login --}}
+                    <a href="/admin/login" class="px-6 py-2 text-sm font-medium text-white bg-clockin-green hover:bg-clockin-green-dark rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
+                        Login
+                    </a>
                 </div>
             </div>
         </div>
