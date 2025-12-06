@@ -12,6 +12,8 @@
     
     <!-- Vite Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    @stack('styles')
 </head>
 <body class="antialiased">
     <!-- Navbar -->
@@ -26,12 +28,11 @@
                 
                 <!-- Navigation Links -->
                 <div class="flex items-center space-x-4">
-                    {{-- Biarkan dulu untuk register --}}
-                    <a href="#" class="px-6 py-2 text-sm font-medium text-clockin-green hover:text-white border border-clockin-green hover:bg-clockin-green/20 rounded-lg transition-all duration-200">
+                    <a href="{{ route('register') }}" class="px-6 py-2 text-sm font-medium text-clockin-green hover:text-white border border-clockin-green hover:bg-clockin-green/20 rounded-lg transition-all duration-200">
                         Daftar
                     </a>
                     
-                    {{-- Fix: redirect ke Filament login --}}
+                    {{-- Login ke Filament --}}
                     <a href="/admin/login" class="px-6 py-2 text-sm font-medium text-white bg-clockin-green hover:bg-clockin-green-dark rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
                         Login
                     </a>

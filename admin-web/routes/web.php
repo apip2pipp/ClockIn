@@ -21,6 +21,11 @@ Route::get('/', function () {
     return view('welcome');
 })->name('landing');
 
+// for registration
+Route::get('/register', function () {
+    return view('auth.register');
+})->name('register');
+
 // Redirect old routes to Filament
 Route::get('/login', function () {
     return redirect('/admin/login');
