@@ -21,7 +21,7 @@
             </p>
         </div>
         
-        <a href="{{ route('register') }}" class="btn-primary inline-block text-lg mb-6">
+        <a href="#" class="btn-primary inline-block text-lg mb-6">
             Daftar Sekarang
         </a>
         
@@ -83,10 +83,12 @@
             Bergabunglah dengan ratusan perusahaan yang sudah mempercayai ClockIn untuk manajemen kehadiran karyawan
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="{{ route('register') }}" class="btn-primary inline-block">
+            {{-- Biarkan dulu untuk register --}}
+            <a href="#" class="btn-primary inline-block">
                 Daftar Perusahaan
             </a>
-            <a href="{{ route('login') }}" class="px-8 py-3 text-white border-2 border-clockin-green hover:bg-clockin-green/20 rounded-lg transition-all duration-200 font-semibold">
+            {{-- Fix login ke Filament --}}
+            <a href="/admin/login" class="px-8 py-3 text-white border-2 border-clockin-green hover:bg-clockin-green/20 rounded-lg transition-all duration-200 font-semibold">
                 Login sebagai Admin
             </a>
         </div>
