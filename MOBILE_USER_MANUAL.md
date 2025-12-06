@@ -49,7 +49,7 @@
 
 ## 2. Splash Screen
 
-![Splash Screen dengan Logo ClockIn](docs\screenshots\mobile\02-splash-screen.jpg)
+![Splash Screen dengan Logo ClockIn](docs/screenshots/mobile/02-splash-screen.jpg)
 
 ### 📝 Deskripsi
 **Ini adalah tampilan pertama saat kamu membuka aplikasi**
@@ -71,9 +71,9 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 3. Onboarding
 
-![Onboarding Slide 1 - Check In/Out](docs\screenshots\mobile\03-onboarding-1.png.jpg)
-![Onboarding Slide 2 - Location Tracking](docs\screenshots\mobile\04-onboarding-2.jpg)
-![Onboarding Slide 3 - Report & History](docs\screenshots\mobile\05-onboarding-3.jpg)
+![Onboarding Slide 1 - Check In/Out](docs/screenshots/mobile/03-onboarding-1.png.jpg)
+![Onboarding Slide 2 - Location Tracking](docs/screenshots/mobile/04-onboarding-2.jpg)
+![Onboarding Slide 3 - Report & History](docs/screenshots/mobile/05-onboarding-3.jpg)
 
 ### 📝 Deskripsi
 **Halaman pengenalan fitur-fitur utama ClockIn untuk user baru**
@@ -97,9 +97,9 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 4. Login
 
-![Halaman Login](docs\screenshots\mobile\06-login-page.png.jpg)
-![Login Loading](docs\screenshots\mobile\07-login-loading.jpg)
-![Login Error](docs\screenshots\mobile\08-login-error.jpg)
+![Halaman Login](docs/screenshots/mobile/06-login-page.png.jpg)
+![Login Loading](docs/screenshots/mobile/07-login-loading.jpg)
+![Login Error](docs/screenshots/mobile/08-login-error.jpg)
 
 ### 📝 Deskripsi
 **Halaman untuk masuk ke akun kamu dan mulai menggunakan ClockIn**
@@ -130,8 +130,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 5. Home Screen / Dashboard
 
-![Home Screen - Selamat Pagi](docs\screenshots\mobile\09-home-morning.png.jpg)
-![Status Belum Check In](docs\screenshots\mobile\10-home-status-belum-checkin.jpg)
+![Home Screen - Selamat Pagi](docs/screenshots/mobile/09-home-morning.png.jpg)
+![Status Belum Check In](docs/screenshots/mobile/10-home-status-belum-checkin.jpg)
 
 
 ### 📝 Deskripsi
@@ -167,8 +167,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ![Pop-up Konfirmasi Check In](docs/screenshots/mobile/12-checkin-popup.jpg)
 ![Akses Lokasi](docs/screenshots/mobile/13-checkin-location.jpg)
-![Kamera Selfie](docs\screenshots\mobile\14-checkin-camera.jpg)
-![Check In Success](docs\screenshots\mobile\15-checkin-success.jpg)
+![Kamera Selfie](docs/screenshots/mobile/14-checkin-camera.jpg)
+![Check In Success](docs/screenshots/mobile/15-checkin-success.jpg)
 
 ### 📝 Deskripsi
 **Fitur untuk absen masuk setiap hari saat datang ke kantor**
@@ -211,9 +211,9 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 7. Check Out
 
-![Pop-up Konfirmasi Check Out](docs\screenshots\mobile\16-checkout-popup.jpg)
-![Kamera Check Out](docs\screenshots\mobile\17-checkout-camera.jpg)
-![Check Out Success dengan Durasi](docs\screenshots\mobile\18-checkout-success.jpg)
+![Pop-up Konfirmasi Check Out](docs/screenshots/mobile/16-checkout-popup.jpg)
+![Kamera Check Out](docs/screenshots/mobile/17-checkout-camera.jpg)
+![Check Out Success dengan Durasi](docs/screenshots/mobile/18-checkout-success.jpg)
 
 ### 📝 Deskripsi
 **Fitur untuk absen pulang setiap hari saat meninggalkan kantor**
@@ -254,8 +254,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 8. Riwayat Kehadiran
 
-![List Riwayat Kehadiran](docs\screenshots\mobile\19-history-list.png.jpg)
-![Filter Riwayat](docs\screenshots\mobile\20-history-filter.jpg)
+![List Riwayat Kehadiran](docs/screenshots/mobile/19-history-list.png.jpg)
+![Filter Riwayat](docs/screenshots/mobile/20-history-filter.jpg)
 
 ### 📝 Deskripsi
 **Halaman untuk melihat history absensi kamu dari waktu ke waktu**
@@ -292,7 +292,7 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ### 📸 Screenshot
 
-![Halaman Profile](docs\screenshots\mobile\22-profile-page.jpg)
+![Halaman Profile](docs/screenshots/mobile/22-profile-page.jpg)
 
 ### 📝 Deskripsi
 **Halaman untuk melihat dan mengedit informasi akun kamu**
@@ -322,8 +322,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 10. Izin & Cuti
 
-![Form Pengajuan Izin](docs\screenshots\mobile\25-leave-form.jpg)
-![Pilihan Jenis Izin](docs\screenshots\mobile\25-leave-form2.jpg)
+![Form Pengajuan Izin](docs/screenshots/mobile/25-leave-form.jpg)
+![Pilihan Jenis Izin](docs/screenshots/mobile/25-leave-form2.jpg)
 
 ### 📝 Deskripsi
 **Fitur untuk mengajukan izin tidak masuk atau cuti**
@@ -363,8 +363,8 @@ Kamu tidak perlu melakukan apa-apa di halaman ini, tunggu saja sampai loading se
 
 ## 11. Logout
 
-![Menu Logout](docs\screenshots\mobile\30-logout-confirmation.jpg)
-![Menu Logout2](docs\screenshots\mobile\30-logout-confirmation2.jpg)
+![Menu Logout](docs/screenshots/mobile/30-logout-confirmation.jpg)
+![Menu Logout2](docs/screenshots/mobile/30-logout-confirmation2.jpg)
 
 ### 📝 Deskripsi
 **Fitur untuk keluar dari akun dan mengakhiri session**
