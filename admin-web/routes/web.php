@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,7 +28,7 @@ Route::middleware('guest')->group(function () {
         return view('auth.register');
     })->name('register');
     Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
-    
+
     // Login
     Route::get('/login', function () {
         return view('auth.login');
@@ -35,6 +36,22 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'attempt'])->name('login.attempt');
 });
 
+// login for admin only
+Route::middleware('auth')->group(function () {
+    // Admin Dashboard
+    Route::get('/admin', function () {
+        Log::info('Admin route accessed', [
+            'user_id' => auth()->id(),
+            'email' => auth()->user()->email ?? 'not authenticated',
+            'is_authenticated' => auth()->check(),
+            'session_id' => session()->getId(),
+        ]);
+        
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
+    
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+});
+
 // Logout
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-
