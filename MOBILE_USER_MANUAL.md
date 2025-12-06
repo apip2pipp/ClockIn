@@ -29,7 +29,7 @@
 > - `01-app-icon.png`
 > - `02-splash-screen.png` (untuk section berikutnya)
 
-![Icon App di Home Scre](docs\screenshots\mobile\01-app-icon.png.jpg)
+![Icon App di Home Scre](docs/screenshots/mobile/01-app-icon.png.jpg)
 
 ### 📝 Deskripsi
 **Halaman ini adalah langkah pertama kamu untuk menggunakan ClockIn**
