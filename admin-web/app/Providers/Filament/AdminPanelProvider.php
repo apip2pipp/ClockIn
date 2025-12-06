@@ -26,7 +26,7 @@ class AdminPanelProvider extends PanelProvider
             // ->default()
             ->id('admin')
             ->path('admin')
-            ->login() // ✅ Enable Filament login page
+            ->login()
             ->authGuard('web')
             ->favicon(asset('logo_web.png'))
             ->brandName('ClockIn Admin')
