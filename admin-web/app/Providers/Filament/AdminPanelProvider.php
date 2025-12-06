@@ -17,7 +17,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Http\Middleware\FilamentAdminAccess;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -27,8 +26,10 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->login() // ✅ Enable Filament login page
             ->authGuard('web')
             ->favicon(asset('logo_web.png'))
+            ->brandName('ClockIn Admin')
             ->darkMode(true)
             ->colors([
                 'primary' => [
@@ -68,7 +69,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                FilamentAdminAccess::class, // Tambahkan ini
             ])
             ->viteTheme('resources/css/filament-admin.css')
             ->plugin(
