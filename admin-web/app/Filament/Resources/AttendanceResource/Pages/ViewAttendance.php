@@ -5,20 +5,83 @@ namespace App\Filament\Resources\AttendanceResource\Pages;
 
 use App\Filament\Resources\AttendanceResource;
 use Filament\Actions;
+use Filament\Forms;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Support\Facades\Auth;
 
 class ViewAttendance extends ViewRecord
 {
     protected static string $resource = AttendanceResource::class;
 
+    /**
+     * Header actions shown on the top-right of the view page.
+     * - Mark Valid: quick action (no form)
+     * - Mark Invalid: action with a required notes textarea
+     */
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make()
+            // MARK VALID
+            Actions\Action::make('mark_valid')
                 ->label('Validate')
-                ->icon('heroicon-o-check-badge'),
+                ->color('success')
+                ->icon('heroicon-o-check-circle')
+                ->visible(fn ($record) => $record->is_valid !== 'valid')
+                ->requiresConfirmation()
+                ->action(function ($record) {
+                    // update the record (same logic as before)
+                    $record->update([
+                        'is_valid' => 'valid',
+                        'validation_notes' => $record->validation_notes ?? 'Marked as valid',
+                        'validated_by' => Auth::id(),
+                        'validated_at' => now(),
+                    ]);
+
+                    \Filament\Notifications\Notification::make()
+                        ->title('Attendance Validated')
+                        ->success()
+                        ->send();
+
+                    // refresh the page so the UI reflects changes
+                    $this->redirect($this->getResource()::getUrl('view', ['record' => $record]));
+                }),
+
+            // MARK INVALID (with notes)
+            Actions\Action::make('mark_invalid')
+                ->label('Invalidate')
+                ->color('danger')
+                ->icon('heroicon-o-x-circle')
+                ->visible(fn ($record) => $record->is_valid !== 'invalid')
+                ->form([
+                    Forms\Components\Textarea::make('validation_notes')
+                        ->label('Reason')
+                        ->required()
+                        ->rows(4),
+                ])
+                ->requiresConfirmation()
+                ->action(function ($record, array $data) {
+                    $record->update([
+                        'is_valid' => 'invalid',
+                        'validation_notes' => $data['validation_notes'],
+                        'validated_by' => Auth::id(),
+                        'validated_at' => now(),
+                    ]);
+
+                    \Filament\Notifications\Notification::make()
+                        ->title('Attendance Invalidated')
+                        ->warning()
+                        ->send();
+
+                    // refresh the page to show updated state
+                    $this->redirect($this->getResource()::getUrl('view', ['record' => $record]));
+                }),
+
+            // Bawaan: Edit (tetap hadir)
+            Actions\EditAction::make()
+                ->label('Edit')
+                ->icon('heroicon-o-pencil'),
         ];
     }
 
@@ -81,7 +144,7 @@ class ViewAttendance extends ViewRecord
                             ->icon('heroicon-m-clock'),
                         Infolists\Components\TextEntry::make('clock_in_location')
                             ->label('Location')
-                            ->state(fn ($record) => 
+                            ->state(fn ($record) =>
                                 $record->clock_in_latitude && $record->clock_in_longitude
                                     ? "{$record->clock_in_latitude}, {$record->clock_in_longitude}"
                                     : 'Not available'
@@ -90,12 +153,12 @@ class ViewAttendance extends ViewRecord
                             ->icon('heroicon-m-map-pin'),
                         Infolists\Components\TextEntry::make('clock_in_maps')
                             ->label('View on Map')
-                            ->state(fn ($record) => 
+                            ->state(fn ($record) =>
                                 $record->clock_in_latitude && $record->clock_in_longitude
                                     ? "Open in Google Maps"
                                     : 'Not available'
                             )
-                            ->url(fn ($record) => 
+                            ->url(fn ($record) =>
                                 $record->clock_in_latitude && $record->clock_in_longitude
                                     ? "https://maps.google.com/?q={$record->clock_in_latitude},{$record->clock_in_longitude}"
                                     : null
@@ -123,7 +186,7 @@ class ViewAttendance extends ViewRecord
                             ->icon('heroicon-m-clock'),
                         Infolists\Components\TextEntry::make('work_duration')
                             ->label('Work Duration')
-                            ->formatStateUsing(fn ($state) => 
+                            ->formatStateUsing(fn ($state) =>
                                 $state ? floor($state / 60) . ' hours ' . ($state % 60) . ' minutes' : 'Not yet calculated'
                             )
                             ->badge()
@@ -131,7 +194,7 @@ class ViewAttendance extends ViewRecord
                             ->icon('heroicon-m-calendar-days'),
                         Infolists\Components\TextEntry::make('clock_out_location')
                             ->label('Location')
-                            ->state(fn ($record) => 
+                            ->state(fn ($record) =>
                                 $record->clock_out_latitude && $record->clock_out_longitude
                                     ? "{$record->clock_out_latitude}, {$record->clock_out_longitude}"
                                     : 'Not available'
@@ -140,12 +203,12 @@ class ViewAttendance extends ViewRecord
                             ->icon('heroicon-m-map-pin'),
                         Infolists\Components\TextEntry::make('clock_out_maps')
                             ->label('View on Map')
-                            ->state(fn ($record) => 
+                            ->state(fn ($record) =>
                                 $record->clock_out_latitude && $record->clock_out_longitude
                                     ? "Open in Google Maps"
                                     : 'Not available'
                             )
-                            ->url(fn ($record) => 
+                            ->url(fn ($record) =>
                                 $record->clock_out_latitude && $record->clock_out_longitude
                                     ? "https://maps.google.com/?q={$record->clock_out_latitude},{$record->clock_out_longitude}"
                                     : null
