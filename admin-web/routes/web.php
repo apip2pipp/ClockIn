@@ -21,16 +21,16 @@ Route::get('/', function () {
     return view('welcome');
 })->name('landing');
 
-// for registration
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('register');
+// Register Routes (untuk guest/belum login)
+Route::middleware('guest')->group(function () {
+    Route::get('/register', function () {
+        return view('auth.register');
+    })->name('register');
+    
+    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+});
 
-// Redirect old routes to Filament
+// Redirect /login to Filament
 Route::get('/login', function () {
     return redirect('/admin/login');
-});
-
-Route::get('/register', function () {
-    return redirect('/admin/login');
-});
+})->name('login');
