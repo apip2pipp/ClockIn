@@ -47,7 +47,6 @@ class Attendance {
       clockInNotes: json['clock_in_notes'],
       clockOutNotes: json['clock_out_notes'],
       
-      // ✅ FIX: Parse String/int/double ke double
       clockInLatitude: _parseDouble(json['clock_in_latitude']),
       clockInLongitude: _parseDouble(json['clock_in_longitude']),
       clockOutLatitude: _parseDouble(json['clock_out_latitude']),
@@ -64,7 +63,6 @@ class Attendance {
     );
   }
 
-  // ✅ HELPER METHOD untuk convert dynamic ke double
   static double? _parseDouble(dynamic value) {
     if (value == null) return null;
     if (value is double) return value;

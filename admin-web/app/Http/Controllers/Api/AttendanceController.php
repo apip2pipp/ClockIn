@@ -91,7 +91,6 @@ class AttendanceController extends Controller
                 'is_valid' => 'pending',
             ]);
 
-            // ✅ Return full Eloquent object
             return response()->json([
                 'success' => true,
                 'message' => 'Clock in successful',
@@ -130,11 +129,10 @@ class AttendanceController extends Controller
 
             $user = Auth::user();
 
-            // ✅ Ambil SEMUA kolom (bukan hanya 3)
             $attendance = Attendance::where('user_id', $user->id)
                 ->whereDate('clock_in', Carbon::today())
                 ->whereNull('clock_out')
-                ->first(); // ← Load all columns
+                ->first();
 
             if (!$attendance) {
                 return response()->json([
@@ -182,14 +180,12 @@ class AttendanceController extends Controller
                 'work_duration' => $duration,
             ])->save();
 
-            // ✅ PENTING! Refresh untuk get updated data
             $attendance->refresh();
 
-            // ✅ Return full Eloquent object
             return response()->json([
                 'success' => true,
                 'message' => 'Clock out successful',
-                'data' => $attendance, // ← Full object (all fields included)
+                'data' => $attendance,
             ], 200);
 
         } catch (\Illuminate\Validation\ValidationException $e) {

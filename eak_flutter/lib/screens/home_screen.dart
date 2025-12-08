@@ -12,6 +12,8 @@ import 'attendance_history_screen.dart';
 import 'package:eak_flutter/screens/leave_request_list_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/main_layout.dart';
+import 'clock_in_screen.dart';
+import 'clock_out_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -53,13 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final token = await AuthProvider.getToken();
 
       if (token == null || token.isEmpty) {
-        // print('No token found');
         return;
       }
-
-      // print('🔍 Loading leave requests...');
-      // print('   Token: ${token.substring(0, 20)}...');
-      // print('   URL: ${ApiConfig.leaveUrl}');
 
       final response = await http.get(
         Uri.parse(ApiConfig.leaveUrl),
@@ -69,14 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
 
-      // print('📥 Response status: ${response.statusCode}');
-      // print('📥 Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final leaveRequests = data['leave_requests'] as List;
-
-        // print('✅ Leave requests loaded: ${leaveRequests.length} items');
 
         setState(() {
           _leaveRequests = leaveRequests
@@ -84,13 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
               .map((req) => req as Map<String, dynamic>)
               .toList();
         });
-
-        // print('✅ Displayed: ${_leaveRequests.length} items');
-      } else {
-        // print('❌ Failed to load leave requests: ${response.statusCode}');
       }
     } catch (e) {
-      // print('❌ Error loading leave requests: $e');
+      debugPrint('❌ Error loading leave requests: $e');
     }
   }
 
@@ -124,56 +112,235 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedIndex: 0,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
-        body: SafeArea(
-          child: Consumer2<AuthProvider, AttendanceProvider>(
-            builder: (context, authProvider, attendanceProvider, child) {
-              final user = authProvider.user;
-              final company = authProvider.company;
-              final todayAttendance = attendanceProvider.todayAttendance;
+        body: Stack(
+          children: [
+            // Main Content
+            SafeArea(
+              child: Consumer2<AuthProvider, AttendanceProvider>(
+                builder: (context, authProvider, attendanceProvider, child) {
+                  final user = authProvider.user;
+                  final company = authProvider.company;
+                  final todayAttendance = attendanceProvider.todayAttendance;
 
-              // print('🏢 Company Data: ${company?.name}');
-              // print('👤 User Data: ${user?.name}');
+                  if (attendanceProvider.isLoading && todayAttendance == null) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-              if (attendanceProvider.isLoading && todayAttendance == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
+                  return CustomScrollView(
+                    slivers: [
+                      // Header with ClockIn logo and profile button
+                      _buildHeader(context),
 
-              return CustomScrollView(
-                slivers: [
-                  // Header with ClockIn logo and profile button
-                  _buildHeader(context),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(25),
+                          child: Column(
+                            children: [
+                              // Gradient Card with User Info and Clock
+                              _buildGradientCard(user, company, todayAttendance),
 
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(25),
-                      child: Column(
-                        children: [
-                          // Gradient Card with User Info and Clock
-                          _buildGradientCard(user, company, todayAttendance),
+                              const SizedBox(height: 30),
 
-                          const SizedBox(height: 30),
+                              // Attendance Status Card
+                              _buildAttendanceCard(todayAttendance),
 
-                          // Attendance Status Card
-                          _buildAttendanceCard(todayAttendance),
+                              const SizedBox(height: 30),
 
-                          const SizedBox(height: 30),
+                              // Leave Requests Card
+                              _buildLeaveRequestsCard(),
 
-                          // Leave Requests Card
-                          _buildLeaveRequestsCard(),
+                              const SizedBox(height: 30),
 
-                          const SizedBox(height: 30),
+                              // Action Buttons Grid
+                              _buildActionGrid(),
 
-                          // Action Buttons Grid
-                          _buildActionGrid(),
-                        ],
+                              const SizedBox(height: 100), // Space for floating button
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+                    ],
+                  );
+                },
+              ),
+            ),
+
+            Positioned(
+              right: 25,
+              bottom: 100, // Above bottom nav
+              child: Consumer<AttendanceProvider>(
+                builder: (context, attendanceProvider, child) {
+                  return _buildFloatingButton(attendanceProvider);
+                },
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingButton(AttendanceProvider attendanceProvider) {
+    final todayAttendance = attendanceProvider.todayAttendance;
+
+    if (todayAttendance == null) {
+      return _buildClockInButton();
+    }
+
+    if (todayAttendance.clockOut == null) {
+      return _buildClockOutButton();
+    }
+
+    return _buildDoneButton();
+  }
+
+  Widget _buildClockInButton() {
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ClockInScreen()),
+        );
+
+        if (mounted) {
+          final provider = Provider.of<AttendanceProvider>(
+            context,
+            listen: false,
+          );
+          await provider.loadTodayAttendance();
+          setState(() {});
+        }
+      },
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF80CE70).withOpacity(0.8),
+              const Color(0xFF26667F),
+            ],
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.login, color: Colors.white, size: 32),
+            SizedBox(height: 3),
+            Text(
+              'Clock In',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClockOutButton() {
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ClockOutScreen()),
+        );
+
+        if (mounted) {
+          final provider = Provider.of<AttendanceProvider>(
+            context,
+            listen: false,
+          );
+          await provider.loadTodayAttendance();
+          setState(() {});
+        }
+      },
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFFE57373).withOpacity(0.8),
+              const Color(0xFFD32F2F),
+            ],
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.logout, color: Colors.white, size: 32),
+            SizedBox(height: 3),
+            Text(
+              'Clock Out',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDoneButton() {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.grey.withOpacity(0.56), Colors.grey],
+        ),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.check, color: Colors.white, size: 32),
+          SizedBox(height: 3),
+          Text(
+            'Done',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -193,7 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           border: Border(
             bottom: BorderSide(
-              color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
+              color: const Color(0xFFE5E7EB).withOpacity(0.5),
               width: 0.6,
             ),
           ),
@@ -241,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.white.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -270,12 +437,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
+          color: const Color(0xFFE5E7EB).withOpacity(0.3),
           width: 0.6,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 3,
             offset: const Offset(0, 1),
           ),
@@ -297,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: Colors.white.withOpacity(0.5),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),
@@ -362,7 +529,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: Colors.white.withOpacity(0.3),
                     width: 8,
                   ),
                 ),
@@ -384,7 +551,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 24,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
+                          color: const Color(0xFFE5E7EB).withOpacity(0.5),
                           borderRadius: BorderRadius.circular(13),
                         ),
                         child: Row(
@@ -455,15 +622,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
+        color: Colors.white.withOpacity(0.6),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: const Color(0xFFE5E7EB).withValues(alpha: 0.4),
+          color: const Color(0xFFE5E7EB).withOpacity(0.4),
           width: 0.6,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 10),
           ),
@@ -482,7 +649,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 60,
                   height: 60,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF26667F).withValues(alpha: 0.1),
+                    color: const Color(0xFF26667F).withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -503,7 +670,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 17.5,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF181F3E).withValues(alpha: 0.7),
+                        color: const Color(0xFF181F3E).withOpacity(0.7),
                       ),
                     ),
                     Text(
@@ -528,7 +695,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 17.5,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF181F3E).withValues(alpha: 0.7),
+                        color: const Color(0xFF181F3E).withOpacity(0.7),
                       ),
                     ),
                     Text(
@@ -546,7 +713,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // Divider
                 Divider(
-                  color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
+                  color: const Color(0xFFE5E7EB).withOpacity(0.3),
                   thickness: 0.6,
                 ),
 
@@ -561,7 +728,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         fontSize: 17.5,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF181F3E).withValues(alpha: 0.7),
+                        color: const Color(0xFF181F3E).withOpacity(0.7),
                       ),
                     ),
                     Text(
@@ -586,15 +753,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
+        color: Colors.white.withOpacity(0.6),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(
-          color: const Color(0xFFE5E7EB).withValues(alpha: 0.4),
+          color: const Color(0xFFE5E7EB).withOpacity(0.4),
           width: 0.6,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 10),
           ),
@@ -619,9 +786,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 45,
                             height: 45,
                             decoration: BoxDecoration(
-                              color: const Color(
-                                0xFFFFA726,
-                              ).withValues(alpha: 0.1),
+                              color: const Color(0xFFFFA726).withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -648,10 +813,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     IconButton(
                       icon: const Icon(Icons.refresh, size: 22),
                       color: const Color(0xFF26667F),
-                      onPressed: () {
-                        // print('🔄 Refresh button pressed');
-                        _loadLeaveRequests();
-                      },
+                      onPressed: _loadLeaveRequests,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -667,18 +829,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 Icons.inbox_outlined,
                                 size: 48,
-                                color: const Color(
-                                  0xFF6B7280,
-                                ).withValues(alpha: 0.3),
+                                color: const Color(0xFF6B7280).withOpacity(0.3),
                               ),
                               const SizedBox(height: 12),
                               Text(
                                 'No leave requests yet',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: const Color(
-                                    0xFF6B7280,
-                                  ).withValues(alpha: 0.7),
+                                  color: const Color(0xFF6B7280).withOpacity(0.7),
                                 ),
                               ),
                             ],
@@ -695,21 +853,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Center(
                     child: TextButton.icon(
                       onPressed: () {
-                        // print(
-                        //   '📋 View All pressed - Navigate to Leave Request List',
-                        // );
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                const LeaveRequestListScreen(),
+                            builder: (context) => const LeaveRequestListScreen(),
                           ),
-                        ).then((_) {
-                          // print(
-                          //   '🔙 Returned from Leave Request List - Refreshing',
-                          // );
-                          _loadLeaveRequests();
-                        });
+                        ).then((_) => _loadLeaveRequests());
                       },
                       icon: const Icon(
                         Icons.list_alt,
@@ -736,17 +885,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildLeaveRequestItem(Map<String, dynamic> request) {
-    // print('🏷️ Building leave request item: ${request.toString()}');
-
     final status = request['status'] as String? ?? 'pending';
     final type = request['type'] as String? ?? 'unknown';
     final startDate = request['start_date'] != null
         ? DateTime.parse(request['start_date'])
         : DateTime.now();
-
-    // print('   Status: $status');
-    // print('   Type: $type');
-    // print('   Date: $startDate');
 
     // Status colors and labels
     Color statusColor;
@@ -800,9 +943,9 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.08),
+        color: statusColor.withOpacity(0.08),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 1),
+        border: Border.all(color: statusColor.withOpacity(0.3), width: 1),
       ),
       child: Row(
         children: [
@@ -810,7 +953,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.2),
+              color: statusColor.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(typeIcon, color: statusColor, size: 26),
@@ -834,14 +977,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(
                       Icons.calendar_today,
                       size: 12,
-                      color: const Color(0xFF6B7280).withValues(alpha: 0.8),
+                      color: const Color(0xFF6B7280).withOpacity(0.8),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       DateFormat('dd MMM yyyy').format(startDate),
                       style: TextStyle(
                         fontSize: 13,
-                        color: const Color(0xFF6B7280).withValues(alpha: 0.8),
+                        color: const Color(0xFF6B7280).withOpacity(0.8),
                       ),
                     ),
                   ],
@@ -856,7 +999,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: statusColor.withValues(alpha: 0.3),
+                  color: statusColor.withOpacity(0.3),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -962,12 +1105,12 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
+            color: const Color(0xFFE5E7EB).withOpacity(0.3),
             width: 0.6,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 3,
               offset: const Offset(0, 1),
             ),

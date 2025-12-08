@@ -86,7 +86,6 @@ class AttendanceProvider with ChangeNotifier {
       // print('   Attendance Data: ${result['attendance']}');
 
       if (result['success']) {
-        // ✅ PARSE RESPONSE
         _todayAttendance = Attendance.fromJson(result['attendance']);
         _errorMessage = null;
 

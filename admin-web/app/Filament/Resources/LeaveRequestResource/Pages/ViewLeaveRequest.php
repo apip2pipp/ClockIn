@@ -175,7 +175,6 @@ class ViewLeaveRequest extends ViewRecord
                                     return '<span class="text-gray-500">No attachment</span>';
                                 }
 
-                                // ✅ 1. CEK STORAGE DULU (Priority!)
                                 if (Storage::disk('public')->exists($state)) {
                                     $extension = strtolower(pathinfo($state, PATHINFO_EXTENSION));
                                     $publicUrl = asset('storage/' . $state);
@@ -222,7 +221,6 @@ class ViewLeaveRequest extends ViewRecord
                                     </div>';
                                 }
 
-                                // ✅ 2. FALLBACK: Cek base64
                                 if (str_starts_with($state, 'data:')) {
                                     if (str_contains($state, 'image/')) {
                                         return '<div style="text-align: center;">

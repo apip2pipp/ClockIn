@@ -650,7 +650,6 @@
         let circle;
         let mapInitialized = false;
 
-        // ✅ INIT MAP - DIPANGGIL SETELAH GET LOCATION
         function initMap(lat, lng) {
             if (mapInitialized) {
                 // Update existing map
@@ -745,7 +744,6 @@
                 .catch(error => console.log('Geocoding error:', error));
         }
 
-        // ✅ GET LOCATION BUTTON
         document.getElementById('getLocationBtn').addEventListener('click', function () {
             const btn = this;
             btn.disabled = true;
@@ -757,10 +755,8 @@
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
 
-                        // ✅ TAMPILKAN MAP & INFO
                         document.getElementById('locationInfo').classList.remove('hidden');
 
-                        // ✅ INIT MAP
                         initMap(lat, lng);
                         updateLocation(lat, lng);
 
@@ -809,7 +805,6 @@
             }
         });
 
-        // ✅ SEARCH LOCATION
         document.getElementById('searchLocationBtn').addEventListener('click', function () {
             const searchBox = document.getElementById('searchBox');
             searchBox.classList.toggle('hidden');
@@ -818,14 +813,12 @@
             }
         });
 
-        // ✅ CHANGE LOCATION BUTTON (SHOW SEARCH BOX AFTER MAP LOADED)
         document.getElementById('changeLocationBtn').addEventListener('click', function () {
             const searchBox = document.getElementById('searchBox');
             searchBox.classList.remove('hidden');
             document.getElementById('searchInput').focus();
         });
 
-        // ✅ DO SEARCH
         document.getElementById('doSearchBtn').addEventListener('click', searchLocation);
         document.getElementById('searchInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
@@ -877,7 +870,6 @@
                             const lat = parseFloat(result.lat);
                             const lng = parseFloat(result.lon);
 
-                            // ✅ TAMPILKAN MAP
                             document.getElementById('locationInfo').classList.remove('hidden');
 
                             initMap(lat, lng);
@@ -969,7 +961,6 @@
                 });
         }
 
-        // ✅ FORM SUBMISSION
         document.getElementById('registerForm').addEventListener('submit', function () {
             document.getElementById('submitBtn').disabled = true;
             document.getElementById('submitText').classList.add('hidden');

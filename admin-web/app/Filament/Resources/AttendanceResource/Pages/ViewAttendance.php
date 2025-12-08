@@ -112,7 +112,6 @@ class ViewAttendance extends ViewRecord
                             ->label('Longitude')
                             ->default('-'),
                         
-                        // ✅ CLOCK IN PHOTO - CEK STORAGE DULU!
                         Infolists\Components\TextEntry::make('clock_in_photo')
                             ->label('Photo')
                             ->html()
@@ -121,7 +120,6 @@ class ViewAttendance extends ViewRecord
                                     return '<span class="text-gray-500">No photo available</span>';
                                 }
                                 
-                                // ✅ 1. CEK STORAGE DULU (karena backend save ke storage)
                                 if (Storage::disk('public')->exists($state)) {
                                     $publicUrl = asset('storage/' . $state);
                                     $filename = basename($state);
@@ -140,7 +138,6 @@ class ViewAttendance extends ViewRecord
                                     </div>';
                                 }
                                 
-                                // ✅ 2. FALLBACK: Cek base64 (untuk backward compatibility)
                                 if (str_starts_with($state, 'data:image')) {
                                     return '<div style="text-align: center;">
                                         <img src="' . $state . '" 
@@ -190,7 +187,6 @@ class ViewAttendance extends ViewRecord
                             ->label('Longitude')
                             ->default('-'),
                         
-                        // ✅ CLOCK OUT PHOTO - CEK STORAGE DULU!
                         Infolists\Components\TextEntry::make('clock_out_photo')
                             ->label('Photo')
                             ->html()
@@ -199,7 +195,6 @@ class ViewAttendance extends ViewRecord
                                     return '<span class="text-gray-500">No photo available</span>';
                                 }
                                 
-                                // ✅ 1. CEK STORAGE DULU
                                 if (Storage::disk('public')->exists($state)) {
                                     $publicUrl = asset('storage/' . $state);
                                     $filename = basename($state);
@@ -218,7 +213,6 @@ class ViewAttendance extends ViewRecord
                                     </div>';
                                 }
                                 
-                                // ✅ 2. FALLBACK: Cek base64
                                 if (str_starts_with($state, 'data:image')) {
                                     return '<div style="text-align: center;">
                                         <img src="' . $state . '" 
