@@ -36,7 +36,7 @@ class AttendanceController extends Controller
         ]);
     }
 
-    // CLOCK IN
+    // CLOCK IN - OPTIMIZED
     public function clockIn(Request $request)
     {
         try {
@@ -64,23 +64,19 @@ class AttendanceController extends Controller
                 ], 400);
             }
 
-            // Decode base64 image
+            // Decode base64 image - OPTIMIZED
             $imageData = $request->photo;
             
-            // Remove "data:image/jpeg;base64," prefix jika ada
-            if (strpos($imageData, 'data:image') === 0) {
-                $imageData = preg_replace('/^data:image\/\w+;base64,/', '', $imageData);
+            // Remove prefix jika ada (single pass)
+            if (str_starts_with($imageData, 'data:image')) {
+                $imageData = substr($imageData, strpos($imageData, ',') + 1);
             }
             
-            $image = base64_decode($imageData);
+            $image = base64_decode($imageData, true); // strict mode
             
-            // Validasi image berhasil di-decode
+            // Validasi image
             if ($image === false || strlen($image) < 100) {
-                Log::error('Clock In - Invalid base64 image', [
-                    'user_id' => $user->id,
-                    'photo_length' => strlen($request->photo),
-                    'decoded_length' => $image ? strlen($image) : 0,
-                ]);
+                Log::error('Clock In - Invalid image', ['user_id' => $user->id]);
                 
                 return response()->json([
                     'success' => false,
@@ -91,51 +87,18 @@ class AttendanceController extends Controller
             // Generate filename
             $filename = 'attendance/' . $user->id . '_clockin_' . time() . '.jpg';
             
-            // Pastikan folder attendance ada
-            $directory = storage_path('app/public/attendance');
-            if (!File::exists($directory)) {
-                File::makeDirectory($directory, 0755, true);
-                Log::info('Clock In - Created attendance directory', [
-                    'path' => $directory
-                ]);
-            }
-
-            // Save file
-            try {
-                $saved = Storage::disk('public')->put($filename, $image);
-                
-                if (!$saved) {
-                    throw new \Exception('Storage::put returned false');
-                }
-                
-                // Verifikasi file tersimpan
-                if (!Storage::disk('public')->exists($filename)) {
-                    throw new \Exception('File not found after save');
-                }
-                
-                $fileSize = Storage::disk('public')->size($filename);
-                
-                Log::info('Clock In - Photo saved successfully', [
+            // OPTIMIZED: Save langsung tanpa cek berulang
+            $saved = Storage::disk('public')->put($filename, $image);
+            
+            if (!$saved) {
+                Log::error('Clock In - Save failed', [
                     'user_id' => $user->id,
                     'filename' => $filename,
-                    'file_size' => $fileSize,
-                    'full_path' => storage_path('app/public/' . $filename),
-                    'file_exists' => Storage::disk('public')->exists($filename),
-                ]);
-                
-            } catch (\Exception $e) {
-                Log::error('Clock In - Failed to save photo', [
-                    'user_id' => $user->id,
-                    'filename' => $filename,
-                    'error' => $e->getMessage(),
-                    'directory' => $directory,
-                    'writable' => is_writable($directory),
-                    'disk_root' => storage_path('app/public'),
                 ]);
                 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to save photo: ' . $e->getMessage(),
+                    'message' => 'Failed to save photo. Please try again.',
                 ], 500);
             }
 
@@ -144,9 +107,8 @@ class AttendanceController extends Controller
                 ? Carbon::parse($request->clock_in_time) 
                 : Carbon::now();
 
-            // Tentukan status (on_time / late)
-            $workStartTime = '08:00';
-            $status = $clockInTime->format('H:i') > $workStartTime ? 'late' : 'on_time';
+            // Tentukan status
+            $status = $clockInTime->format('H:i') > '08:00' ? 'late' : 'on_time';
 
             // Create attendance record
             $attendance = Attendance::create([
@@ -155,17 +117,16 @@ class AttendanceController extends Controller
                 'clock_in' => $clockInTime,
                 'clock_in_latitude' => (float) $request->latitude,  
                 'clock_in_longitude' => (float) $request->longitude, 
-                'clock_in_photo' => $filename, // Simpan PATH, bukan base64
+                'clock_in_photo' => $filename,
                 'clock_in_notes' => $request->description,
                 'status' => $status,
                 'is_valid' => 'pending',
             ]);
 
+            // Log minimal (hanya saat berhasil)
             Log::info('Clock In - Success', [
                 'attendance_id' => $attendance->id,
                 'user_id' => $user->id,
-                'status' => $status,
-                'photo_url' => asset('storage/' . $filename),
             ]);
 
             return response()->json([
@@ -175,7 +136,6 @@ class AttendanceController extends Controller
                     'id' => $attendance->id,
                     'clock_in' => $attendance->clock_in->format('Y-m-d H:i:s'),
                     'status' => $attendance->status,
-                    'photo_path' => $filename,
                     'photo_url' => asset('storage/' . $filename),
                 ],
             ], 201);
@@ -191,19 +151,16 @@ class AttendanceController extends Controller
             Log::error('Clock In - Exception', [
                 'user_id' => Auth::id() ?? 'unknown',
                 'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
             ]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Server error: ' . $e->getMessage(),
+                'message' => 'Server error. Please try again.',
             ], 500);
         }
     }
 
-    // CLOCK OUT
+    // CLOCK OUT - OPTIMIZED
     public function clockOut(Request $request)
     {
         try {
@@ -231,19 +188,18 @@ class AttendanceController extends Controller
                 ], 400);
             }
 
-            // Decode base64 image
+            // Decode base64 image - OPTIMIZED
             $imageData = $request->photo;
             
-            // Remove prefix jika ada
-            if (strpos($imageData, 'data:image') === 0) {
-                $imageData = preg_replace('/^data:image\/\w+;base64,/', '', $imageData);
+            if (str_starts_with($imageData, 'data:image')) {
+                $imageData = substr($imageData, strpos($imageData, ',') + 1);
             }
             
-            $image = base64_decode($imageData);
+            $image = base64_decode($imageData, true);
             
             // Validasi image
             if ($image === false || strlen($image) < 100) {
-                Log::error('Clock Out - Invalid base64 image', [
+                Log::error('Clock Out - Invalid image', [
                     'user_id' => $user->id,
                     'attendance_id' => $attendance->id,
                 ]);
@@ -257,36 +213,18 @@ class AttendanceController extends Controller
             // Generate filename
             $filename = 'attendance/' . $user->id . '_clockout_' . time() . '.jpg';
             
-            // Pastikan folder ada
-            $directory = storage_path('app/public/attendance');
-            if (!File::exists($directory)) {
-                File::makeDirectory($directory, 0755, true);
-            }
-
-            // Save file
-            try {
-                $saved = Storage::disk('public')->put($filename, $image);
-                
-                if (!$saved || !Storage::disk('public')->exists($filename)) {
-                    throw new \Exception('Failed to save clock out photo');
-                }
-                
-                Log::info('Clock Out - Photo saved successfully', [
+            // OPTIMIZED: Save langsung
+            $saved = Storage::disk('public')->put($filename, $image);
+            
+            if (!$saved) {
+                Log::error('Clock Out - Save failed', [
                     'attendance_id' => $attendance->id,
-                    'user_id' => $user->id,
                     'filename' => $filename,
-                    'file_size' => Storage::disk('public')->size($filename),
-                ]);
-                
-            } catch (\Exception $e) {
-                Log::error('Clock Out - Failed to save photo', [
-                    'attendance_id' => $attendance->id,
-                    'error' => $e->getMessage(),
                 ]);
                 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to save photo: ' . $e->getMessage(),
+                    'message' => 'Failed to save photo. Please try again.',
                 ], 500);
             }
 
@@ -304,15 +242,15 @@ class AttendanceController extends Controller
                 'clock_out' => $clockOutTime,
                 'clock_out_latitude' => (float) $request->latitude,  
                 'clock_out_longitude' => (float) $request->longitude, 
-                'clock_out_photo' => $filename, // Simpan PATH
+                'clock_out_photo' => $filename,
                 'clock_out_notes' => $request->description,
                 'work_duration' => $duration,
             ]);
 
+            // Log minimal
             Log::info('Clock Out - Success', [
                 'attendance_id' => $attendance->id,
                 'user_id' => $user->id,
-                'duration' => $duration . ' minutes',
             ]);
 
             return response()->json([
@@ -338,12 +276,11 @@ class AttendanceController extends Controller
             Log::error('Clock Out - Exception', [
                 'user_id' => Auth::id() ?? 'unknown',
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Server error: ' . $e->getMessage(),
+                'message' => 'Server error. Please try again.',
             ], 500);
         }
     }
