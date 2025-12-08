@@ -18,59 +18,49 @@ class ViewAttendance extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('mark_valid')
-                ->label('Validate')
-                ->color('success')
+            Actions\EditAction::make()
+                ->visible(fn () => Auth::user()?->role === 'super_admin'),
+            Actions\Action::make('approve')
+                ->label('Approve')
                 ->icon('heroicon-o-check-circle')
-                ->visible(fn($record) => $record->is_valid !== 'valid')
+                ->color('success')
                 ->requiresConfirmation()
+                ->visible(fn ($record) => $record->is_valid === 'pending')
                 ->action(function ($record) {
                     $record->update([
                         'is_valid' => 'valid',
-                        'validation_notes' => $record->validation_notes ?? 'Marked as valid',
                         'validated_by' => Auth::id(),
                         'validated_at' => now(),
                     ]);
-
                     \Filament\Notifications\Notification::make()
-                        ->title('Attendance Validated')
+                        ->title('Attendance Approved')
                         ->success()
                         ->send();
-
-                    $this->redirect($this->getResource()::getUrl('view', ['record' => $record]));
                 }),
-
-            Actions\Action::make('mark_invalid')
-                ->label('Invalidate')
-                ->color('danger')
+            Actions\Action::make('reject')
+                ->label('Reject')
                 ->icon('heroicon-o-x-circle')
-                ->visible(fn($record) => $record->is_valid !== 'invalid')
+                ->color('danger')
+                ->requiresConfirmation()
                 ->form([
                     Forms\Components\Textarea::make('validation_notes')
-                        ->label('Reason')
+                        ->label('Rejection Reason')
                         ->required()
-                        ->rows(4),
+                        ->maxLength(500),
                 ])
-                ->requiresConfirmation()
+                ->visible(fn ($record) => $record->is_valid === 'pending')
                 ->action(function ($record, array $data) {
                     $record->update([
                         'is_valid' => 'invalid',
-                        'validation_notes' => $data['validation_notes'],
                         'validated_by' => Auth::id(),
                         'validated_at' => now(),
+                        'validation_notes' => $data['validation_notes'],
                     ]);
-
                     \Filament\Notifications\Notification::make()
-                        ->title('Attendance Invalidated')
-                        ->warning()
+                        ->title('Attendance Rejected')
+                        ->danger()
                         ->send();
-
-                    $this->redirect($this->getResource()::getUrl('view', ['record' => $record]));
                 }),
-
-            Actions\EditAction::make()
-                ->label('Edit')
-                ->icon('heroicon-o-pencil'),
         ];
     }
 
@@ -81,81 +71,48 @@ class ViewAttendance extends ViewRecord
                 Infolists\Components\Section::make('Employee Information')
                     ->schema([
                         Infolists\Components\TextEntry::make('user.name')
-                            ->label('Name')
-                            ->size('lg')
-                            ->icon('heroicon-m-user')
-                            ->weight('bold'),
-                        Infolists\Components\TextEntry::make('user.employee_id')
-                            ->label('Employee ID')
-                            ->badge()
-                            ->color('info')
-                            ->icon('heroicon-m-identification'),
+                            ->label('Employee Name'),
+                        Infolists\Components\TextEntry::make('user.email')
+                            ->label('Email'),
                         Infolists\Components\TextEntry::make('company.name')
                             ->label('Company')
-                            ->icon('heroicon-m-building-office'),
-                    ])
-                    ->columns(3),
-
-                Infolists\Components\Section::make('Attendance Details')
-                    ->schema([
-                        Infolists\Components\TextEntry::make('clock_in')
-                            ->label('Date')
-                            ->date('l, d F Y')
-                            ->size('lg')
-                            ->weight('bold')
-                            ->icon('heroicon-m-calendar'),
+                            ->default('-'),
                         Infolists\Components\TextEntry::make('status')
-                            ->label('Status')
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
-                                'present' => 'success',
+                                'on_time' => 'success',
                                 'late' => 'warning',
                                 'absent' => 'danger',
                                 default => 'gray',
                             }),
                         Infolists\Components\TextEntry::make('is_valid')
-                            ->label('Validation')
+                            ->label('Validation Status')
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
                                 'valid' => 'success',
                                 'invalid' => 'danger',
-                                'pending' => 'gray',
+                                'pending' => 'warning',
                                 default => 'gray',
                             }),
                     ])
-                    ->columns(3),
+                    ->columns(2),
 
-                Infolists\Components\Section::make('Clock In')
+                Infolists\Components\Section::make('Clock In Details')
                     ->schema([
                         Infolists\Components\TextEntry::make('clock_in')
-                            ->label('Time')
-                            ->time('H:i:s')
-                            ->icon('heroicon-m-clock'),
-                        Infolists\Components\TextEntry::make('clock_in_location')
-                            ->label('Location')
-                            ->state(fn ($record) =>
-                                $record->clock_in_latitude && $record->clock_in_longitude
-                                    ? "{$record->clock_in_latitude}, {$record->clock_in_longitude}"
-                                    : 'Not available'
-                            )
-                            ->copyable()
-                            ->icon('heroicon-m-map-pin'),
-                        Infolists\Components\TextEntry::make('clock_in_maps')
-                            ->label('View on Map')
-                            ->state(fn ($record) =>
-                                $record->clock_in_latitude && $record->clock_in_longitude
-                                    ? "Open in Google Maps"
-                                    : 'Not available'
-                            )
-                            ->url(fn ($record) =>
-                                $record->clock_in_latitude && $record->clock_in_longitude
-                                    ? "https://maps.google.com/?q={$record->clock_in_latitude},{$record->clock_in_longitude}"
-                                    : null
-                            )
-                            ->openUrlInNewTab()
-                            ->icon('heroicon-m-globe-alt')
-                            ->color('primary'),
+                            ->label('Clock In Time')
+                            ->dateTime('d M Y, H:i:s'),
+                        Infolists\Components\TextEntry::make('clock_in_notes')
+                            ->label('Notes')
+                            ->default('-'),
+                        Infolists\Components\TextEntry::make('clock_in_latitude')
+                            ->label('Latitude')
+                            ->default('-'),
+                        Infolists\Components\TextEntry::make('clock_in_longitude')
+                            ->label('Longitude')
+                            ->default('-'),
                         
+                        // ✅ CLOCK IN PHOTO - CEK STORAGE DULU!
                         Infolists\Components\TextEntry::make('clock_in_photo')
                             ->label('Photo')
                             ->html()
@@ -164,97 +121,76 @@ class ViewAttendance extends ViewRecord
                                     return '<span class="text-gray-500">No photo available</span>';
                                 }
                                 
-                                if (str_starts_with($state, 'data:image')) {
-                                    return '<div style="text-align: center;">
-                                        <img src="' . $state . '" 
-                                             style="max-width: 100%; height: 300px; object-fit: contain; 
-                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-                                                    cursor: zoom-in;" 
-                                             onclick="window.open(this.src)" 
-                                             alt="Clock In Photo" />
-                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
-                                            Click to view full size
-                                        </p>
-                                    </div>';
-                                }
-                                
+                                // ✅ 1. CEK STORAGE DULU (karena backend save ke storage)
                                 if (Storage::disk('public')->exists($state)) {
                                     $publicUrl = asset('storage/' . $state);
                                     $filename = basename($state);
                                     
                                     return '<div style="text-align: center;">
                                         <img src="' . $publicUrl . '" 
-                                             style="max-width: 100%; height: 300px; object-fit: contain; 
+                                             style="max-width: 100%; height: auto; max-height: 400px; object-fit: contain; 
                                                     border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
                                                     cursor: zoom-in;" 
                                              onclick="window.open(\'' . $publicUrl . '\')" 
                                              alt="Clock In Photo"
-                                             onerror="this.parentElement.innerHTML=\'<div style=\\\'padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px;\\\'><p style=\\\'color: #dc2626; font-weight: 600;\\\'>❌ Failed to Load Image</p><p style=\\\'color: #991b1b; font-size: 12px;\\\'>File: ' . htmlspecialchars($filename) . '</p><p style=\\\'color: #991b1b; font-size: 11px; margin-top: 4px;\\\'>URL: ' . htmlspecialchars($publicUrl) . '</p></div>\'" />
+                                             onerror="this.parentElement.innerHTML=\'<div style=\\\'padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;\\\'><p style=\\\'color: #dc2626; font-weight: 600;\\\'>❌ Failed to Load Image</p><p style=\\\'color: #991b1b; font-size: 12px;\\\'>File: ' . htmlspecialchars($filename) . '</p><p style=\\\'color: #374151; font-size: 11px; margin-top: 8px;\\\'>💡 Run: <code>php artisan storage:link</code></p></div>\'" />
                                         <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
                                             📁 ' . htmlspecialchars($filename) . ' • Click to view full size
                                         </p>
                                     </div>';
                                 }
                                 
+                                // ✅ 2. FALLBACK: Cek base64 (untuk backward compatibility)
+                                if (str_starts_with($state, 'data:image')) {
+                                    return '<div style="text-align: center;">
+                                        <img src="' . $state . '" 
+                                             style="max-width: 100%; height: auto; max-height: 400px; object-fit: contain; 
+                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+                                                    cursor: zoom-in;" 
+                                             onclick="window.open(this.src)" 
+                                             alt="Clock In Photo" />
+                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                            Click to view full size (Base64 format)
+                                        </p>
+                                    </div>';
+                                }
+                                
+                                // ❌ 3. FILE NOT FOUND
                                 return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
                                     <svg style="width: 48px; height: 48px; margin: 0 auto 12px; color: #ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                     </svg>
                                     <p style="color: #dc2626; font-weight: 600; margin-bottom: 4px;">📷 Image Not Found</p>
-                                    <p style="color: #991b1b; font-size: 12px; margin-bottom: 8px;">Database path: ' . htmlspecialchars($state) . '</p>
-                                    <p style="color: #991b1b; font-size: 11px;">Expected location: ' . htmlspecialchars(storage_path('app/public/' . $state)) . '</p>
-                                    <p style="color: #374151; font-size: 10px; margin-top: 8px;">💡 Make sure to run: <code>php artisan storage:link</code></p>
+                                    <p style="color: #991b1b; font-size: 12px; margin-bottom: 8px;">Path: ' . htmlspecialchars($state) . '</p>
+                                    <p style="color: #374151; font-size: 10px; margin-top: 8px;">
+                                        💡 Run: <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">php artisan storage:link</code>
+                                    </p>
                                 </div>';
                             })
                             ->columnSpanFull(),
-                        
-                        Infolists\Components\TextEntry::make('clock_in_notes')
-                            ->label('Notes')
-                            ->default('No notes')
-                            ->columnSpanFull(),
                     ])
-                    ->columns(3),
+                    ->columns(2),
 
-                Infolists\Components\Section::make('Clock Out')
+                Infolists\Components\Section::make('Clock Out Details')
                     ->schema([
                         Infolists\Components\TextEntry::make('clock_out')
-                            ->label('Time')
-                            ->time('H:i:s')
-                            ->default('Not yet clocked out')
-                            ->icon('heroicon-m-clock'),
+                            ->label('Clock Out Time')
+                            ->dateTime('d M Y, H:i:s')
+                            ->default('-'),
                         Infolists\Components\TextEntry::make('work_duration')
                             ->label('Work Duration')
-                            ->formatStateUsing(fn ($state) =>
-                                $state ? floor($state / 60) . ' hours ' . ($state % 60) . ' minutes' : 'Not yet calculated'
-                            )
-                            ->badge()
-                            ->color('success')
-                            ->icon('heroicon-m-calendar-days'),
-                        Infolists\Components\TextEntry::make('clock_out_location')
-                            ->label('Location')
-                            ->state(fn ($record) =>
-                                $record->clock_out_latitude && $record->clock_out_longitude
-                                    ? "{$record->clock_out_latitude}, {$record->clock_out_longitude}"
-                                    : 'Not available'
-                            )
-                            ->copyable()
-                            ->icon('heroicon-m-map-pin'),
-                        Infolists\Components\TextEntry::make('clock_out_maps')
-                            ->label('View on Map')
-                            ->state(fn ($record) =>
-                                $record->clock_out_latitude && $record->clock_out_longitude
-                                    ? "Open in Google Maps"
-                                    : 'Not available'
-                            )
-                            ->url(fn ($record) =>
-                                $record->clock_out_latitude && $record->clock_out_longitude
-                                    ? "https://maps.google.com/?q={$record->clock_out_latitude},{$record->clock_out_longitude}"
-                                    : null
-                            )
-                            ->openUrlInNewTab()
-                            ->icon('heroicon-m-globe-alt')
-                            ->color('primary'),
+                            ->formatStateUsing(fn ($state) => $state ? floor($state / 60) . 'h ' . ($state % 60) . 'm' : '-'),
+                        Infolists\Components\TextEntry::make('clock_out_notes')
+                            ->label('Notes')
+                            ->default('-'),
+                        Infolists\Components\TextEntry::make('clock_out_latitude')
+                            ->label('Latitude')
+                            ->default('-'),
+                        Infolists\Components\TextEntry::make('clock_out_longitude')
+                            ->label('Longitude')
+                            ->default('-'),
                         
+                        // ✅ CLOCK OUT PHOTO - CEK STORAGE DULU!
                         Infolists\Components\TextEntry::make('clock_out_photo')
                             ->label('Photo')
                             ->html()
@@ -263,73 +199,74 @@ class ViewAttendance extends ViewRecord
                                     return '<span class="text-gray-500">No photo available</span>';
                                 }
                                 
-                                if (str_starts_with($state, 'data:image')) {
-                                    return '<div style="text-align: center;">
-                                        <img src="' . $state . '" 
-                                             style="max-width: 100%; height: 300px; object-fit: contain; 
-                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-                                                    cursor: zoom-in;" 
-                                             onclick="window.open(this.src)" 
-                                             alt="Clock Out Photo" />
-                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
-                                            Click to view full size
-                                        </p>
-                                    </div>';
-                                }
-                                
+                                // ✅ 1. CEK STORAGE DULU
                                 if (Storage::disk('public')->exists($state)) {
                                     $publicUrl = asset('storage/' . $state);
                                     $filename = basename($state);
                                     
                                     return '<div style="text-align: center;">
                                         <img src="' . $publicUrl . '" 
-                                             style="max-width: 100%; height: 300px; object-fit: contain; 
+                                             style="max-width: 100%; height: auto; max-height: 400px; object-fit: contain; 
                                                     border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
                                                     cursor: zoom-in;" 
                                              onclick="window.open(\'' . $publicUrl . '\')" 
                                              alt="Clock Out Photo"
-                                             onerror="this.parentElement.innerHTML=\'<div style=\\\'padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px;\\\'><p style=\\\'color: #dc2626; font-weight: 600;\\\'>❌ Failed to Load Image</p><p style=\\\'color: #991b1b; font-size: 12px;\\\'>File: ' . htmlspecialchars($filename) . '</p></div>\'" />
+                                             onerror="this.parentElement.innerHTML=\'<div style=\\\'padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;\\\'><p style=\\\'color: #dc2626; font-weight: 600;\\\'>❌ Failed to Load Image</p><p style=\\\'color: #991b1b; font-size: 12px;\\\'>File: ' . htmlspecialchars($filename) . '</p><p style=\\\'color: #374151; font-size: 11px; margin-top: 8px;\\\'>💡 Run: <code>php artisan storage:link</code></p></div>\'" />
                                         <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
                                             📁 ' . htmlspecialchars($filename) . ' • Click to view full size
                                         </p>
                                     </div>';
                                 }
                                 
+                                // ✅ 2. FALLBACK: Cek base64
+                                if (str_starts_with($state, 'data:image')) {
+                                    return '<div style="text-align: center;">
+                                        <img src="' . $state . '" 
+                                             style="max-width: 100%; height: auto; max-height: 400px; object-fit: contain; 
+                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+                                                    cursor: zoom-in;" 
+                                             onclick="window.open(this.src)" 
+                                             alt="Clock Out Photo" />
+                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                            Click to view full size (Base64 format)
+                                        </p>
+                                    </div>';
+                                }
+                                
+                                // ❌ 3. FILE NOT FOUND
                                 return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
-                                    <p style="color: #dc2626; font-weight: 600;">📷 Image Not Found</p>
-                                    <p style="color: #991b1b; font-size: 12px;">File: ' . htmlspecialchars($state) . '</p>
+                                    <svg style="width: 48px; height: 48px; margin: 0 auto 12px; color: #ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p style="color: #dc2626; font-weight: 600; margin-bottom: 4px;">📷 Image Not Found</p>
+                                    <p style="color: #991b1b; font-size: 12px; margin-bottom: 8px;">Path: ' . htmlspecialchars($state) . '</p>
+                                    <p style="color: #374151; font-size: 10px; margin-top: 8px;">
+                                        💡 Run: <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">php artisan storage:link</code>
+                                    </p>
                                 </div>';
                             })
                             ->columnSpanFull()
-                            ->visible(fn ($record) => $record->clock_out_photo !== null),
-                        
-                        Infolists\Components\TextEntry::make('clock_out_notes')
-                            ->label('Notes')
-                            ->default('No notes')
-                            ->columnSpanFull()
                             ->visible(fn ($record) => $record->clock_out !== null),
                     ])
-                    ->columns(4)
-                    ->visible(fn($record) => $record->clock_out !== null),
+                    ->columns(2)
+                    ->visible(fn ($record) => $record->clock_out !== null),
 
-                Infolists\Components\Section::make('Validation Information')
+                Infolists\Components\Section::make('Validation Details')
                     ->schema([
                         Infolists\Components\TextEntry::make('validator.name')
                             ->label('Validated By')
-                            ->default('Not validated yet')
-                            ->icon('heroicon-m-user'),
+                            ->default('-'),
                         Infolists\Components\TextEntry::make('validated_at')
                             ->label('Validated At')
-                            ->dateTime('d M Y, H:i')
-                            ->default('Not validated yet')
-                            ->icon('heroicon-m-clock'),
+                            ->dateTime('d M Y, H:i:s')
+                            ->default('-'),
                         Infolists\Components\TextEntry::make('validation_notes')
                             ->label('Validation Notes')
-                            ->default('No notes')
+                            ->default('-')
                             ->columnSpanFull(),
                     ])
                     ->columns(2)
-                    ->visible(fn($record) => $record->is_valid !== 'pending'),
+                    ->visible(fn ($record) => $record->is_valid !== 'pending'),
             ]);
     }
 }

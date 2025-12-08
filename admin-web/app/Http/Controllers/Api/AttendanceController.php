@@ -27,7 +27,7 @@ class AttendanceController extends Controller
         ]);
     }
 
-    // CLOCK IN - OPTIMIZED
+    // CLOCK IN - Return Full Object
     public function clockIn(Request $request)
     {
         try {
@@ -91,15 +91,11 @@ class AttendanceController extends Controller
                 'is_valid' => 'pending',
             ]);
 
+            // ✅ Return full Eloquent object
             return response()->json([
                 'success' => true,
                 'message' => 'Clock in successful',
-                'data' => [
-                    'id' => $attendance->id,
-                    'clock_in' => $attendance->clock_in->format('Y-m-d H:i:s'),
-                    'status' => $attendance->status,
-                    'photo_url' => asset('storage/' . $filename),
-                ],
+                'data' => $attendance, // ← Full object (include all fields)
             ], 201);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -120,7 +116,7 @@ class AttendanceController extends Controller
         }
     }
 
-    // CLOCK OUT - SUPER OPTIMIZED
+    // CLOCK OUT - Return Full Object
     public function clockOut(Request $request)
     {
         try {
@@ -134,12 +130,11 @@ class AttendanceController extends Controller
 
             $user = Auth::user();
 
-            // Query minimal
+            // ✅ Ambil SEMUA kolom (bukan hanya 3)
             $attendance = Attendance::where('user_id', $user->id)
                 ->whereDate('clock_in', Carbon::today())
                 ->whereNull('clock_out')
-                ->select('id', 'user_id', 'clock_in')
-                ->first();
+                ->first(); // ← Load all columns
 
             if (!$attendance) {
                 return response()->json([
@@ -176,7 +171,7 @@ class AttendanceController extends Controller
                 ? Carbon::parse($validated['clock_out_time']) 
                 : Carbon::now();
 
-            $duration = $attendance->clock_in->diffInMinutes($clockOutTime);
+            $duration = (int) $attendance->clock_in->diffInMinutes($clockOutTime);
 
             $attendance->fill([
                 'clock_out' => $clockOutTime,
@@ -187,16 +182,14 @@ class AttendanceController extends Controller
                 'work_duration' => $duration,
             ])->save();
 
+            // ✅ PENTING! Refresh untuk get updated data
+            $attendance->refresh();
+
+            // ✅ Return full Eloquent object
             return response()->json([
                 'success' => true,
                 'message' => 'Clock out successful',
-                'data' => [
-                    'id' => $attendance->id,
-                    'clock_in' => $attendance->clock_in->format('Y-m-d H:i:s'),
-                    'clock_out' => $clockOutTime->format('Y-m-d H:i:s'),
-                    'work_duration' => $duration . ' minutes',
-                    'photo_url' => asset('storage/' . $filename),
-                ],
+                'data' => $attendance, // ← Full object (all fields included)
             ], 200);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
