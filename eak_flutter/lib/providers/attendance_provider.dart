@@ -14,47 +14,41 @@ class AttendanceProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  /// Load today's attendance with force refresh option
-  Future<void> loadTodayAttendance({bool forceRefresh = false}) async {
-    // Skip if already loaded and not forcing refresh
-    if (!forceRefresh && _todayAttendance != null) {
-      debugPrint('📦 Using cached today attendance');
-      return;
-    }
-
+  /// Load today's attendance
+  Future<void> loadTodayAttendance() async {
     try {
       _isLoading = true;
       notifyListeners();
 
-      // debugPrint('🔄 Fetching today attendance from server...');
+      // print('📥 Loading today attendance...');
 
       final result = await ApiService.getTodayAttendance();
 
-      // debugPrint('📡 API Response getTodayAttendance:');
-      // debugPrint('   Success: ${result['success']}');
-      // debugPrint('   Attendance Data: ${result['attendance']}');
+      // print('📡 API Response getTodayAttendance:');
+      // print('   Success: ${result['success']}');
+      // print('   Attendance Data: ${result['attendance']}');
 
       if (result['success']) {
         if (result['attendance'] != null) {
           _todayAttendance = Attendance.fromJson(result['attendance']);
           _errorMessage = null;
 
-          // debugPrint('✅ Today attendance loaded:');
-          // debugPrint('   ID: ${_todayAttendance?.id}');
-          // debugPrint('   Clock In: ${_todayAttendance?.clockIn}');
-          // debugPrint('   Clock Out: ${_todayAttendance?.clockOut}');
+          // print('✅ Today attendance loaded:');
+          // print('   ID: ${_todayAttendance?.id}');
+          // print('   Clock In: ${_todayAttendance?.clockIn}');
+          // print('   Clock Out: ${_todayAttendance?.clockOut}');
         } else {
           _todayAttendance = null;
-          debugPrint('📭 No attendance data (null)');
+          // print('ℹ️ No attendance data (null)');
         }
       } else {
         _errorMessage = result['message'];
         _todayAttendance = null;
-        debugPrint('ℹ️ No attendance today: $_errorMessage');
+        // print('ℹ️ No attendance today: $_errorMessage');
       }
     } catch (e) {
-      debugPrint('❌ Error loading today attendance: $e');
-      debugPrint('❌ Stack trace: ${StackTrace.current}');
+      // print('❌ Error loading today attendance: $e');
+      // print('❌ Stack trace: ${StackTrace.current}');
       _errorMessage = e.toString();
       _todayAttendance = null;
     } finally {
@@ -75,9 +69,9 @@ class AttendanceProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      // debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      // debugPrint('🔄 Clock In START');
-      // debugPrint('   Loading: $_isLoading');
+      // print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      // print('🔄 Clock In START');
+      // print('   Loading: $_isLoading');
 
       final result = await ApiService.clockIn(
         latitude: latitude,
@@ -86,45 +80,46 @@ class AttendanceProvider with ChangeNotifier {
         notes: notes,
       );
 
-      // debugPrint('📡 Clock In API Response:');
-      // debugPrint('   Success: ${result['success']}');
-      // debugPrint('   Message: ${result['message']}');
-      // debugPrint('   Attendance Data: ${result['attendance']}');
+      // print('📡 Clock In API Response:');
+      // print('   Success: ${result['success']}');
+      // print('   Message: ${result['message']}');
+      // print('   Attendance Data: ${result['attendance']}');
 
       if (result['success']) {
         _todayAttendance = Attendance.fromJson(result['attendance']);
         _errorMessage = null;
 
-        // debugPrint('✅ Clock In SUCCESS');
-        // debugPrint('   Attendance ID: ${_todayAttendance?.id}');
-        // debugPrint('   Clock In: ${_todayAttendance?.clockIn}');
-        // debugPrint('   Clock Out: ${_todayAttendance?.clockOut}');
-        // debugPrint('   Clock Out is null? ${_todayAttendance?.clockOut == null}');
+        // print('✅ Clock In SUCCESS');
+        // print('   Attendance ID: ${_todayAttendance?.id}');
+        // print('   Clock In: ${_todayAttendance?.clockIn}');
+        // print('   Clock Out: ${_todayAttendance?.clockOut}');
+        // print('   Clock Out is null? ${_todayAttendance?.clockOut == null}');
 
         _isLoading = false;
         notifyListeners();
 
-        // debugPrint('   Notified listeners');
-        // debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        // print('   Notified listeners');
+        // print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         return true;
       } else {
         _errorMessage = result['message'];
         _isLoading = false;
         notifyListeners();
 
-        // debugPrint('❌ Clock In FAILED');
-        // debugPrint('   Error: $_errorMessage');
-        // debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        // print('❌ Clock In FAILED');
+        // print('   Error: $_errorMessage');
+        // print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         return false;
       }
-    } catch (e) {
+    } catch (e) { // ,stackTrace
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
 
-      // debugPrint('💥 Clock In EXCEPTION');
-      // debugPrint('   Error: $e');
-      // debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      // print('💥 Clock In EXCEPTION');
+      // print('   Error: $e');
+      // print('   StackTrace: $stackTrace');
+      // print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       return false;
     }
   }
@@ -140,55 +135,39 @@ class AttendanceProvider with ChangeNotifier {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
-
-      // debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      // debugPrint('🔄 Clock Out START');
-      // debugPrint('   Loading: $_isLoading');
+      // print('🔄 Clock Out START - Loading: $_isLoading');
 
       final result = await ApiService.clockOut(
         latitude: latitude,
         longitude: longitude,
         photo: photo,
-        notes: notes ?? '',
+        notes: notes!,
       );
 
-      // debugPrint('📡 Clock Out API Response:');
-      // debugPrint('   Success: ${result['success']}');
-      // debugPrint('   Message: ${result['message']}');
-      // debugPrint('   Attendance Data: ${result['attendance']}');
+      // print('📡 API Response: $result');
 
       if (result['success']) {
         _todayAttendance = Attendance.fromJson(result['attendance']);
         _errorMessage = null;
-
-        // debugPrint('✅ Clock Out SUCCESS');
-        // debugPrint('   Attendance ID: ${_todayAttendance?.id}');
-        // debugPrint('   Clock Out: ${_todayAttendance?.clockOut}');
-
         _isLoading = false;
         notifyListeners();
 
-        // debugPrint('   Notified listeners');
-        // debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        // print('✅ Clock Out SUCCESS - Loading: $_isLoading');
         return true;
       } else {
         _errorMessage = result['message'];
         _isLoading = false;
         notifyListeners();
-
-        // debugPrint('❌ Clock Out FAILED');
-        // debugPrint('   Error: $_errorMessage');
-        // debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        // print(
+        //   '❌ Clock Out FAILED - Loading: $_isLoading, Error: $_errorMessage',
+        // );
         return false;
       }
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
-
-      // debugPrint('💥 Clock Out EXCEPTION');
-      // debugPrint('   Error: $e');
-      // debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      // print('💥 Clock Out ERROR: $e - Loading: $_isLoading');
       return false;
     }
   }
@@ -221,7 +200,7 @@ class AttendanceProvider with ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = e.toString();
-      // debugPrint('❌ Error loading attendance history: $e');
+      // print('❌ Error loading attendance history: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

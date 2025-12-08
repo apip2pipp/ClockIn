@@ -1,11 +1,11 @@
 import 'dart:io';
+import 'package:eak_flutter/providers/attendance_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import '../providers/attendance_provider.dart';
 
 class ClockInScreen extends StatefulWidget {
   const ClockInScreen({super.key});
@@ -15,376 +15,414 @@ class ClockInScreen extends StatefulWidget {
 }
 
 class _ClockInScreenState extends State<ClockInScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _notesController = TextEditingController();
-  final ImagePicker _picker = ImagePicker();
+  File? _image;
+  final TextEditingController _descriptionController = TextEditingController();
+  bool _loading = false;
 
-  File? _capturedImage;
-  Position? _currentPosition;
-  bool _isLoadingLocation = false;
-  bool _isSubmitting = false;
-  GoogleMapController? _mapController;
+  double? latitude;
+  double? longitude;
+  bool _locationLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _getCurrentLocation();
-  }
+  final picker = ImagePicker();
+  final MapController _mapController = MapController();
 
   @override
   void dispose() {
-    _notesController.dispose();
-    _mapController?.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
-  Future<void> _getCurrentLocation() async {
-    setState(() => _isLoadingLocation = true);
+  Future<void> _pickImage() async {
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 85,
+    );
+    if (pickedFile != null) {
+      setState(() => _image = File(pickedFile.path));
+    }
+  }
+
+  Future<void> _retakePhoto() async {
+    setState(() => _image = null);
+    await _pickImage();
+  }
+
+  Future<void> getCurrentLocation() async {
+    setState(() => _locationLoading = true);
+
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('GPS is not enabled')));
+      setState(() => _locationLoading = false);
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location permission denied')),
+      );
+      setState(() => _locationLoading = false);
+      return;
+    }
+
+    Position pos = await Geolocator.getCurrentPosition(
+      // ignore: deprecated_member_use
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      latitude = pos.latitude;
+      longitude = pos.longitude;
+      _locationLoading = false;
+    });
+
+    if (latitude != null && longitude != null) {
+      _mapController.move(LatLng(latitude!, longitude!), 16);
+    }
+  }
+
+  Future<void> submitClockIn() async {
+    if (_image == null || _descriptionController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add description and photo first'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (latitude == null || longitude == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please get location first'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _loading = true);
 
     try {
-      // Request location permission
-      final permission = await Permission.location.request();
+      final provider = Provider.of<AttendanceProvider>(context, listen: false);
 
-      if (permission.isDenied || permission.isPermanentlyDenied) {
-        if (mounted) {
-          _showError('Izin lokasi diperlukan untuk melakukan absensi');
-        }
-        return;
-      }
-
-      // Check if location service is enabled
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        if (mounted) {
-          _showError('Mohon aktifkan layanan lokasi');
-        }
-        return;
-      }
-
-      // Get current position
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+      final success = await provider.clockIn(
+        latitude: latitude!,
+        longitude: longitude!,
+        photo: _image!,
+        notes: _descriptionController.text.trim(),
       );
 
-      setState(() {
-        _currentPosition = position;
-      });
+      if (success) {
+        if (mounted) {
+          await provider.loadTodayAttendance();
 
-      debugPrint('📍 Location obtained: ${position.latitude}, ${position.longitude}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Clock in successful! Have a great day! 💪'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
 
-      // Move camera to current location
-      if (_mapController != null && mounted) {
-        _mapController!.animateCamera(
-          CameraUpdate.newLatLng(
-            LatLng(position.latitude, position.longitude),
-          ),
+          Navigator.pop(context);
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(provider.errorMessage ?? 'Clock in failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
-    } catch (e) {
-      debugPrint('❌ Error getting location: $e');
-      if (mounted) {
-        _showError('Gagal mendapatkan lokasi: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoadingLocation = false);
-      }
-    }
-  }
-
-  Future<void> _capturePhoto() async {
-    try {
-      final permission = await Permission.camera.request();
-
-      if (permission.isDenied || permission.isPermanentlyDenied) {
-        if (mounted) {
-          _showError('Izin kamera diperlukan untuk mengambil foto');
-        }
-        return;
-      }
-
-      final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 70,
-        preferredCameraDevice: CameraDevice.front,
-      );
-
-      if (photo != null) {
-        setState(() {
-          _capturedImage = File(photo.path);
-        });
-        debugPrint('📸 Photo captured: ${photo.path}');
-      }
-    } catch (e) {
-      debugPrint('❌ Error capturing photo: $e');
-      if (mounted) {
-        _showError('Gagal mengambil foto: $e');
-      }
-    }
-  }
-
-  Future<void> _submitClockIn() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_capturedImage == null) {
-      _showError('Silakan ambil foto terlebih dahulu');
-      return;
     }
 
-    if (_currentPosition == null) {
-      _showError('Lokasi belum ditemukan. Silakan refresh lokasi');
-      return;
-    }
-
-    setState(() => _isSubmitting = true);
-
-    try {
-      final attendanceProvider = Provider.of<AttendanceProvider>(
-        context,
-        listen: false,
-      );
-
-      debugPrint('🔄 Submitting clock in...');
-      debugPrint('   Latitude: ${_currentPosition!.latitude}');
-      debugPrint('   Longitude: ${_currentPosition!.longitude}');
-      debugPrint('   Photo: ${_capturedImage!.path}');
-      debugPrint('   Notes: ${_notesController.text}');
-
-      final success = await attendanceProvider.clockIn(
-        latitude: _currentPosition!.latitude,
-        longitude: _currentPosition!.longitude,
-        photo: _capturedImage!,
-        notes: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
-      );
-
-      if (mounted) {
-        if (success) {
-          debugPrint('✅ Clock in successful, popping screen...');
-
-          // Pop screen with success result
-          Navigator.pop(context, true);
-
-          // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Clock in berhasil!'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        } else {
-          final errorMsg = attendanceProvider.errorMessage ?? 'Gagal melakukan clock in';
-          _showError(errorMsg);
-        }
-      }
-    } catch (e) {
-      debugPrint('❌ Error submitting clock in: $e');
-      if (mounted) {
-        _showError('Terjadi kesalahan: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
-    }
-  }
-
-  Future<void> _submitClockOut() async {
-    if (_currentPosition == null) {
-      _showError('Lokasi belum ditemukan. Silakan refresh lokasi');
-      return;
-    }
-
-    setState(() => _isSubmitting = true);
-
-    try {
-      final attendanceProvider = Provider.of<AttendanceProvider>(
-        context,
-        listen: false,
-      );
-
-      debugPrint('🔄 Submitting clock out...');
-      debugPrint('   Latitude: ${_currentPosition!.latitude}');
-      debugPrint('   Longitude: ${_currentPosition!.longitude}');
-      debugPrint('   Photo: ${_capturedImage?.path ?? "No photo"}');
-      debugPrint('   Notes: ${_notesController.text}');
-
-      final success = await attendanceProvider.clockOut(
-        latitude: _currentPosition!.latitude,
-        longitude: _currentPosition!.longitude,
-        photo: _capturedImage ?? File(''),
-        notes: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
-      );
-
-      if (mounted) {
-        if (success) {
-          debugPrint('✅ Clock out successful, popping screen...');
-
-          // Pop screen with success result
-          Navigator.pop(context, true);
-
-          // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Clock out berhasil!'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        } else {
-          final errorMsg = attendanceProvider.errorMessage ?? 'Gagal melakukan clock out';
-          _showError(errorMsg);
-        }
-      }
-    } catch (e) {
-      debugPrint('❌ Error submitting clock out: $e');
-      if (mounted) {
-        _showError('Terjadi kesalahan: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
-    }
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    setState(() => _loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final attendanceProvider = Provider.of<AttendanceProvider>(context);
-    final todayAttendance = attendanceProvider.todayAttendance;
-    final isClockOut = todayAttendance != null && todayAttendance.clockOut == null;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: Text(
-          isClockOut ? 'Clock Out' : 'Clock In',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: const Color(0xFF26667F),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
+      body: SafeArea(
+        child: Column(
           children: [
-            // Photo Card
-            _buildPhotoCard(isClockOut),
+            // Custom Header
+            _buildHeader(context),
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(25),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Step indicator
+                    _buildStepIndicator(),
+                    const SizedBox(height: 20),
 
-            const SizedBox(height: 20),
+                    // Photo Card
+                    _buildPhotoCard(),
+                    const SizedBox(height: 16),
 
-            // Location Card
-            _buildLocationCard(),
+                    // Description Card
+                    _buildDescriptionCard(),
+                    const SizedBox(height: 16),
 
-            const SizedBox(height: 20),
+                    // Location Card
+                    _buildLocationCard(),
+                    const SizedBox(height: 24),
 
-            // Notes Card
-            _buildNotesCard(isClockOut),
-
-            const SizedBox(height: 30),
-
-            // Submit Button
-            _buildSubmitButton(isClockOut),
+                    // Submit Button
+                    _buildSubmitButton(),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPhotoCard(bool isClockOut) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      height: 80,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF80CE70), Color(0xFF26667F)],
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
+            width: 0.6,
+          ),
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 15),
+        child: Row(
+          children: [
+            // Back Button
+            InkWell(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Logo
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: Image.asset('assets/icon_login.png', fit: BoxFit.contain),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Clock In',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 22,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepIndicator() {
+    final photoComplete = _image != null;
+    final descComplete = _descriptionController.text.trim().isNotEmpty;
+    final locationComplete = latitude != null && longitude != null;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildStep(1, 'Photo', photoComplete),
+            const Icon(Icons.arrow_forward, size: 16, color: Colors.grey),
+            _buildStep(2, 'Description', descComplete),
+            const Icon(Icons.arrow_forward, size: 16, color: Colors.grey),
+            _buildStep(3, 'Location', locationComplete),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStep(int number, String label, bool complete) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: complete ? Colors.green : Colors.grey[300],
+          child: complete
+              ? const Icon(Icons.check, color: Colors.white, size: 18)
+              : Text(
+                  '$number',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: complete ? Colors.green : Colors.grey,
+            fontWeight: complete ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhotoCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Icon(Icons.camera_alt, color: Color(0xFF26667F)),
-                const SizedBox(width: 10),
+                Icon(Icons.camera_alt, color: Colors.blue[700]),
+                const SizedBox(width: 8),
                 const Text(
-                  'Foto',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  'Take Photo',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                if (!isClockOut)
-                  const Text(
-                    ' *',
-                    style: TextStyle(color: Colors.red, fontSize: 18),
-                  ),
               ],
             ),
-            const SizedBox(height: 15),
-            if (_capturedImage != null)
+            const SizedBox(height: 16),
+            if (_image != null) ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
                 child: Image.file(
-                  _capturedImage!,
+                  _image!,
                   height: 200,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
-              )
-            else
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _retakePhoto,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retake'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check_circle, color: Colors.green, size: 24),
+                ],
+              ),
+            ] else ...[
               Container(
-                height: 200,
+                height: 150,
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[400]!, width: 2),
                 ),
-                child: const Center(
+                child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.camera_alt, size: 50, color: Colors.grey),
-                      SizedBox(height: 10),
+                      Icon(
+                        Icons.add_a_photo,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 8),
                       Text(
-                        'Belum ada foto',
-                        style: TextStyle(color: Colors.grey),
+                        'No photo yet',
+                        style: TextStyle(color: Colors.grey[600]),
                       ),
                     ],
                   ),
                 ),
               ),
-            const SizedBox(height: 15),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _capturePhoto,
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: _pickImage,
                 icon: const Icon(Icons.camera_alt),
-                label: Text(_capturedImage == null ? 'Ambil Foto' : 'Ambil Ulang'),
+                label: const Text('Take Photo'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF26667F),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  minimumSize: const Size(double.infinity, 48),
                 ),
               ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDescriptionCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.description, color: Colors.blue[700]),
+                const SizedBox(width: 8),
+                const Text(
+                  'Activity Description',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              decoration: InputDecoration(
+                labelText: 'What are you working on today?',
+                hintText: 'E.g., Meeting with client, Project development...',
+                border: const OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.grey[50],
+                prefixIcon: const Icon(Icons.edit),
+              ),
+              maxLines: 3,
+              onChanged: (value) => setState(() {}),
             ),
           ],
         ),
@@ -394,233 +432,160 @@ class _ClockInScreenState extends State<ClockInScreen> {
 
   Widget _buildLocationCard() {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.location_on, color: Color(0xFF26667F)),
-                    SizedBox(width: 10),
-                    Text(
-                      'Lokasi',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  onPressed: _isLoadingLocation ? null : _getCurrentLocation,
-                  icon: _isLoadingLocation
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.refresh),
-                  color: const Color(0xFF26667F),
+                Icon(Icons.location_on, color: Colors.blue[700]),
+                const SizedBox(width: 8),
+                const Text(
+                  'Location',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            const SizedBox(height: 15),
-            if (_currentPosition != null)
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _locationLoading ? null : getCurrentLocation,
+              icon: _locationLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.my_location),
+              label: Text(
+                _locationLoading
+                    ? 'Getting Location...'
+                    : 'Get Current Location',
+              ),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ),
+            if (latitude != null && longitude != null) ...[
+              const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(15),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.green[50],
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.green),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green[200]!),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.green),
-                    const SizedBox(width: 10),
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Latitude: ${_currentPosition!.latitude.toStringAsFixed(6)}',
-                            style: const TextStyle(fontSize: 14),
+                            'Latitude: ${latitude!.toStringAsFixed(6)}',
+                            style: const TextStyle(fontSize: 13),
                           ),
                           Text(
-                            'Longitude: ${_currentPosition!.longitude.toStringAsFixed(6)}',
-                            style: const TextStyle(fontSize: 14),
+                            'Longitude: ${longitude!.toStringAsFixed(6)}',
+                            style: const TextStyle(fontSize: 13),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: Colors.orange[50],
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.orange),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.warning, color: Colors.orange),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Lokasi belum terdeteksi',
-                        style: TextStyle(color: Colors.orange),
-                      ),
-                    ),
-                  ],
-                ),
               ),
-            const SizedBox(height: 15),
-            SizedBox(
-              height: 200,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: _currentPosition != null
-                    ? GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: LatLng(
-                            _currentPosition!.latitude,
-                            _currentPosition!.longitude,
-                          ),
-                          zoom: 16,
-                        ),
-                        markers: {
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  height: 200,
+                  child: FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: LatLng(latitude!, longitude!),
+                      initialZoom: 16,
+                      onMapReady: () {
+                        _mapController.move(LatLng(latitude!, longitude!), 16);
+                      },
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      ),
+                      MarkerLayer(
+                        markers: [
                           Marker(
-                            markerId: const MarkerId('current_location'),
-                            position: LatLng(
-                              _currentPosition!.latitude,
-                              _currentPosition!.longitude,
+                            point: LatLng(latitude!, longitude!),
+                            width: 40,
+                            height: 40,
+                            child: const Icon(
+                              Icons.location_pin,
+                              color: Colors.red,
+                              size: 40,
                             ),
                           ),
-                        },
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: false,
-                        zoomControlsEnabled: false,
-                        onMapCreated: (controller) {
-                          _mapController = controller;
-                        },
-                      )
-                    : Container(
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        ],
                       ),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNotesCard(bool isClockOut) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
+  Widget _buildSubmitButton() {
+    final canSubmit =
+        _image != null &&
+        _descriptionController.text.trim().isNotEmpty &&
+        latitude != null &&
+        longitude != null;
+
+    return ElevatedButton(
+      onPressed: _loading || !canSubmit ? null : submitClockIn,
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 56),
+        backgroundColor: Colors.green,
+        disabledBackgroundColor: Colors.grey[300],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: _loading
+          ? const SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.edit_note, color: Color(0xFF26667F)),
-                SizedBox(width: 10),
+                const Icon(Icons.check_circle, size: 24),
+                const SizedBox(width: 8),
                 Text(
-                  'Catatan',
-                  style: TextStyle(
-                    fontSize: 18,
+                  canSubmit ? 'Submit Clock In' : 'Complete All Steps',
+                  style: const TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  ' (Opsional)',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 15),
-            TextFormField(
-              controller: _notesController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'Tambahkan catatan (opsional)...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFF26667F)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSubmitButton(bool isClockOut) {
-    return SizedBox(
-      width: double.infinity,
-      height: 55,
-      child: ElevatedButton(
-        onPressed: _isSubmitting
-            ? null
-            : (isClockOut ? _submitClockOut : _submitClockIn),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isClockOut ? Colors.red : const Color(0xFF26667F),
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: Colors.grey,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          elevation: 3,
-        ),
-        child: _isSubmitting
-            ? const SizedBox(
-                height: 25,
-                width: 25,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 3,
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(isClockOut ? Icons.logout : Icons.login),
-                  const SizedBox(width: 10),
-                  Text(
-                    isClockOut ? 'Submit Clock Out' : 'Submit Clock In',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-      ),
     );
   }
 }
