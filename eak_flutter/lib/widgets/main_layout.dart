@@ -6,6 +6,7 @@ import '../screens/attendance_history_screen.dart';
 import '../screens/leave_request_list_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/clock_in_screen.dart';
+import '../screens/clock_out_screen.dart';
 
 class MainLayout extends StatelessWidget {
   final Widget child;
@@ -132,37 +133,45 @@ class MainLayout extends StatelessWidget {
       builder: (context, attendanceProvider, child) {
         final todayAttendance = attendanceProvider.todayAttendance;
 
-        // BUTTON UI ORIGINAL (BESAR DI TENGAH)
-        return FloatingActionButton(
-          onPressed: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ClockInScreen()),
-            );
+        final IconData icon;
+        final Color bgColor;
+        final Widget targetScreen;
 
-            if (context.mounted) {
-              await attendanceProvider.loadTodayAttendance();
-            }
-          },
-          backgroundColor: todayAttendance == null
-              ? const Color(0xFF26667F) // Hijau kalau belum clock in
-              : todayAttendance.clockOut == null
-              ? const Color(
-                  0xFFE57373,
-                ) // Merah kalau sudah clock in, belum clock out
-              : Colors.grey, // Abu kalau sudah clock out
+        if (todayAttendance == null) {
+          // Belum clock in hari ini
+          icon = Icons.login;
+          bgColor = const Color(0xFF80CE70); // Hijau
+          targetScreen = const ClockInScreen();
+        } else if (todayAttendance.clockOut == null) {
+          // Sudah clock in, belum clock out
+          icon = Icons.logout;
+          bgColor = Colors.orange; // Orange
+          targetScreen = const ClockOutScreen();
+        } else {
+          // Sudah clock in DAN clock out
+          icon = Icons.check;
+          bgColor = Colors.grey; // Abu-abu (disabled)
+          targetScreen = const HomeScreen(); // Dummy, tidak akan dipanggil
+        }
+
+        return FloatingActionButton(
+          onPressed: todayAttendance?.clockOut != null
+              ? null // ✅ Disable jika sudah clock out
+              : () async {
+                  // ✅ Navigate ke screen yang sesuai
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => targetScreen),
+                  );
+
+                  // ✅ Reload attendance SETELAH kembali dari screen
+                  if (context.mounted && result != false) {
+                    await attendanceProvider.loadTodayAttendance();
+                  }
+                },
+          backgroundColor: bgColor,
           elevation: 8,
-          child: Icon(
-            todayAttendance == null
-                ? Icons
-                      .login // Belum clock in
-                : todayAttendance.clockOut == null
-                ? Icons
-                      .logout // Sudah clock in
-                : Icons.check, // Sudah clock out
-            color: Colors.white,
-            size: 30,
-          ),
+          child: Icon(icon, color: Colors.white, size: 30),
         );
       },
     );
