@@ -89,28 +89,18 @@ class ViewLeaveRequest extends ViewRecord
                 Infolists\Components\Section::make('Request Status')
                     ->schema([
                         Infolists\Components\TextEntry::make('status')
-                            ->label('Current Status')
+                            ->label('Status')
                             ->badge()
-                            ->size('lg')
-                            ->color(fn(string $state): string => match ($state) {
-                                'pending' => 'warning',
+                            ->color(fn (string $state): string => match ($state) {
+                                'pending' => 'gray',
                                 'approved' => 'success',
                                 'rejected' => 'danger',
+                                default => 'gray',
                             })
-                            ->formatStateUsing(fn(string $state): string => match ($state) {
-                                'pending' => 'Pending Review',
-                                'approved' => 'Approved ✓',
-                                'rejected' => 'Rejected ✗',
-                            })
-                            ->icon(fn(string $state): string => match ($state) {
-                                'pending' => 'heroicon-o-clock',
-                                'approved' => 'heroicon-o-check-circle',
-                                'rejected' => 'heroicon-o-x-circle',
-                            }),
-
+                            ->formatStateUsing(fn ($state) => ucfirst($state)),
                         Infolists\Components\TextEntry::make('created_at')
-                            ->label('Requested Date')
-                            ->dateTime('d F Y, H:i')
+                            ->label('Submitted On')
+                            ->dateTime('d M Y, H:i')
                             ->icon('heroicon-m-calendar'),
                     ])
                     ->columns(2),
@@ -119,64 +109,48 @@ class ViewLeaveRequest extends ViewRecord
                     ->schema([
                         Infolists\Components\TextEntry::make('user.name')
                             ->label('Employee Name')
-                            ->weight('bold')
-                            ->size('lg'),
-
+                            ->icon('heroicon-m-user')
+                            ->weight('bold'),
                         Infolists\Components\TextEntry::make('user.employee_id')
                             ->label('Employee ID')
                             ->badge()
-                            ->color('info'),
-
+                            ->color('info')
+                            ->icon('heroicon-m-identification'),
                         Infolists\Components\TextEntry::make('user.position')
                             ->label('Position')
-                            ->default('Not specified'),
-
+                            ->icon('heroicon-m-briefcase'),
                         Infolists\Components\TextEntry::make('company.name')
-                            ->label('Company'),
+                            ->label('Company')
+                            ->icon('heroicon-m-building-office'),
                     ])
                     ->columns(4),
 
                 Infolists\Components\Section::make('Leave Details')
                     ->schema([
-                        Infolists\Components\TextEntry::make('type')
+                        Infolists\Components\TextEntry::make('leave_type')
                             ->label('Leave Type')
                             ->badge()
-                            ->size('lg')
-                            ->color(fn(string $state): string => match ($state) {
-                                'sick' => 'danger',
-                                'annual' => 'success',
-                                'permission' => 'warning',
-                                'emergency' => 'info',
+                            ->color(fn ($state) => match ($state) {
+                                'sick' => 'warning',
+                                'permission' => 'info',
+                                'leave' => 'success',
+                                default => 'gray',
                             })
-                            ->formatStateUsing(fn(string $state): string => match ($state) {
-                                'sick' => 'Sick Leave',
-                                'annual' => 'Annual Leave',
-                                'permission' => 'Permission',
-                                'emergency' => 'Emergency',
-                            })
-                            ->icon(fn(string $state): string => match ($state) {
-                                'sick' => 'heroicon-o-heart',
-                                'annual' => 'heroicon-o-sun',
-                                'permission' => 'heroicon-o-clock',
-                                'emergency' => 'heroicon-o-exclamation-triangle',
-                            }),
-
+                            ->formatStateUsing(fn ($state) => ucfirst($state)),
                         Infolists\Components\TextEntry::make('start_date')
                             ->label('Start Date')
-                            ->date('l, d F Y')
-                            ->icon('heroicon-m-calendar-days'),
-
+                            ->date('d M Y')
+                            ->icon('heroicon-m-calendar'),
                         Infolists\Components\TextEntry::make('end_date')
                             ->label('End Date')
-                            ->date('l, d F Y')
-                            ->icon('heroicon-m-calendar-days'),
-
-                        Infolists\Components\TextEntry::make('total_days')
-                            ->label('Total Days')
-                            ->suffix(' days')
+                            ->date('d M Y')
+                            ->icon('heroicon-m-calendar'),
+                        Infolists\Components\TextEntry::make('duration')
+                            ->label('Duration')
+                            ->formatStateUsing(fn ($state) => $state . ' day(s)')
                             ->badge()
-                            ->color('info')
-                            ->size('lg'),
+                            ->color('primary')
+                            ->icon('heroicon-m-clock'),
                     ])
                     ->columns(4),
 
@@ -186,7 +160,7 @@ class ViewLeaveRequest extends ViewRecord
                             ->label('Reason')
                             ->default('No reason provided')
                             ->columnSpanFull(),
-
+                        
                         Infolists\Components\TextEntry::make('attachment')
                             ->label('Attachment')
                             ->html()
@@ -194,77 +168,92 @@ class ViewLeaveRequest extends ViewRecord
                                 if (!$state) {
                                     return '<span class="text-gray-500">No attachment</span>';
                                 }
-
+                                
                                 if (str_starts_with($state, 'data:')) {
                                     if (str_contains($state, 'image/')) {
-                                        return '
-                            <div style="text-align: center;">
-                                <img src="' . $state . '" 
-                                     style="max-width: 100%; height: auto; max-height: 500px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" 
-                                     onclick="window.open(this.src)" 
-                                     style="cursor: zoom-in;" />
-                                <p style="margin-top: 8px; font-size: 12px; color: #6b7280;">Click image to view full size</p>
-                            </div>
-                        ';
+                                        return '<div style="text-align: center;">
+                                            <img src="' . $state . '" style="max-width: 100%; height: auto; max-height: 500px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" onclick="window.open(this.src)" />
+                                            <p style="margin-top: 8px; font-size: 12px; color: #6b7280;">Click image to view full size</p>
+                                        </div>';
                                     }
-
+                                    
                                     if (str_contains($state, 'application/pdf')) {
-                                        return '
-                            <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-                                <iframe src="' . $state . '" 
-                                        style="width: 100%; height: 600px; border: none;"></iframe>
-                                <div style="padding: 8px; background: #f9fafb; text-align: center;">
-                                    <a href="' . $state . '" download="document.pdf" style="color: #3b82f6; text-decoration: none; font-size: 14px;">
-                                        📥 Download PDF
-                                    </a>
-                                </div>
-                            </div>
-                        ';
+                                        return '<div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                                            <iframe src="' . $state . '" style="width: 100%; height: 600px; border: none;"></iframe>
+                                            <div style="padding: 8px; background: #f9fafb; text-align: center;">
+                                                <a href="' . $state . '" download="document.pdf" style="color: #3b82f6; text-decoration: none; font-size: 14px;">📥 Download PDF</a>
+                                            </div>
+                                        </div>';
                                     }
-
-                                    return '
-                        <div style="padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center;">
-                            <p style="margin-bottom: 8px;">📄 Document attached</p>
-                            <a href="' . $state . '" download style="color: #3b82f6; text-decoration: none;">
-                                Download Document
-                            </a>
-                        </div>
-                    ';
                                 }
-
-                                return '
-                    <div style="text-align: center;">
-                        <img src="data:image/jpeg;base64,' . $state . '" 
-                             style="max-width: 100%; height: auto; max-height: 500px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" 
-                             onclick="window.open(this.src)" 
-                             style="cursor: zoom-in;" />
-                        <p style="margin-top: 8px; font-size: 12px; color: #6b7280;">Click image to view full size</p>
-                    </div>
-                ';
+                                
+                                if (str_contains($state, '/') || str_contains($state, '.')) {
+                                    $extension = strtolower(pathinfo($state, PATHINFO_EXTENSION));
+                                    $fullPath = storage_path('app/public/' . $state);
+                                    
+                                    if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
+                                        if (file_exists($fullPath)) {
+                                            $imageData = base64_encode(file_get_contents($fullPath));
+                                            $mimeType = match($extension) {
+                                                'jpg', 'jpeg' => 'image/jpeg',
+                                                'png' => 'image/png',
+                                                'gif' => 'image/gif',
+                                                default => 'image/jpeg'
+                                            };
+                                            
+                                            return '<div style="text-align: center;">
+                                                <img src="data:' . $mimeType . ';base64,' . $imageData . '" style="max-width: 100%; height: auto; max-height: 500px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" onclick="window.open(this.src)" />
+                                                <p style="margin-top: 8px; font-size: 12px; color: #6b7280;">Click image to view full size</p>
+                                            </div>';
+                                        }
+                                        
+                                        $publicUrl = asset('storage/' . $state);
+                                        return '<div style="text-align: center;">
+                                            <img src="' . $publicUrl . '" style="max-width: 100%; height: auto; max-height: 500px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" onclick="window.open(this.src)" />
+                                            <p style="margin-top: 8px; font-size: 12px; color: #6b7280;">Click image to view full size</p>
+                                        </div>';
+                                    }
+                                    
+                                    if ($extension === 'pdf') {
+                                        $publicUrl = asset('storage/' . $state);
+                                        return '<div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                                            <iframe src="' . $publicUrl . '" style="width: 100%; height: 600px; border: none;"></iframe>
+                                            <div style="padding: 8px; background: #f9fafb; text-align: center;">
+                                                <a href="' . $publicUrl . '" download style="color: #3b82f6; text-decoration: none; font-size: 14px;">📥 Download PDF</a>
+                                            </div>
+                                        </div>';
+                                    }
+                                    
+                                    $publicUrl = asset('storage/' . $state);
+                                    return '<div style="padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center;">
+                                        <p style="margin-bottom: 8px;">📄 Document attached</p>
+                                        <a href="' . $publicUrl . '" download style="color: #3b82f6; text-decoration: none;">Download Document</a>
+                                    </div>';
+                                }
+                                
+                                return '<div style="text-align: center;">
+                                    <img src="data:image/jpeg;base64,' . $state . '" style="max-width: 100%; height: auto; max-height: 500px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" onclick="window.open(this.src)" />
+                                    <p style="margin-top: 8px; font-size: 12px; color: #6b7280;">Click image to view full size</p>
+                                </div>';
                             })
                             ->columnSpanFull()
-                            ->visible(fn($record) => $record->attachment !== null),
+                            ->visible(fn ($record) => $record->attachment !== null),
                     ]),
 
                 Infolists\Components\Section::make('Approval Information')
                     ->schema([
                         Infolists\Components\TextEntry::make('approver.name')
-                            ->label('Reviewed By')
-                            ->default('Not yet reviewed')
+                            ->label('Approved/Rejected By')
                             ->icon('heroicon-m-user'),
-
                         Infolists\Components\TextEntry::make('approved_at')
-                            ->label('Reviewed At')
-                            ->dateTime('d F Y, H:i')
-                            ->default('Not yet reviewed')
+                            ->label('Action Date')
+                            ->dateTime('d M Y, H:i')
                             ->icon('heroicon-m-clock'),
-
                         Infolists\Components\TextEntry::make('rejection_reason')
                             ->label('Rejection Reason')
-                            ->default('N/A')
+                            ->default('No reason provided')
                             ->columnSpanFull()
-                            ->color('danger')
-                            ->visible(fn($record) => $record->status === 'rejected'),
+                            ->visible(fn ($record) => $record->status === 'rejected'),
                     ])
                     ->columns(2)
                     ->visible(fn($record) => $record->status !== 'pending'),
