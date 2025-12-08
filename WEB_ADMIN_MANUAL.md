@@ -24,11 +24,9 @@
 
 ## 1. Akses Web Admin
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:** `01-login-page.png`
-
-![Browser dengan URL Web Admin](docs/screenshots/web/01-login-page.png)
+![Browser dengan URL Web Admin](docs/screenshots/web/landing.png)
+![Browser dengan URL Web Admin](docs/screenshots/web/landing2.png)
+![Browser dengan URL Web Admin](docs/screenshots/web/landing3.png)
 
 ### 📝 Deskripsi
 **Langkah pertama untuk mengakses sistem administrasi ClockIn+**
@@ -58,14 +56,7 @@
 
 ## 2. Login Admin
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `01-login-page.png`, `02-login-loading.png`, `03-login-error.png`
-
-![Form Login Admin](docs/screenshots/web/01-login-page.png)
-![Login Loading](docs/screenshots/web/02-login-loading.png)
-![Login Error](docs/screenshots/web/03-login-error.png)
+![Form Login Admin](docs/screenshots/web/login.png)
 
 ### 📝 Deskripsi
 **Halaman autentikasi untuk masuk ke dashboard admin**
@@ -111,7 +102,7 @@
 > **Simpan screenshot dengan nama file:**
 > - `04-dashboard-overview.png`, `05-dashboard-stats.png`, `06-dashboard-chart.png`, `07-dashboard-activity.png`
 
-![Dashboard Utama](docs/screenshots/web/04-dashboard-overview.png)
+![Dashboard Utama](docs/screenshots/web/dashboard.JPG)
 ![Statistics Cards](docs/screenshots/web/05-dashboard-stats.png)
 ![Chart Kehadiran](docs/screenshots/web/06-dashboard-chart.png)
 ![Recent Activity](docs/screenshots/web/07-dashboard-activity.png)
@@ -166,7 +157,7 @@
 > **Simpan screenshot dengan nama file:**
 > - `08-employee-list.png`, `09-employee-add.png`, `10-employee-edit.png`, `11-employee-detail.png`
 
-![List Karyawan](docs/screenshots/web/08-employee-list.png)
+![List Karyawan](docs/screenshots/web/create_employee.JPG)
 ![Tambah Karyawan](docs/screenshots/web/09-employee-add.png)
 ![Edit Karyawan](docs/screenshots/web/10-employee-edit.png)
 ![Detail Profile](docs/screenshots/web/11-employee-detail.png)

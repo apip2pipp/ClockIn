@@ -1,5 +1,4 @@
 <?php
-// filepath: app/Filament/Resources/AttendanceResource/Pages/ViewAttendance.php
 
 namespace App\Filament\Resources\AttendanceResource\Pages;
 
@@ -10,28 +9,22 @@ use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ViewAttendance extends ViewRecord
 {
     protected static string $resource = AttendanceResource::class;
 
-    /**
-     * Header actions shown on the top-right of the view page.
-     * - Mark Valid: quick action (no form)
-     * - Mark Invalid: action with a required notes textarea
-     */
     protected function getHeaderActions(): array
     {
         return [
-            // MARK VALID
             Actions\Action::make('mark_valid')
                 ->label('Validate')
                 ->color('success')
                 ->icon('heroicon-o-check-circle')
-                ->visible(fn ($record) => $record->is_valid !== 'valid')
+                ->visible(fn($record) => $record->is_valid !== 'valid')
                 ->requiresConfirmation()
                 ->action(function ($record) {
-                    // update the record (same logic as before)
                     $record->update([
                         'is_valid' => 'valid',
                         'validation_notes' => $record->validation_notes ?? 'Marked as valid',
@@ -44,16 +37,14 @@ class ViewAttendance extends ViewRecord
                         ->success()
                         ->send();
 
-                    // refresh the page so the UI reflects changes
                     $this->redirect($this->getResource()::getUrl('view', ['record' => $record]));
                 }),
 
-            // MARK INVALID (with notes)
             Actions\Action::make('mark_invalid')
                 ->label('Invalidate')
                 ->color('danger')
                 ->icon('heroicon-o-x-circle')
-                ->visible(fn ($record) => $record->is_valid !== 'invalid')
+                ->visible(fn($record) => $record->is_valid !== 'invalid')
                 ->form([
                     Forms\Components\Textarea::make('validation_notes')
                         ->label('Reason')
@@ -74,11 +65,9 @@ class ViewAttendance extends ViewRecord
                         ->warning()
                         ->send();
 
-                    // refresh the page to show updated state
                     $this->redirect($this->getResource()::getUrl('view', ['record' => $record]));
                 }),
 
-            // Bawaan: Edit (tetap hadir)
             Actions\EditAction::make()
                 ->label('Edit')
                 ->icon('heroicon-o-pencil'),
@@ -92,15 +81,18 @@ class ViewAttendance extends ViewRecord
                 Infolists\Components\Section::make('Employee Information')
                     ->schema([
                         Infolists\Components\TextEntry::make('user.name')
-                            ->label('Employee Name')
-                            ->weight('bold')
-                            ->size('lg'),
+                            ->label('Name')
+                            ->size('lg')
+                            ->icon('heroicon-m-user')
+                            ->weight('bold'),
                         Infolists\Components\TextEntry::make('user.employee_id')
                             ->label('Employee ID')
                             ->badge()
-                            ->color('info'),
+                            ->color('info')
+                            ->icon('heroicon-m-identification'),
                         Infolists\Components\TextEntry::make('company.name')
-                            ->label('Company'),
+                            ->label('Company')
+                            ->icon('heroicon-m-building-office'),
                     ])
                     ->columns(3),
 
@@ -109,29 +101,26 @@ class ViewAttendance extends ViewRecord
                         Infolists\Components\TextEntry::make('clock_in')
                             ->label('Date')
                             ->date('l, d F Y')
+                            ->size('lg')
                             ->weight('bold')
-                            ->size('lg'),
+                            ->icon('heroicon-m-calendar'),
                         Infolists\Components\TextEntry::make('status')
+                            ->label('Status')
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
-                                'on_time' => 'success',
+                                'present' => 'success',
                                 'late' => 'warning',
-                                'half_day' => 'info',
                                 'absent' => 'danger',
+                                default => 'gray',
                             }),
                         Infolists\Components\TextEntry::make('is_valid')
                             ->label('Validation')
                             ->badge()
-                            ->size('lg')
                             ->color(fn (string $state): string => match ($state) {
                                 'valid' => 'success',
                                 'invalid' => 'danger',
                                 'pending' => 'gray',
-                            })
-                            ->formatStateUsing(fn (string $state): string => match ($state) {
-                                'valid' => 'Valid ✓',
-                                'invalid' => 'Invalid ✗',
-                                'pending' => 'Pending Review',
+                                default => 'gray',
                             }),
                     ])
                     ->columns(3),
@@ -166,10 +155,59 @@ class ViewAttendance extends ViewRecord
                             ->openUrlInNewTab()
                             ->icon('heroicon-m-globe-alt')
                             ->color('primary'),
-                        Infolists\Components\ImageEntry::make('clock_in_photo')
+                        
+                        Infolists\Components\TextEntry::make('clock_in_photo')
                             ->label('Photo')
-                            ->height(200)
+                            ->html()
+                            ->formatStateUsing(function ($state) {
+                                if (!$state) {
+                                    return '<span class="text-gray-500">No photo available</span>';
+                                }
+                                
+                                if (str_starts_with($state, 'data:image')) {
+                                    return '<div style="text-align: center;">
+                                        <img src="' . $state . '" 
+                                             style="max-width: 100%; height: 300px; object-fit: contain; 
+                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+                                                    cursor: zoom-in;" 
+                                             onclick="window.open(this.src)" 
+                                             alt="Clock In Photo" />
+                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                            Click to view full size
+                                        </p>
+                                    </div>';
+                                }
+                                
+                                if (Storage::disk('public')->exists($state)) {
+                                    $publicUrl = asset('storage/' . $state);
+                                    $filename = basename($state);
+                                    
+                                    return '<div style="text-align: center;">
+                                        <img src="' . $publicUrl . '" 
+                                             style="max-width: 100%; height: 300px; object-fit: contain; 
+                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+                                                    cursor: zoom-in;" 
+                                             onclick="window.open(\'' . $publicUrl . '\')" 
+                                             alt="Clock In Photo"
+                                             onerror="this.parentElement.innerHTML=\'<div style=\\\'padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px;\\\'><p style=\\\'color: #dc2626; font-weight: 600;\\\'>❌ Failed to Load Image</p><p style=\\\'color: #991b1b; font-size: 12px;\\\'>File: ' . htmlspecialchars($filename) . '</p><p style=\\\'color: #991b1b; font-size: 11px; margin-top: 4px;\\\'>URL: ' . htmlspecialchars($publicUrl) . '</p></div>\'" />
+                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                            📁 ' . htmlspecialchars($filename) . ' • Click to view full size
+                                        </p>
+                                    </div>';
+                                }
+                                
+                                return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
+                                    <svg style="width: 48px; height: 48px; margin: 0 auto 12px; color: #ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p style="color: #dc2626; font-weight: 600; margin-bottom: 4px;">📷 Image Not Found</p>
+                                    <p style="color: #991b1b; font-size: 12px; margin-bottom: 8px;">Database path: ' . htmlspecialchars($state) . '</p>
+                                    <p style="color: #991b1b; font-size: 11px;">Expected location: ' . htmlspecialchars(storage_path('app/public/' . $state)) . '</p>
+                                    <p style="color: #374151; font-size: 10px; margin-top: 8px;">💡 Make sure to run: <code>php artisan storage:link</code></p>
+                                </div>';
+                            })
                             ->columnSpanFull(),
+                        
                         Infolists\Components\TextEntry::make('clock_in_notes')
                             ->label('Notes')
                             ->default('No notes')
@@ -216,11 +254,55 @@ class ViewAttendance extends ViewRecord
                             ->openUrlInNewTab()
                             ->icon('heroicon-m-globe-alt')
                             ->color('primary'),
-                        Infolists\Components\ImageEntry::make('clock_out_photo')
+                        
+                        Infolists\Components\TextEntry::make('clock_out_photo')
                             ->label('Photo')
-                            ->height(200)
+                            ->html()
+                            ->formatStateUsing(function ($state) {
+                                if (!$state) {
+                                    return '<span class="text-gray-500">No photo available</span>';
+                                }
+                                
+                                if (str_starts_with($state, 'data:image')) {
+                                    return '<div style="text-align: center;">
+                                        <img src="' . $state . '" 
+                                             style="max-width: 100%; height: 300px; object-fit: contain; 
+                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+                                                    cursor: zoom-in;" 
+                                             onclick="window.open(this.src)" 
+                                             alt="Clock Out Photo" />
+                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                            Click to view full size
+                                        </p>
+                                    </div>';
+                                }
+                                
+                                if (Storage::disk('public')->exists($state)) {
+                                    $publicUrl = asset('storage/' . $state);
+                                    $filename = basename($state);
+                                    
+                                    return '<div style="text-align: center;">
+                                        <img src="' . $publicUrl . '" 
+                                             style="max-width: 100%; height: 300px; object-fit: contain; 
+                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+                                                    cursor: zoom-in;" 
+                                             onclick="window.open(\'' . $publicUrl . '\')" 
+                                             alt="Clock Out Photo"
+                                             onerror="this.parentElement.innerHTML=\'<div style=\\\'padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px;\\\'><p style=\\\'color: #dc2626; font-weight: 600;\\\'>❌ Failed to Load Image</p><p style=\\\'color: #991b1b; font-size: 12px;\\\'>File: ' . htmlspecialchars($filename) . '</p></div>\'" />
+                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                            📁 ' . htmlspecialchars($filename) . ' • Click to view full size
+                                        </p>
+                                    </div>';
+                                }
+                                
+                                return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
+                                    <p style="color: #dc2626; font-weight: 600;">📷 Image Not Found</p>
+                                    <p style="color: #991b1b; font-size: 12px;">File: ' . htmlspecialchars($state) . '</p>
+                                </div>';
+                            })
                             ->columnSpanFull()
                             ->visible(fn ($record) => $record->clock_out_photo !== null),
+                        
                         Infolists\Components\TextEntry::make('clock_out_notes')
                             ->label('Notes')
                             ->default('No notes')
@@ -228,24 +310,26 @@ class ViewAttendance extends ViewRecord
                             ->visible(fn ($record) => $record->clock_out !== null),
                     ])
                     ->columns(4)
-                    ->visible(fn ($record) => $record->clock_out !== null),
+                    ->visible(fn($record) => $record->clock_out !== null),
 
                 Infolists\Components\Section::make('Validation Information')
                     ->schema([
-                        Infolists\Components\TextEntry::make('validation_notes')
-                            ->label('Validation Notes')
-                            ->default('No validation notes yet')
-                            ->columnSpanFull(),
                         Infolists\Components\TextEntry::make('validator.name')
                             ->label('Validated By')
-                            ->default('Not yet validated'),
+                            ->default('Not validated yet')
+                            ->icon('heroicon-m-user'),
                         Infolists\Components\TextEntry::make('validated_at')
                             ->label('Validated At')
                             ->dateTime('d M Y, H:i')
-                            ->default('Not yet validated'),
+                            ->default('Not validated yet')
+                            ->icon('heroicon-m-clock'),
+                        Infolists\Components\TextEntry::make('validation_notes')
+                            ->label('Validation Notes')
+                            ->default('No notes')
+                            ->columnSpanFull(),
                     ])
                     ->columns(2)
-                    ->visible(fn ($record) => $record->is_valid !== 'pending'),
+                    ->visible(fn($record) => $record->is_valid !== 'pending'),
             ]);
     }
 }

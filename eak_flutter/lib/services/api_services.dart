@@ -2,35 +2,115 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:eak_flutter/config/api_config.dart';
-// import 'package:eak_flutter/models/attendance_model.dart';
 import 'package:eak_flutter/models/leave_request_model.dart';
 import 'package:eak_flutter/models/user_model.dart';
 import 'package:eak_flutter/services/attendance_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:eak_flutter/providers/auth_provider.dart';
 
 class ApiService {
-  // Get saved token from SharedPreferences
+  // ==================== HELPER FUNCTIONS ====================
+
+  static Map<String, dynamic> _handleResponse(
+    http.Response response, {
+    bool enableLogging = false,
+  }) {
+    if (enableLogging) {
+      debugPrint('📡 Response Status: ${response.statusCode}');
+      debugPrint('📡 Response Body: ${response.body}');
+    }
+
+    if (response.statusCode >= 500) {
+      return {
+        'success': false,
+        'message':
+            'Server error (${response.statusCode}). Silakan coba lagi nanti.',
+      };
+    }
+
+    if (response.statusCode == 404) {
+      return {
+        'success': false,
+        'message': 'Endpoint tidak ditemukan. Periksa konfigurasi server.',
+      };
+    }
+
+    final bodyTrimmed = response.body.trim();
+    if (bodyTrimmed.startsWith('<') || bodyTrimmed.contains('<html')) {
+      return {
+        'success': false,
+        'message':
+            'Server mengembalikan HTML. Kemungkinan error CORS, routing, atau konfigurasi server.',
+      };
+    }
+
+    if (bodyTrimmed.isEmpty) {
+      return {
+        'success': false,
+        'message': 'Server mengembalikan response kosong.',
+      };
+    }
+
+    try {
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      return data;
+    } catch (e) {
+      debugPrint('❌ JSON Decode Error: $e');
+      return {
+        'success': false,
+        'message': 'Invalid server response: ${e.toString()}',
+        'raw_body': response.body.substring(
+          0,
+          response.body.length > 200 ? 200 : response.body.length,
+        ),
+      };
+    }
+  }
+
+  static Map<String, dynamic> _handleNetworkError(dynamic error) {
+    debugPrint('❌ Network Error: $error');
+
+    if (error is SocketException) {
+      return {
+        'success': false,
+        'message':
+            'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
+      };
+    } else if (error is http.ClientException) {
+      return {
+        'success': false,
+        'message': 'Request gagal. Silakan coba lagi.',
+      };
+    } else {
+      return {
+        'success': false,
+        'message': 'Network error: ${error.toString()}',
+      };
+    }
+  }
+
+  // ==================== TOKEN MANAGEMENT ====================
+
+  /// Get saved token from SharedPreferences
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
   }
 
-  // Save token to SharedPreferences
+  /// Save token to SharedPreferences
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
   }
 
-  // Remove token from SharedPreferences
+  /// Remove token from SharedPreferences
   static Future<void> removeToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
   }
 
-  // Get headers with token
+  /// Get headers with token
   static Future<Map<String, String>> getHeaders() async {
     final token = await getToken();
     return {
@@ -54,7 +134,11 @@ class ApiService {
         body: json.encode({'email': email, 'password': password}),
       );
 
-      final data = json.decode(response.body);
+      final data = _handleResponse(response);
+
+      if (data['success'] == false && !data.containsKey('token')) {
+        return data;
+      }
 
       if (response.statusCode == 200 && data['success'] == true) {
         await saveToken(data['data']['token']);
@@ -64,11 +148,13 @@ class ApiService {
           'message': data['message'],
         };
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Login failed'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Login failed',
+        };
       }
     } catch (e) {
-      debugPrint('Login Error: $e');
-      return {'success': false, 'message': 'Network error: $e'};
+      return _handleNetworkError(e);
     }
   }
 
@@ -99,7 +185,11 @@ class ApiService {
         }),
       );
 
-      final data = json.decode(response.body);
+      final data = _handleResponse(response);
+
+      if (data['success'] == false && !data.containsKey('token')) {
+        return data;
+      }
 
       if (response.statusCode == 201 && data['success'] == true) {
         await saveToken(data['data']['token']);
@@ -116,8 +206,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      debugPrint('Register Error: $e');
-      return {'success': false, 'message': 'Network error: $e'};
+      return _handleNetworkError(e);
     }
   }
 
@@ -130,7 +219,11 @@ class ApiService {
         headers: headers,
       );
 
-      final data = json.decode(response.body);
+      final data = _handleResponse(response);
+
+      if (data['success'] == false && data['message'] != null) {
+        return data;
+      }
 
       if (response.statusCode == 200) {
         await removeToken();
@@ -142,8 +235,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      debugPrint('Logout Error: $e');
-      return {'success': false, 'message': 'Network error: $e'};
+      return _handleNetworkError(e);
     }
   }
 
@@ -156,7 +248,11 @@ class ApiService {
         headers: headers,
       );
 
-      final data = json.decode(response.body);
+      final data = _handleResponse(response);
+
+      if (data['success'] == false && data['message'] != null) {
+        return data;
+      }
 
       if (response.statusCode == 200 && data['success']) {
         return {'success': true, 'user': User.fromJson(data['data'])};
@@ -167,8 +263,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      debugPrint('Get Profile Error: $e');
-      return {'success': false, 'message': 'Network error: $e'};
+      return _handleNetworkError(e);
     }
   }
 
@@ -183,7 +278,11 @@ class ApiService {
         headers: headers,
       );
 
-      final data = json.decode(response.body);
+      final data = _handleResponse(response);
+
+      if (data['success'] == false && data['message'] != null) {
+        return data;
+      }
 
       if (response.statusCode == 200 && data['success']) {
         return {'success': true, 'company': Company.fromJson(data['data'])};
@@ -194,8 +293,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      debugPrint('Get Company Error: $e');
-      return {'success': false, 'message': 'Network error: $e'};
+      return _handleNetworkError(e);
     }
   }
 
@@ -209,8 +307,7 @@ class ApiService {
     String? notes,
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await getToken();
 
       if (token == null) {
         return {'success': false, 'message': 'Not authenticated'};
@@ -233,7 +330,11 @@ class ApiService {
         }),
       );
 
-      final data = json.decode(response.body);
+      final data = _handleResponse(response, enableLogging: false);
+
+      if (data['success'] == false && data['message'] != null) {
+        return data;
+      }
 
       if (response.statusCode == 201 && data['success']) {
         return {
@@ -244,107 +345,103 @@ class ApiService {
       } else {
         return {
           'success': false,
-          'message': data['message'] ?? 'Clock in failed',
+          'message': data['message'] ?? 'Clock in gagal',
         };
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: $e'};
+      return _handleNetworkError(e);
     }
   }
 
   /// Clock Out
   static Future<Map<String, dynamic>> clockOut({
-  required double latitude,
-  required double longitude,
-  required File photo,
-  required String notes,
-}) async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    required double latitude,
+    required double longitude,
+    required File photo,
+    required String notes,
+  }) async {
+    try {
+      final token = await getToken();
 
-    if (token == null) {
-      return {'success': false, 'message': 'Not authenticated'};
+      if (token == null) {
+        return {'success': false, 'message': 'Not authenticated'};
+      }
+
+      String base64Image = base64Encode(await photo.readAsBytes());
+
+      final response = await http.post(
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.clockOutEndpoint)),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'latitude': latitude,
+          'longitude': longitude,
+          'description': notes,
+          'photo': base64Image,
+          'clock_out_time': DateTime.now().toIso8601String(),
+        }),
+      );
+
+      final data = _handleResponse(response, enableLogging: false);
+
+      if (data['success'] == false && data['message'] != null) {
+        return data;
+      }
+
+      if (response.statusCode == 200 && data['success']) {
+        return {
+          'success': true,
+          'message': data['message'],
+          'attendance': data['data'],
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Clock out gagal',
+        };
+      }
+    } catch (e) {
+      return _handleNetworkError(e);
     }
-
-    String base64Image = base64Encode(await photo.readAsBytes());
-
-    final response = await http.post(
-      Uri.parse(ApiConfig.getFullUrl(ApiConfig.clockOutEndpoint)),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: json.encode({
-        'latitude': latitude,
-        'longitude': longitude,
-        'description': notes,
-        'photo': base64Image,
-        'clock_out_time': DateTime.now().toIso8601String(),
-      }),
-    );
-
-    final data = json.decode(response.body);
-
-    if (response.statusCode == 200 && data['success']) {
-      return {
-        'success': true,
-        'message': data['message'],
-        'attendance': data['data'],
-      };
-    } else {
-      return {
-        'success': false,
-        'message': data['message'] ?? 'Clock out failed',
-      };
-    }
-  } catch (e) {
-    return {'success': false, 'message': 'Network error: $e'};
   }
-}
 
   /// Get today's attendance
-static Future<Map<String, dynamic>> getTodayAttendance() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+  static Future<Map<String, dynamic>> getTodayAttendance() async {
+    try {
+      final token = await getToken();
 
-    if (token == null) {
-      return {'success': false, 'message': 'Not authenticated'};
+      if (token == null) {
+        return {'success': false, 'message': 'Not authenticated'};
+      }
+
+      final response = await http.get(
+        Uri.parse(ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      final data = _handleResponse(response, enableLogging: false);
+
+      if (data['success'] == false && data['message'] != null) {
+        return data;
+      }
+
+      if (response.statusCode == 200 && data['success']) {
+        return {'success': true, 'attendance': data['data']};
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Failed to get today attendance',
+        };
+      }
+    } catch (e) {
+      return _handleNetworkError(e);
     }
-
-    // print('🔍 GET Today Attendance API Call');
-    // print('   URL: ${ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)}');
-
-    final response = await http.get(
-      Uri.parse(ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    // print('📡 Response Status: ${response.statusCode}');
-    // print('📡 Response Body: ${response.body}');
-
-    final data = json.decode(response.body);
-
-    if (response.statusCode == 200 && data['success']) {
-      return {
-        'success': true,
-        'attendance': data['data'],
-      };
-    } else {
-      return {
-        'success': false,
-        'message': data['message'] ?? 'Failed to get today attendance',
-      };
-    }
-  } catch (e) {
-    // print('❌ Error getTodayAttendance: $e');
-    return {'success': false, 'message': 'Network error: $e'};
   }
-}
 
   // ==================== LEAVE REQUESTS ====================
 
@@ -363,7 +460,11 @@ static Future<Map<String, dynamic>> getTodayAttendance() async {
 
       final response = await http.get(Uri.parse(url), headers: headers);
 
-      final data = json.decode(response.body);
+      final data = _handleResponse(response);
+
+      if (data['success'] == false && data['message'] != null) {
+        return data;
+      }
 
       if (response.statusCode == 200 && data['success']) {
         final List<LeaveRequest> leaveRequests = (data['data']['data'] as List)
@@ -386,8 +487,7 @@ static Future<Map<String, dynamic>> getTodayAttendance() async {
         };
       }
     } catch (e) {
-      debugPrint('Get Leave Requests Error: $e');
-      return {'success': false, 'message': 'Network error: $e'};
+      return _handleNetworkError(e);
     }
   }
 
@@ -401,6 +501,11 @@ static Future<Map<String, dynamic>> getTodayAttendance() async {
   }) async {
     try {
       final token = await getToken();
+      
+      if (token == null) {
+        return {'success': false, 'message': 'Not authenticated'};
+      }
+
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(ApiConfig.getFullUrl(ApiConfig.leaveRequestsEndpoint)),
@@ -422,7 +527,12 @@ static Future<Map<String, dynamic>> getTodayAttendance() async {
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      final data = json.decode(response.body);
+      
+      final data = _handleResponse(response);
+
+      if (data['success'] == false && data['message'] != null) {
+        return data;
+      }
 
       if (response.statusCode == 201 && data['success']) {
         return {
@@ -437,12 +547,10 @@ static Future<Map<String, dynamic>> getTodayAttendance() async {
         };
       }
     } catch (e) {
-      debugPrint('Submit Leave Request Error: $e');
-      return {'success': false, 'message': 'Network error: $e'};
+      return _handleNetworkError(e);
     }
   }
 
-  /// Wrapper Attendance History (dialihkan ke attendance_service.dart)
   static Future<Map<String, dynamic>> getAttendanceHistory({
     int page = 1,
     int? month,
