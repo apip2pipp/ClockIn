@@ -32,7 +32,7 @@ class MainLayout extends StatelessWidget {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -47,7 +47,6 @@ class MainLayout extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              // Home
               _buildNavItem(
                 context: context,
                 icon: Icons.home,
@@ -55,8 +54,6 @@ class MainLayout extends StatelessWidget {
                 index: 0,
                 onTap: () => _navigateTo(context, 0),
               ),
-
-              // History
               _buildNavItem(
                 context: context,
                 icon: Icons.access_time,
@@ -64,11 +61,7 @@ class MainLayout extends StatelessWidget {
                 index: 1,
                 onTap: () => _navigateTo(context, 1),
               ),
-
-              // SPACER untuk Clock In Button di tengah
               const SizedBox(width: 60),
-
-              // Leave Request
               _buildNavItem(
                 context: context,
                 icon: Icons.note_alt_outlined,
@@ -76,8 +69,6 @@ class MainLayout extends StatelessWidget {
                 index: 2,
                 onTap: () => _navigateTo(context, 2),
               ),
-
-              // Profile
               _buildNavItem(
                 context: context,
                 icon: Icons.person,
@@ -100,7 +91,7 @@ class MainLayout extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final isSelected = selectedIndex == index;
-
+    
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -132,40 +123,56 @@ class MainLayout extends StatelessWidget {
       builder: (context, attendanceProvider, child) {
         final todayAttendance = attendanceProvider.todayAttendance;
 
-        // BUTTON UI ORIGINAL (BESAR DI TENGAH)
         return FloatingActionButton(
           onPressed: () async {
-            await Navigator.push(
+            final result = await Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ClockInScreen()),
+              MaterialPageRoute(
+                builder: (context) => const ClockInScreen(),
+              ),
             );
 
             if (context.mounted) {
-              await attendanceProvider.loadTodayAttendance();
+              debugPrint('🔄 Refreshing attendance data after clock in/out...');
+              
+              await attendanceProvider.loadTodayAttendance(forceRefresh: true);
+              
+              await Future.delayed(const Duration(milliseconds: 500));
+              
+              debugPrint('✅ Attendance data refreshed!');
+              debugPrint('📊 Current attendance: ${attendanceProvider.todayAttendance?.toJson()}');
             }
           },
-          backgroundColor: todayAttendance == null
-              ? const Color(0xFF26667F) // Hijau kalau belum clock in
-              : todayAttendance.clockOut == null
-              ? const Color(
-                  0xFFE57373,
-                ) // Merah kalau sudah clock in, belum clock out
-              : Colors.grey, // Abu kalau sudah clock out
+          backgroundColor: _getButtonColor(todayAttendance),
           elevation: 8,
           child: Icon(
-            todayAttendance == null
-                ? Icons
-                      .login // Belum clock in
-                : todayAttendance.clockOut == null
-                ? Icons
-                      .logout // Sudah clock in
-                : Icons.check, // Sudah clock out
+            _getButtonIcon(todayAttendance),
             color: Colors.white,
             size: 30,
           ),
         );
       },
     );
+  }
+
+  Color _getButtonColor(dynamic todayAttendance) {
+    if (todayAttendance == null) {
+      return const Color(0xFF26667F);
+    } else if (todayAttendance.clockOut == null) {
+      return const Color(0xFFE57373);
+    } else {
+      return Colors.grey;
+    }
+  }
+
+  IconData _getButtonIcon(dynamic todayAttendance) {
+    if (todayAttendance == null) {
+      return Icons.login; // Belum clock in
+    } else if (todayAttendance.clockOut == null) {
+      return Icons.logout; // Sudah clock in
+    } else {
+      return Icons.check; // Sudah clock out
+    }
   }
 
   void _navigateTo(BuildContext context, int index) {
