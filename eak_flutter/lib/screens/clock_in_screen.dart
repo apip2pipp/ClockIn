@@ -122,6 +122,8 @@ class _ClockInScreenState extends State<ClockInScreen> {
 
       if (success) {
         if (mounted) {
+          await provider.loadTodayAttendance();
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Clock in successful! Have a great day! 💪'),
@@ -129,6 +131,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
               duration: Duration(seconds: 2),
             ),
           );
+
           Navigator.pop(context);
         }
       } else {

@@ -35,6 +35,12 @@ class _MainLayoutState extends State<MainLayout> {
           context,
           MaterialPageRoute(builder: (context) => const ClockInScreen()),
         );
+        
+        // ✅ REFRESH setelah kembali dari Clock In
+        if (mounted) {
+          await attendanceProvider.loadTodayAttendance();
+          setState(() {});
+        }
       }
       // If clocked in but not clocked out, navigate to Clock Out
       else if (todayAttendance.clockOut == null) {
@@ -42,17 +48,18 @@ class _MainLayoutState extends State<MainLayout> {
           context,
           MaterialPageRoute(builder: (context) => const ClockOutScreen()),
         );
+        
+        // ✅ REFRESH setelah kembali dari Clock Out
+        if (mounted) {
+          await attendanceProvider.loadTodayAttendance();
+          setState(() {});
+        }
       }
       // If already clocked out, do nothing
       else {
         return;
       }
 
-      // Refresh attendance after returning
-      if (mounted) {
-        await attendanceProvider.loadTodayAttendance();
-        setState(() {});
-      }
       return;
     }
 

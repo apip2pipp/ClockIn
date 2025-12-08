@@ -132,6 +132,8 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
 
       if (success) {
         if (mounted) {
+          await provider.loadTodayAttendance();
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Clock out successful! Have a great rest! 🎉'),
@@ -139,6 +141,7 @@ class _ClockOutScreenState extends State<ClockOutScreen> {
               duration: Duration(seconds: 2),
             ),
           );
+
           Navigator.pop(context);
         }
       } else {
