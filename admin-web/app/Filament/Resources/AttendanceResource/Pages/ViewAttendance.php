@@ -165,48 +165,35 @@ class ViewAttendance extends ViewRecord
                                 }
                                 
                                 if (str_starts_with($state, 'data:image')) {
-                                    return '<img src="' . $state . '" 
-                                            style="max-width: 100%; height: 300px; object-fit: contain; 
-                                                   border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" 
-                                            onclick="window.open(this.src)" 
-                                            style="cursor: zoom-in;" />';
+                                    return '<div style="text-align: center;">
+                                        <img src="' . $state . '" 
+                                             style="max-width: 100%; height: 300px; object-fit: contain; 
+                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+                                                    cursor: zoom-in;" 
+                                             onclick="window.open(this.src)" 
+                                             alt="Clock In Photo" />
+                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                            Click to view full size
+                                        </p>
+                                    </div>';
                                 }
                                 
                                 if (Storage::disk('public')->exists($state)) {
-                                    try {
-                                        $fileContents = Storage::disk('public')->get($state);
-                                        $base64 = base64_encode($fileContents);
-                                        
-                                        $extension = strtolower(pathinfo($state, PATHINFO_EXTENSION));
-                                        $mimeType = match($extension) {
-                                            'jpg', 'jpeg' => 'image/jpeg',
-                                            'png' => 'image/png',
-                                            'gif' => 'image/gif',
-                                            'webp' => 'image/webp',
-                                            default => 'image/jpeg'
-                                        };
-                                        
-                                        return '<div style="text-align: center;">
-                                            <img src="data:' . $mimeType . ';base64,' . $base64 . '" 
-                                                 style="max-width: 100%; height: 300px; object-fit: contain; 
-                                                        border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-                                                        cursor: zoom-in;" 
-                                                 onclick="window.open(this.src)" 
-                                                 alt="Clock In Photo" />
-                                            <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
-                                                📁 ' . htmlspecialchars(basename($state)) . ' • Click to view full size
-                                            </p>
-                                        </div>';
-                                        
-                                    } catch (\Exception $e) {
-                                        return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
-                                            <svg style="width: 48px; height: 48px; margin: 0 auto 12px; color: #ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                            </svg>
-                                            <p style="color: #dc2626; font-weight: 600; margin-bottom: 4px;">Error Loading Image</p>
-                                            <p style="color: #991b1b; font-size: 12px;">' . htmlspecialchars($e->getMessage()) . '</p>
-                                        </div>';
-                                    }
+                                    $publicUrl = asset('storage/' . $state);
+                                    $filename = basename($state);
+                                    
+                                    return '<div style="text-align: center;">
+                                        <img src="' . $publicUrl . '" 
+                                             style="max-width: 100%; height: 300px; object-fit: contain; 
+                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+                                                    cursor: zoom-in;" 
+                                             onclick="window.open(\'' . $publicUrl . '\')" 
+                                             alt="Clock In Photo"
+                                             onerror="this.parentElement.innerHTML=\'<div style=\\\'padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px;\\\'><p style=\\\'color: #dc2626; font-weight: 600;\\\'>❌ Failed to Load Image</p><p style=\\\'color: #991b1b; font-size: 12px;\\\'>File: ' . htmlspecialchars($filename) . '</p><p style=\\\'color: #991b1b; font-size: 11px; margin-top: 4px;\\\'>URL: ' . htmlspecialchars($publicUrl) . '</p></div>\'" />
+                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                            📁 ' . htmlspecialchars($filename) . ' • Click to view full size
+                                        </p>
+                                    </div>';
                                 }
                                 
                                 return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
@@ -214,8 +201,9 @@ class ViewAttendance extends ViewRecord
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                     </svg>
                                     <p style="color: #dc2626; font-weight: 600; margin-bottom: 4px;">📷 Image Not Found</p>
-                                    <p style="color: #991b1b; font-size: 12px; margin-bottom: 8px;">File: ' . htmlspecialchars($state) . '</p>
-                                    <p style="color: #991b1b; font-size: 11px;">Path: ' . htmlspecialchars(storage_path('app/public/' . $state)) . '</p>
+                                    <p style="color: #991b1b; font-size: 12px; margin-bottom: 8px;">Database path: ' . htmlspecialchars($state) . '</p>
+                                    <p style="color: #991b1b; font-size: 11px;">Expected location: ' . htmlspecialchars(storage_path('app/public/' . $state)) . '</p>
+                                    <p style="color: #374151; font-size: 10px; margin-top: 8px;">💡 Make sure to run: <code>php artisan storage:link</code></p>
                                 </div>';
                             })
                             ->columnSpanFull(),
@@ -276,45 +264,35 @@ class ViewAttendance extends ViewRecord
                                 }
                                 
                                 if (str_starts_with($state, 'data:image')) {
-                                    return '<img src="' . $state . '" 
-                                            style="max-width: 100%; height: 300px; object-fit: contain; 
-                                                   border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" 
-                                            onclick="window.open(this.src)" 
-                                            style="cursor: zoom-in;" />';
+                                    return '<div style="text-align: center;">
+                                        <img src="' . $state . '" 
+                                             style="max-width: 100%; height: 300px; object-fit: contain; 
+                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+                                                    cursor: zoom-in;" 
+                                             onclick="window.open(this.src)" 
+                                             alt="Clock Out Photo" />
+                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                            Click to view full size
+                                        </p>
+                                    </div>';
                                 }
                                 
                                 if (Storage::disk('public')->exists($state)) {
-                                    try {
-                                        $fileContents = Storage::disk('public')->get($state);
-                                        $base64 = base64_encode($fileContents);
-                                        
-                                        $extension = strtolower(pathinfo($state, PATHINFO_EXTENSION));
-                                        $mimeType = match($extension) {
-                                            'jpg', 'jpeg' => 'image/jpeg',
-                                            'png' => 'image/png',
-                                            'gif' => 'image/gif',
-                                            'webp' => 'image/webp',
-                                            default => 'image/jpeg'
-                                        };
-                                        
-                                        return '<div style="text-align: center;">
-                                            <img src="data:' . $mimeType . ';base64,' . $base64 . '" 
-                                                 style="max-width: 100%; height: 300px; object-fit: contain; 
-                                                        border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-                                                        cursor: zoom-in;" 
-                                                 onclick="window.open(this.src)" 
-                                                 alt="Clock Out Photo" />
-                                            <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
-                                                📁 ' . htmlspecialchars(basename($state)) . ' • Click to view full size
-                                            </p>
-                                        </div>';
-                                        
-                                    } catch (\Exception $e) {
-                                        return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
-                                            <p style="color: #dc2626; font-weight: 600;">Error Loading Image</p>
-                                            <p style="color: #991b1b; font-size: 12px;">' . htmlspecialchars($e->getMessage()) . '</p>
-                                        </div>';
-                                    }
+                                    $publicUrl = asset('storage/' . $state);
+                                    $filename = basename($state);
+                                    
+                                    return '<div style="text-align: center;">
+                                        <img src="' . $publicUrl . '" 
+                                             style="max-width: 100%; height: 300px; object-fit: contain; 
+                                                    border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+                                                    cursor: zoom-in;" 
+                                             onclick="window.open(\'' . $publicUrl . '\')" 
+                                             alt="Clock Out Photo"
+                                             onerror="this.parentElement.innerHTML=\'<div style=\\\'padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px;\\\'><p style=\\\'color: #dc2626; font-weight: 600;\\\'>❌ Failed to Load Image</p><p style=\\\'color: #991b1b; font-size: 12px;\\\'>File: ' . htmlspecialchars($filename) . '</p></div>\'" />
+                                        <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                            📁 ' . htmlspecialchars($filename) . ' • Click to view full size
+                                        </p>
+                                    </div>';
                                 }
                                 
                                 return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">

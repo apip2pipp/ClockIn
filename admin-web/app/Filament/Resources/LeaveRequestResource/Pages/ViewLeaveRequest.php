@@ -200,65 +200,46 @@ class ViewLeaveRequest extends ViewRecord
                                 }
                                 
                                 if (Storage::disk('public')->exists($state)) {
-                                    try {
-                                        $extension = strtolower(pathinfo($state, PATHINFO_EXTENSION));
-                                        $fileContents = Storage::disk('public')->get($state);
-                                        $base64 = base64_encode($fileContents);
-                                        
-                                        if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-                                            $mimeType = match($extension) {
-                                                'jpg', 'jpeg' => 'image/jpeg',
-                                                'png' => 'image/png',
-                                                'gif' => 'image/gif',
-                                                'webp' => 'image/webp',
-                                                default => 'image/jpeg'
-                                            };
-                                            
-                                            return '<div style="text-align: center;">
-                                                <img src="data:' . $mimeType . ';base64,' . $base64 . '" 
-                                                     style="max-width: 100%; height: auto; max-height: 500px; object-fit: contain; 
-                                                            border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" 
-                                                     onclick="window.open(this.src)" 
-                                                     alt="Attachment" />
-                                                <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
-                                                    📁 ' . htmlspecialchars(basename($state)) . ' • Click to view full size
-                                                </p>
-                                            </div>';
-                                        }
-                                        
-                                        if ($extension === 'pdf') {
-                                            return '<div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-                                                <iframe src="data:application/pdf;base64,' . $base64 . '" 
-                                                        style="width: 100%; height: 600px; border: none;"></iframe>
-                                                <div style="padding: 8px; background: #f9fafb; text-align: center;">
-                                                    <a href="data:application/pdf;base64,' . $base64 . '" 
-                                                       download="' . htmlspecialchars(basename($state)) . '" 
-                                                       style="color: #3b82f6; text-decoration: none; font-size: 14px;">
-                                                        📥 Download ' . htmlspecialchars(basename($state)) . '
-                                                    </a>
-                                                </div>
-                                            </div>';
-                                        }
-                                        
-                                        return '<div style="padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
-                                            <div style="font-size: 48px; margin-bottom: 12px;">📄</div>
-                                            <p style="color: #374151; font-weight: 600; margin-bottom: 8px;">
-                                                ' . htmlspecialchars(basename($state)) . '
+                                    $extension = strtolower(pathinfo($state, PATHINFO_EXTENSION));
+                                    $publicUrl = asset('storage/' . $state);
+                                    $filename = basename($state);
+                                    
+                                    if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                                        return '<div style="text-align: center;">
+                                            <img src="' . $publicUrl . '" 
+                                                 style="max-width: 100%; height: auto; max-height: 500px; object-fit: contain; 
+                                                        border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" 
+                                                 onclick="window.open(\'' . $publicUrl . '\')" 
+                                                 alt="Attachment"
+                                                 onerror="this.parentElement.innerHTML=\'<div style=\\\'padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px;\\\'><p style=\\\'color: #dc2626; font-weight: 600;\\\'>❌ Failed to Load Image</p><p style=\\\'color: #991b1b; font-size: 12px;\\\'>File: ' . htmlspecialchars($filename) . '</p><p style=\\\'color: #991b1b; font-size: 11px; margin-top: 4px;\\\'>URL: ' . htmlspecialchars($publicUrl) . '</p></div>\'" />
+                                            <p style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                                                📁 ' . htmlspecialchars($filename) . ' • Click to view full size
                                             </p>
-                                            <a href="data:application/octet-stream;base64,' . $base64 . '" 
-                                               download="' . htmlspecialchars(basename($state)) . '" 
-                                               style="display: inline-block; padding: 8px 16px; background: #3b82f6; color: white; 
-                                                      text-decoration: none; border-radius: 6px; font-size: 14px;">
-                                                📥 Download Document
-                                            </a>
-                                        </div>';
-                                        
-                                    } catch (\Exception $e) {
-                                        return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
-                                            <p style="color: #dc2626; font-weight: 600; margin-bottom: 4px;">Error Loading File</p>
-                                            <p style="color: #991b1b; font-size: 12px;">' . htmlspecialchars($e->getMessage()) . '</p>
                                         </div>';
                                     }
+                                    
+                                    if ($extension === 'pdf') {
+                                        return '<div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                                            <iframe src="' . $publicUrl . '" style="width: 100%; height: 600px; border: none;"></iframe>
+                                            <div style="padding: 8px; background: #f9fafb; text-align: center;">
+                                                <a href="' . $publicUrl . '" download="' . htmlspecialchars($filename) . '" style="color: #3b82f6; text-decoration: none; font-size: 14px;">
+                                                    📥 Download ' . htmlspecialchars($filename) . '
+                                                </a>
+                                            </div>
+                                        </div>';
+                                    }
+                                    
+                                    return '<div style="padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                                        <div style="font-size: 48px; margin-bottom: 12px;">📄</div>
+                                        <p style="color: #374151; font-weight: 600; margin-bottom: 8px;">
+                                            ' . htmlspecialchars($filename) . '
+                                        </p>
+                                        <a href="' . $publicUrl . '" download="' . htmlspecialchars($filename) . '" 
+                                           style="display: inline-block; padding: 8px 16px; background: #3b82f6; color: white; 
+                                                  text-decoration: none; border-radius: 6px; font-size: 14px;">
+                                            📥 Download Document
+                                        </a>
+                                    </div>';
                                 }
                                 
                                 return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
@@ -266,8 +247,9 @@ class ViewLeaveRequest extends ViewRecord
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                     </svg>
                                     <p style="color: #dc2626; font-weight: 600; margin-bottom: 4px;">📎 File Not Found</p>
-                                    <p style="color: #991b1b; font-size: 12px; margin-bottom: 8px;">File: ' . htmlspecialchars($state) . '</p>
-                                    <p style="color: #991b1b; font-size: 11px;">Path: ' . htmlspecialchars(storage_path('app/public/' . $state)) . '</p>
+                                    <p style="color: #991b1b; font-size: 12px; margin-bottom: 8px;">Database path: ' . htmlspecialchars($state) . '</p>
+                                    <p style="color: #991b1b; font-size: 11px;">Expected location: ' . htmlspecialchars(storage_path('app/public/' . $state)) . '</p>
+                                    <p style="color: #374151; font-size: 10px; margin-top: 8px;">💡 Make sure to run: <code>php artisan storage:link</code></p>
                                 </div>';
                             })
                             ->columnSpanFull()
