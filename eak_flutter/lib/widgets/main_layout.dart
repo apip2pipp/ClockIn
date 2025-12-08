@@ -32,7 +32,7 @@ class MainLayout extends StatelessWidget {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -55,7 +55,7 @@ class MainLayout extends StatelessWidget {
                 index: 0,
                 onTap: () => _navigateTo(context, 0),
               ),
-              
+
               // History
               _buildNavItem(
                 context: context,
@@ -100,7 +100,7 @@ class MainLayout extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final isSelected = selectedIndex == index;
-    
+
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -109,9 +109,7 @@ class MainLayout extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected 
-                  ? const Color(0xFF26667F)
-                  : Colors.grey,
+              color: isSelected ? const Color(0xFF26667F) : Colors.grey,
               size: 26,
             ),
             const SizedBox(height: 4),
@@ -120,9 +118,7 @@ class MainLayout extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected 
-                    ? const Color(0xFF26667F)
-                    : Colors.grey,
+                color: isSelected ? const Color(0xFF26667F) : Colors.grey,
               ),
             ),
           ],
@@ -141,9 +137,7 @@ class MainLayout extends StatelessWidget {
           onPressed: () async {
             await Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const ClockInScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const ClockInScreen()),
             );
 
             if (context.mounted) {
@@ -153,15 +147,19 @@ class MainLayout extends StatelessWidget {
           backgroundColor: todayAttendance == null
               ? const Color(0xFF26667F) // Hijau kalau belum clock in
               : todayAttendance.clockOut == null
-                  ? const Color(0xFFE57373) // Merah kalau sudah clock in, belum clock out
-                  : Colors.grey, // Abu kalau sudah clock out
+              ? const Color(
+                  0xFFE57373,
+                ) // Merah kalau sudah clock in, belum clock out
+              : Colors.grey, // Abu kalau sudah clock out
           elevation: 8,
           child: Icon(
             todayAttendance == null
-                ? Icons.login // Belum clock in
+                ? Icons
+                      .login // Belum clock in
                 : todayAttendance.clockOut == null
-                    ? Icons.logout // Sudah clock in
-                    : Icons.check, // Sudah clock out
+                ? Icons
+                      .logout // Sudah clock in
+                : Icons.check, // Sudah clock out
             color: Colors.white,
             size: 30,
           ),
