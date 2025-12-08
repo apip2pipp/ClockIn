@@ -16,24 +16,24 @@ return [
     */
 
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
-    'allowed_methods' => ['*'],
-
-    'allowed_origins' => ['*'],
-
-    'allowed_origins_patterns' => [
-        'http://192\.168\..*', 
-        'http://10\..*',       
-        'http://172\..*',      
-        'http://localhost:*',
+    'allowed_origins' => [
+        'https://clockin.cloud',
+        'https://www.clockin.cloud',
     ],
 
-    'allowed_headers' => ['*'],
+    'allowed_origins_patterns' => [],
+
+    'allowed_headers' => [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With',
+        'Accept',
+        'Origin',
+    ],
 
     'exposed_headers' => [],
-
-    'max_age' => 0,
-
+    'max_age' => 86400,
     'supports_credentials' => true,
-
 ];
