@@ -18,10 +18,12 @@ return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
-    'allowed_origins' => [
-        'https://clockin.cloud',
-        'https://www.clockin.cloud',
-    ],
+    // 'allowed_origins' => [
+    //     'https://clockin.cloud',
+    //     'https://www.clockin.cloud',
+    // ],
+
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
