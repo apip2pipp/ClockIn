@@ -27,36 +27,55 @@ class _MainLayoutState extends State<MainLayout> {
         listen: false,
       );
 
+      // print('🔘 Clock button tapped');
+      // print('   todayAttendance: ${attendanceProvider.todayAttendance}');
+      // print('   clockOut: ${attendanceProvider.todayAttendance?.clockOut}');
+
       final todayAttendance = attendanceProvider.todayAttendance;
 
       // If no attendance today, navigate to Clock In
       if (todayAttendance == null) {
+        // print('➡️ Navigate to Clock In Screen');
+        
         await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ClockInScreen()),
         );
-        
-        // ✅ REFRESH setelah kembali dari Clock In
+
         if (mounted) {
+          // print('🔄 Refreshing attendance after Clock In...');
           await attendanceProvider.loadTodayAttendance();
+          
+          // print('✅ Refresh complete!');
+          // print('   todayAttendance: ${attendanceProvider.todayAttendance}');
+          // print('   clockOut: ${attendanceProvider.todayAttendance?.clockOut}');
+          
           setState(() {});
         }
       }
       // If clocked in but not clocked out, navigate to Clock Out
       else if (todayAttendance.clockOut == null) {
+        print('➡️ Navigate to Clock Out Screen');
+        
         await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ClockOutScreen()),
         );
-        
-        // ✅ REFRESH setelah kembali dari Clock Out
+
         if (mounted) {
+          // print('🔄 Refreshing attendance after Clock Out...');
           await attendanceProvider.loadTodayAttendance();
+          
+          // print('✅ Refresh complete!');
+          // print('   todayAttendance: ${attendanceProvider.todayAttendance}');
+          // print('   clockOut: ${attendanceProvider.todayAttendance?.clockOut}');
+          
           setState(() {});
         }
       }
       // If already clocked out, do nothing
       else {
+        // print('⏹️ Already clocked out - Do nothing');
         return;
       }
 
@@ -102,72 +121,76 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Widget _buildBottomNavBar() {
-    final attendanceProvider = Provider.of<AttendanceProvider>(
-      context,
-      listen: true,
-    );
-    final todayAttendance = attendanceProvider.todayAttendance;
+    return Consumer<AttendanceProvider>(
+      builder: (context, attendanceProvider, child) {
+        final todayAttendance = attendanceProvider.todayAttendance;
 
-    return Container(
-      height: 80,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
-            width: 0.6,
+        // print('🔄 _buildBottomNavBar rebuild');
+        // print('   todayAttendance: $todayAttendance');
+        // print('   clockOut: ${todayAttendance?.clockOut}');
+
+        return Container(
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              top: BorderSide(
+                color: const Color(0xFFE5E7EB).withOpacity(0.5),
+                width: 0.6,
+              ),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
           ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+          child: SafeArea(
+            top: false,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: _buildNavItem(
+                    icon: Icons.home,
+                    label: 'Home',
+                    index: 0,
+                    isSelected: widget.selectedIndex == 0,
+                  ),
+                ),
+                Expanded(
+                  child: _buildNavItem(
+                    icon: Icons.history,
+                    label: 'History',
+                    index: 1,
+                    isSelected: widget.selectedIndex == 1,
+                  ),
+                ),
+                Expanded(child: _buildClockButton(todayAttendance)),
+                Expanded(
+                  child: _buildNavItem(
+                    icon: Icons.note_alt_outlined,
+                    label: 'Leave',
+                    index: 3,
+                    isSelected: widget.selectedIndex == 3,
+                  ),
+                ),
+                Expanded(
+                  child: _buildNavItem(
+                    icon: Icons.person_outline,
+                    label: 'Profile',
+                    index: 4,
+                    isSelected: widget.selectedIndex == 4,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: _buildNavItem(
-                icon: Icons.home,
-                label: 'Home',
-                index: 0,
-                isSelected: widget.selectedIndex == 0,
-              ),
-            ),
-            Expanded(
-              child: _buildNavItem(
-                icon: Icons.history,
-                label: 'History',
-                index: 1,
-                isSelected: widget.selectedIndex == 1,
-              ),
-            ),
-            Expanded(child: _buildClockButton(todayAttendance)),
-            Expanded(
-              child: _buildNavItem(
-                icon: Icons.note_alt_outlined,
-                label: 'Leave',
-                index: 3,
-                isSelected: widget.selectedIndex == 3,
-              ),
-            ),
-            Expanded(
-              child: _buildNavItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                index: 4,
-                isSelected: widget.selectedIndex == 4,
-              ),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -182,7 +205,7 @@ class _MainLayoutState extends State<MainLayout> {
     IconData icon;
 
     if (isDone) {
-      gradientStart = Colors.grey.withValues(alpha: 0.56);
+      gradientStart = Colors.grey.withOpacity(0.56);
       gradientEnd = Colors.grey;
       label = 'Done';
       icon = Icons.check;
@@ -197,6 +220,11 @@ class _MainLayoutState extends State<MainLayout> {
       label = 'In';
       icon = Icons.login;
     }
+
+    // print('🔘 Clock button state:');
+    // print('   Label: $label');
+    // print('   isClockOut: $isClockOut');
+    // print('   isDone: $isDone');
 
     return GestureDetector(
       onTap: isDone ? null : () => _onNavItemTapped(2),
@@ -213,7 +241,7 @@ class _MainLayoutState extends State<MainLayout> {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: gradientEnd.withValues(alpha: 0.3),
+                color: gradientEnd.withOpacity(0.3),
                 blurRadius: 6,
                 offset: const Offset(0, 3),
               ),
