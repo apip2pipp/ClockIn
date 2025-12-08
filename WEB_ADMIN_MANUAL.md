@@ -9,16 +9,11 @@
 1. [Akses Web Admin](#1-akses-web-admin)
 2. [Login Admin](#2-login-admin)
 3. [Dashboard Overview](#3-dashboard-overview)
-4. [Manajemen Karyawan](#4-manajemen-karyawan)
-5. [Monitoring Kehadiran Real-time](#5-monitoring-kehadiran-real-time)
-6. [Laporan Kehadiran](#6-laporan-kehadiran)
-7. [Approval Izin & Cuti](#7-approval-izin--cuti)
-8. [Pengaturan Lokasi Kantor](#8-pengaturan-lokasi-kantor)
-9. [Pengaturan Jadwal Kerja](#9-pengaturan-jadwal-kerja)
-10. [Manajemen User & Role](#10-manajemen-user--role)
-11. [Export Data & Report](#11-export-data--report)
-12. [Pengaturan Sistem](#12-pengaturan-sistem)
-13. [Logout](#13-logout)
+4. [Manajemen Karyawan (Employees)](#4-manajemen-karyawan-employees)
+5. [Data Kehadiran (Attendances)](#5-data-kehadiran-attendances)
+6. [Pengajuan Izin & Cuti (Leave Requests)](#6-pengajuan-izin--cuti-leave-requests)
+7. [Pengaturan Perusahaan (My Company)](#7-pengaturan-perusahaan-my-company)
+8. [Logout](#8-logout)
 
 ---
 
@@ -97,709 +92,488 @@
 
 ## 3. Dashboard Overview
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `04-dashboard-overview.png`, `05-dashboard-stats.png`, `06-dashboard-chart.png`, `07-dashboard-activity.png`
-
-![Dashboard Utama](docs/screenshots/web/dashboard.JPG)
-![Statistics Cards](docs/screenshots/web/05-dashboard-stats.png)
-![Chart Kehadiran](docs/screenshots/web/06-dashboard-chart.png)
-![Recent Activity](docs/screenshots/web/07-dashboard-activity.png)
+![Dashboard Utama](docs/screenshots/web/dashboard-1-awal.png)
 
 ### 📝 Deskripsi
-**Halaman utama admin yang menampilkan ringkasan kehadiran dan statistik real-time**
+**Halaman utama admin yang menampilkan ringkasan sistem**
 
 **Fungsi:**
-- Melihat overview kehadiran karyawan hari ini
-- Monitoring status Check In/Out secara real-time
-- Quick access ke fitur-fitur penting
-- Analisis tren kehadiran dengan grafik
+- Melihat overview sistem ClockIn+
+- Quick access ke menu-menu utama
+- Widget informasi akun admin
 
 **Apa yang Ditampilkan:**
 
-### 📊 Statistics Cards (Bagian Atas):
-- **Total Karyawan:** Jumlah karyawan aktif
-- **Hadir Hari Ini:** Karyawan yang sudah Check In
-- **Belum Check In:** Karyawan yang belum absen
-- **Terlambat:** Jumlah karyawan terlambat hari ini
-- **Izin/Cuti:** Karyawan yang sedang izin/cuti
-- **Alfa:** Karyawan yang tidak hadir tanpa keterangan
+### 📊 Dashboard Widgets:
+- **Account Widget:** Informasi akun admin yang sedang login
+- **Filament Info Widget:** Informasi versi dan dokumentasi Filament
 
-### 📈 Chart & Grafik:
-- **Attendance Chart:** Grafik kehadiran 7 hari terakhir
-- **Late Percentage:** Persentase keterlambatan bulan ini
-- **Department Comparison:** Perbandingan kehadiran antar divisi
-
-### 📋 Recent Activity:
-- List karyawan yang baru saja Check In/Out (real-time)
-- Notifikasi approval yang perlu di-review
-- Alert untuk anomali atau masalah kehadiran
+### 📋 Navigasi Utama (Sidebar):
+- 🏠 **Dashboard:** Halaman utama
+- 🏢 **My Company:** Pengaturan data perusahaan
+- 👥 **Employees:** Manajemen data karyawan  
+- ⏰ **Attendances:** Data kehadiran karyawan
+- 📝 **Leave Requests:** Pengajuan izin dan cuti
 
 **Cara Pakai:**
-- Dashboard akan **auto-refresh** setiap 30 detik
-- Klik pada **statistics card** untuk lihat detail
-- Hover pada chart untuk lihat detail per tanggal
-- Gunakan **filter** di pojok kanan atas untuk pilih tanggal/divisi
+- Gunakan menu sidebar untuk navigasi
+- Dashboard sebagai halaman overview
+- Klik menu untuk masuk ke fitur spesifik
 
 **Tips:**
-- Dashboard ini adalah "command center" untuk monitoring harian
+- Dashboard ini adalah entry point untuk semua fitur
 - Bookmark halaman ini untuk akses cepat
-- Gunakan view fullscreen untuk presentasi ke management
-- Export chart untuk report bulanan
+- Gunakan dark mode untuk kenyamanan mata
 
 ---
 
-## 4. Manajemen Karyawan
+## 4. Manajemen Karyawan (Employees)
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `08-employee-list.png`, `09-employee-add.png`, `10-employee-edit.png`, `11-employee-detail.png`
-
-![List Karyawan](docs/screenshots/web/create_employee.JPG)
-![Tambah Karyawan](docs/screenshots/web/09-employee-add.png)
-![Edit Karyawan](docs/screenshots/web/10-employee-edit.png)
-![Detail Profile](docs/screenshots/web/11-employee-detail.png)
+![List Karyawan](docs/screenshots/web/List-employ.png)
+![Tambah Karyawan](docs/screenshots/web/CreateEmploy.png)
+![Tambah Karyawan](docs/screenshots/web/Createemploy2.png)
+![Detail Karyawan](docs/screenshots/web/DetailEmploy.png)
+![Detail Karyawan](docs/screenshots/web/DetailEmploy2.png)
+![Edit Karyawan](docs/screenshots/web/EditEmploy.png)
 
 ### 📝 Deskripsi
 **Modul untuk mengelola data master karyawan**
 
 **Fungsi:**
 - Menambah karyawan baru ke sistem
-- Edit data karyawan (jabatan, divisi, status)
-- Hapus atau non-aktifkan karyawan
-- Import karyawan dari file Excel/CSV
-- Export data karyawan
+- Melihat daftar semua karyawan
+- Edit data karyawan
+- View detail profile karyawan
+- Filter dan search karyawan
 
 **Cara Pakai:**
+
+### 📋 Melihat Daftar Karyawan:
+1. Dari menu sidebar, klik **"Employees"**
+2. Akan muncul tabel daftar karyawan dengan kolom:
+   - **Name:** Nama lengkap karyawan
+   - **Email:** Email untuk login
+   - **Phone:** Nomor telepon
+   - **Company:** Nama perusahaan
+   - **Actions:** Tombol View/Edit/Delete
+3. Gunakan **search bar** untuk cari karyawan
+4. Gunakan **filter** untuk filter berdasarkan company/status
 
 ### ➕ Tambah Karyawan Baru:
-1. Dari menu sidebar, klik **"Karyawan"** atau **"Employees"**
-2. Klik tombol **"+ Tambah Karyawan"**
-3. Isi form data karyawan:
-   - **Nama Lengkap**
-   - **Employee ID** (auto-generate atau manual)
-   - **Email** (untuk login mobile app)
-   - **No. HP**
-   - **Divisi / Department**
-   - **Jabatan / Position**
-   - **Tanggal Bergabung**
-   - **Foto Profile** (upload)
-   - **Status:** Aktif / Non-aktif
-4. Klik **"Simpan"**
-5. Email aktivasi otomatis dikirim ke karyawan
+1. Klik tombol **"Create"** atau **"New Employee"** di pojok kanan atas
+2. Isi form data karyawan:
+   
+   **Personal Information:**
+   - **Full Name** (required)
+   - **Email** (required, unique)
+   - **Phone Number**
+   - **Password** (required untuk akun baru)
+   - **Password Confirmation**
+   
+   **Company Information:**
+   - **Company** (pilih dari dropdown)
+   - **Photo** (upload foto profile, optional)
+
+3. Klik **"Create"** untuk menyimpan
+4. Karyawan baru berhasil ditambahkan
+5. Karyawan bisa login ke mobile app dengan email dan password yang dibuat
+
+### 👁️ View Detail Karyawan:
+1. Dari list karyawan, klik **icon mata (view)** di kolom Actions
+2. Akan muncul halaman detail dengan informasi:
+   - Foto profile karyawan
+   - Personal information (nama, email, phone)
+   - Company information
+   - Created date & Last updated
+3. Klik tombol **"Edit"** untuk ubah data
 
 ### ✏️ Edit Data Karyawan:
-1. Cari karyawan menggunakan **search bar** atau **filter**
-2. Klik **icon pensil** di kolom Action
-3. Edit data yang perlu diubah
-4. Klik **"Update"** untuk menyimpan perubahan
+1. Klik **icon pensil (edit)** di kolom Actions, atau
+2. Dari halaman detail, klik tombol **"Edit"**
+3. Edit data yang perlu diubah di form
+4. Klik **"Save changes"** untuk update
 
-### 🗑️ Hapus / Non-aktifkan Karyawan:
-1. Klik **icon trash** di kolom Action
-2. Pilih opsi:
-   - **Non-aktifkan:** Karyawan tidak bisa login tapi data tetap ada (recommended untuk resign)
-   - **Hapus Permanent:** Data dihapus dari sistem (hati-hati!)
-3. Konfirmasi aksi
-
-### 📥 Import Karyawan (Bulk):
-1. Klik tombol **"Import"**
-2. Download **template Excel**
-3. Isi data karyawan di template
-4. Upload file Excel
-5. Preview data, pastikan tidak ada error
-6. Klik **"Import"** untuk proses
+### 🗑️ Hapus Karyawan:
+1. Klik **icon trash (delete)** di kolom Actions
+2. Muncul konfirmasi: "Are you sure?"
+3. Klik **"Confirm"** untuk hapus permanent
+4. ⚠️ **Hati-hati:** Data yang dihapus tidak bisa dikembalikan
 
 **Data yang Dikelola:**
-- 👤 Data Pribadi (Nama, Email, HP)
-- 🆔 Employee ID
-- 🏢 Divisi & Jabatan
-- 📅 Tanggal Bergabung
-- 📷 Foto Profile
-- ✅ Status: Aktif / Non-aktif / Resign
-- 🔑 Access Level (User / Admin)
+- 👤 **Personal Data:** Nama, Email, Phone
+- 🏢 **Company:** Perusahaan tempat karyawan bekerja
+- 📷 **Photo:** Foto profile karyawan
+- 🔑 **Password:** Untuk login mobile app
+- 📅 **Timestamp:** Created at & Updated at
+
+**Fitur Tabel:**
+- 🔍 **Search:** Cari berdasarkan nama, email, atau phone
+- 🔽 **Filter:** Filter berdasarkan company
+- 📄 **Pagination:** Navigate halaman jika data banyak
+- 🔢 **Per Page:** Ubah jumlah data per halaman (10, 25, 50)
 
 **Tips:**
-- Pastikan email unique (tidak ada duplikat)
-- Employee ID gunakan format yang konsisten (misal: EMP001, EMP002)
+- Pastikan email unique (tidak ada duplikat) saat tambah karyawan
 - Upload foto profile dengan ukuran maksimal 2MB
-- Gunakan fitur import untuk onboarding karyawan banyak sekaligus
+- Gunakan password yang kuat untuk keamanan
+- Backup data karyawan secara berkala
+- Jangan hapus karyawan jika masih ada data attendance-nya
 
 ---
 
-## 5. Monitoring Kehadiran Real-time
+## 5. Data Kehadiran (Attendances)
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `12-monitoring-realtime.png`, `13-monitoring-map.png`, `14-monitoring-detail.png`, `15-monitoring-filter.png`
-
-![Live Monitoring](docs/screenshots/web/12-monitoring-realtime.png)
-![Map View Lokasi](docs/screenshots/web/13-monitoring-map.png)
-![Detail Check In](docs/screenshots/web/14-monitoring-detail.png)
-![Filter Monitoring](docs/screenshots/web/15-monitoring-filter.png)
+![List Kehadiran](docs/screenshots/web/list_attendec.png)
+![Detail Kehadiran](docs/screenshots/web/detail_attandence.png)
+![Filter Kehadiran](docs/screenshots/web/filter_attandance.png)
 
 ### 📝 Deskripsi
-**Fitur untuk memantau kehadiran karyawan secara real-time**
+**Modul untuk melihat dan mengelola data kehadiran karyawan**
 
 **Fungsi:**
-- Monitoring siapa saja yang sudah/belum Check In/Out
-- Lihat lokasi Check In karyawan di map
-- Verifikasi foto selfie saat absen
-- Tracking keterlambatan
-- Alert untuk karyawan yang belum hadir
-
-**Cara Pakai:**
-1. Dari menu sidebar, klik **"Monitoring"** atau **"Live Attendance"**
-2. Akan muncul dashboard real-time dengan tab:
-   - **Sudah Check In:** List karyawan yang sudah absen masuk
-   - **Belum Check In:** List karyawan yang belum absen
-   - **Sudah Check Out:** List karyawan yang sudah pulang
-   - **Terlambat:** Karyawan yang Check In setelah jam kerja
-
-**Informasi yang Ditampilkan:**
-- 👤 Nama & Foto Karyawan
-- ⏰ Waktu Check In/Out
-- 📍 Lokasi GPS (latitude, longitude)
-- 🗺️ Map view lokasi
-- 📷 Foto selfie saat absen
-- 🏷️ Status: On Time / Late / Early Leave
-
-**Fitur Map View:**
-- Klik tab **"Map View"**
-- Akan muncul peta dengan pin lokasi setiap karyawan
-- Pin hijau: Check In on time
-- Pin kuning: Check In terlambat
-- Pin merah: Belum Check In
-- Klik pin untuk lihat detail karyawan
-
-**Filter & Search:**
-- **Search:** Cari karyawan berdasarkan nama/ID
-- **Filter Divisi:** Pilih divisi tertentu
-- **Filter Status:** Hadir / Terlambat / Izin / Alfa
-- **Filter Lokasi:** Area kantor / Outside area
-
-**Tips:**
-- Gunakan Map View untuk verifikasi lokasi karyawan WFH
-- Cek foto selfie jika ada kecurigaan fraud
-- Export data monitoring untuk report harian
-- Set alert untuk notifikasi jika ada karyawan terlambat
-
----
-
-## 6. Laporan Kehadiran
-
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `16-report-filter.png`, `17-report-table.png`, `18-report-chart.png`, `19-report-export.png`
-
-![Filter Laporan](docs/screenshots/web/16-report-filter.png)
-![Tabel Laporan](docs/screenshots/web/17-report-table.png)
-![Chart Analisis](docs/screenshots/web/18-report-chart.png)
-![Preview Export](docs/screenshots/web/19-report-export.png)
-
-### 📝 Deskripsi
-**Modul untuk generate dan download laporan kehadiran dalam berbagai format**
-
-**Fungsi:**
-- Generate laporan kehadiran harian, mingguan, bulanan, atau custom date range
-- Analisis kehadiran per karyawan atau per divisi
-- Export laporan ke Excel, PDF, atau CSV
-- Visualisasi data dengan chart dan grafik
+- Melihat semua record kehadiran karyawan
+- View detail check in/out dengan lokasi dan foto
+- Filter kehadiran berdasarkan tanggal, karyawan, atau company
+- Export data kehadiran
+- Monitoring kehadiran harian, mingguan, bulanan
 
 **Cara Pakai:**
 
-### 📊 Generate Laporan:
-1. Dari menu sidebar, klik **"Laporan"** atau **"Reports"**
-2. Pilih **jenis laporan:**
-   - **Laporan Harian:** Kehadiran hari ini
-   - **Laporan Mingguan:** 7 hari terakhir
-   - **Laporan Bulanan:** 1 bulan terakhir
-   - **Custom Range:** Pilih tanggal manual
-3. Pilih **filter:**
-   - **Semua Karyawan** atau **Per Divisi**
-   - **Status:** Semua / Hadir / Izin / Alfa
-4. Klik **"Generate Report"**
-5. Tunggu proses generate data
-6. Preview laporan akan muncul
+### 📋 Melihat Daftar Kehadiran:
+1. Dari menu sidebar, klik **"Attendances"**
+2. Akan muncul tabel data kehadiran dengan kolom:
+   - **Employee:** Nama karyawan
+   - **Company:** Nama perusahaan
+   - **Date:** Tanggal kehadiran
+   - **Check In Time:** Jam check in
+   - **Check Out Time:** Jam check out (jika sudah check out)
+   - **Check In Photo:** Thumbnail foto saat check in
+   - **Check Out Photo:** Thumbnail foto saat check out
+   - **Check In Location:** Koordinat GPS check in
+   - **Check Out Location:** Koordinat GPS check out
+   - **Status:** On Time / Late / Early Leave
+   - **Actions:** Tombol View detail
 
-**Jenis Laporan yang Tersedia:**
-
-### 📋 Laporan Kehadiran:
-- List kehadiran per karyawan
-- Total hari hadir, izin, alfa
-- Persentase kehadiran
-- Rata-rata jam Check In/Out
-- Total jam kerja
-
-### 📈 Laporan Keterlambatan:
-- Karyawan yang sering terlambat
-- Total menit keterlambatan
-- Trend keterlambatan per bulan
-
-### 🏖️ Laporan Izin & Cuti:
-- Total pengajuan izin/cuti
-- Status approval
-- Sisa kuota cuti per karyawan
-
-### 📊 Laporan Produktivitas:
-- Rata-rata jam kerja per hari
-- Overtime hours
-- Comparison antar divisi
-
-**Export Format:**
-- **PDF:** Untuk print atau archive
-- **Excel (.xlsx):** Untuk data processing lanjutan
-- **CSV:** Import ke sistem lain
-
-**Cara Export:**
-1. Setelah preview laporan
-2. Klik tombol **"Export"**
-3. Pilih format: PDF / Excel / CSV
-4. File akan otomatis terdownload
-
-**Tips:**
-- Generate laporan di akhir bulan untuk report ke management
-- Gunakan filter divisi untuk laporan per department
-- Save laporan bulanan sebagai archive
-- Bandingkan laporan bulan ini vs bulan lalu untuk analisis trend
-
----
-
-## 7. Approval Izin & Cuti
-
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `20-approval-list.png`, `21-approval-detail.png`, `22-approval-form.png`, `23-approval-history.png`
-
-![List Pengajuan Pending](docs/screenshots/web/20-approval-list.png)
-![Detail Pengajuan](docs/screenshots/web/21-approval-detail.png)
-![Form Approval](docs/screenshots/web/22-approval-form.png)
-![History Approval](docs/screenshots/web/23-approval-history.png)
-
-### 📝 Deskripsi
-**Modul untuk review dan approval pengajuan izin/cuti dari karyawan**
-
-**Fungsi:**
-- Review pengajuan izin sakit, cuti, atau izin
-- Approve atau reject pengajuan
-- Lihat dokumen pendukung (surat dokter, dll)
-- Cek sisa kuota cuti karyawan
-- Notifikasi otomatis ke karyawan setelah approval
-
-**Cara Pakai:**
-
-### 📋 Review Pengajuan:
-1. Dari menu sidebar, klik **"Approval"** atau **"Leave Request"**
-2. Akan muncul list pengajuan dengan status **"Pending"**
-3. Badge merah menunjukkan jumlah approval yang menunggu
-4. Klik pada salah satu pengajuan untuk lihat **detail:**
+### 👁️ View Detail Kehadiran:
+1. Klik **icon mata (view)** di kolom Actions
+2. Akan muncul detail lengkap:
+   
+   **Employee Information:**
    - Nama karyawan
-   - Jenis izin (Sakit / Cuti / Izin)
-   - Tanggal mulai - selesai
-   - Total hari
-   - Alasan / keterangan
-   - Dokumen pendukung (download untuk lihat)
-   - Sisa kuota cuti
+   - Company
+   - Tanggal kehadiran
+   
+   **Check In Details:**
+   - Waktu check in
+   - Foto selfie check in (full size, bisa di-zoom)
+   - Lokasi GPS (latitude, longitude)
+   - Map view lokasi check in
+   
+   **Check Out Details:** (jika sudah check out)
+   - Waktu check out
+   - Foto selfie check out (full size)
+   - Lokasi GPS check out
+   - Map view lokasi check out
+   
+   **Status & Notes:**
+   - Status kehadiran (On Time / Late / Early Leave)
+   - Work duration (total jam kerja)
+   - Notes (jika ada)
 
-### ✅ Approve Pengajuan:
-1. Setelah review detail pengajuan
-2. Jika disetujui, klik tombol **"Approve"**
-3. *(Opsional)* Tambahkan **notes** atau komentar
-4. Klik **"Confirm Approval"**
-5. Status berubah jadi **"Approved"**
-6. Notifikasi otomatis dikirim ke karyawan via app
+3. Klik tombol **"Back"** untuk kembali ke list
 
-### ❌ Reject Pengajuan:
-1. Jika pengajuan ditolak, klik tombol **"Reject"**
-2. **Wajib** isi **alasan penolakan** di form notes
-3. Klik **"Confirm Reject"**
-4. Status berubah jadi **"Rejected"**
-5. Notifikasi + alasan dikirim ke karyawan
+### 🔍 Filter & Search Kehadiran:
+1. Gunakan **search bar** untuk cari berdasarkan nama karyawan
+2. Gunakan **filter** untuk:
+   - **Date Range:** Pilih tanggal mulai - selesai
+   - **Company:** Filter berdasarkan perusahaan
+   - **Employee:** Filter karyawan tertentu
+   - **Status:** Filter by status (On Time / Late / All)
+3. Klik **"Apply Filter"** untuk menampilkan hasil filter
+4. Klik **"Reset"** untuk clear semua filter
+
+### 📊 Informasi yang Ditampilkan:
+- ⏰ **Waktu Check In/Out:** Jam masuk dan pulang karyawan
+- 📍 **Lokasi GPS:** Koordinat lokasi saat check in/out
+- 📷 **Foto Selfie:** Verifikasi karyawan dengan foto
+- 🗺️ **Map View:** Visualisasi lokasi di peta (Google Maps)
+- ⏱️ **Work Duration:** Total jam kerja
+- ✅ **Status:** On Time, Late, Early Leave
+
+**Fitur Tabel:**
+- 🔍 **Search:** Cari berdasarkan nama karyawan
+- 🔽 **Filter:** Filter by date, company, employee, status
+- 📄 **Pagination:** Navigate halaman
+- 🔢 **Per Page:** Ubah jumlah record per halaman
+- 📥 **Export:** Export data ke Excel/PDF
+
+**Status Kehadiran:**
+- 🟢 **On Time:** Check in tepat waktu
+- 🟡 **Late:** Check in terlambat
+- 🟠 **Early Leave:** Check out lebih awal dari jadwal
+- 🔵 **Normal:** Check in & check out sesuai jadwal
+
+**Tips:**
+- Gunakan filter date range untuk laporan periode tertentu
+- Klik foto untuk lihat full size dan verify karyawan
+- Cek map view untuk memastikan karyawan check in dari lokasi yang benar
+- Export data untuk report bulanan ke HRD atau management
+- Monitor daily attendance untuk tracking kehadiran real-time
+
+---
+
+## 6. Pengajuan Izin & Cuti (Leave Requests)
+
+![List Leave Requests](docs/screenshots/web/List_leave_request.png)
+![Detail Leave Request](docs/screenshots/web/detail_leave.png)
+![Edit Leave Request](docs/screenshots/web/Leave_edit.png)
+
+### 📝 Deskripsi
+**Modul untuk mengelola pengajuan izin dan cuti karyawan**
+
+**Fungsi:**
+- Melihat semua pengajuan izin/cuti dari karyawan
+- View detail pengajuan (tanggal, alasan, dokumen)
+- Approve atau reject pengajuan
+- Create pengajuan atas nama karyawan (jika diperlukan)
+- Filter berdasarkan status (Pending/Approved/Rejected)
+
+**Cara Pakai:**
+
+### 📋 Melihat Daftar Leave Requests:
+1. Dari menu sidebar, klik **"Leave Requests"**
+2. Akan muncul tabel pengajuan dengan kolom:
+   - **Employee:** Nama karyawan yang mengajukan
+   - **Company:** Nama perusahaan
+   - **Leave Type:** Jenis izin (Sick Leave / Annual Leave / Permission)
+   - **Start Date:** Tanggal mulai izin
+   - **End Date:** Tanggal selesai izin
+   - **Reason:** Alasan izin
+   - **Status:** Pending / Approved / Rejected
+   - **Actions:** View / Edit / Delete
+
+### 👁️ View Detail Leave Request:
+1. Klik **icon mata (view)** di kolom Actions
+2. Akan muncul detail lengkap:
+   
+   **Employee Information:**
+   - Nama karyawan
+   - Company
+   
+   **Leave Details:**
+   - **Leave Type:** Sick Leave / Annual Leave / Permission
+   - **Start Date:** Tanggal mulai
+   - **End Date:** Tanggal selesai
+   - **Total Days:** Total hari izin
+   - **Reason:** Alasan/keterangan izin
+   - **Document:** File pendukung (surat dokter, dll) - bisa download
+   
+   **Status & Approval:**
+   - **Status:** Pending / Approved / Rejected
+   - **Submitted At:** Tanggal pengajuan
+   - **Approved/Rejected At:** Tanggal approval (jika sudah)
+   - **Approved/Rejected By:** Nama admin yang approve/reject
+
+3. Dari halaman detail, admin bisa:
+   - Klik **"Approve"** untuk menyetujui
+   - Klik **"Reject"** untuk menolak
+   - Klik **"Edit"** untuk ubah data
+
+### ✅ Approve Leave Request:
+1. Dari halaman detail, klik tombol **"Approve"**
+2. Muncul konfirmasi: "Are you sure want to approve this leave request?"
+3. Klik **"Confirm"**
+4. Status berubah menjadi **"Approved"**
+5. Notifikasi otomatis dikirim ke karyawan (via mobile app)
+
+### ❌ Reject Leave Request:
+1. Dari halaman detail, klik tombol **"Reject"**
+2. Muncul form **rejection reason** (optional tapi recommended)
+3. Isi alasan penolakan
+4. Klik **"Confirm Reject"**
+5. Status berubah menjadi **"Rejected"**
+6. Notifikasi + alasan dikirim ke karyawan
+
+### ➕ Create Leave Request (Admin):
+1. Klik tombol **"Create"** atau **"New Leave Request"**
+2. Isi form:
+   - **Employee:** Pilih karyawan dari dropdown
+   - **Leave Type:** Sick Leave / Annual Leave / Permission
+   - **Start Date:** Tanggal mulai
+   - **End Date:** Tanggal selesai
+   - **Reason:** Alasan izin
+   - **Document:** Upload file pendukung (optional)
+   - **Status:** Pending / Approved (default: Pending)
+3. Klik **"Create"** untuk menyimpan
+4. Leave request berhasil dibuat
+
+### ✏️ Edit Leave Request:
+1. Klik **icon edit** di kolom Actions
+2. Edit data yang perlu diubah
+3. Klik **"Save changes"**
+4. Leave request berhasil diupdate
+
+### 🗑️ Delete Leave Request:
+1. Klik **icon delete** di kolom Actions
+2. Muncul konfirmasi
+3. Klik **"Confirm"** untuk hapus
+
+### 🔍 Filter & Search:
+- **Search Bar:** Cari berdasarkan nama karyawan
+- **Filter by Status:** Pending / Approved / Rejected / All
+- **Filter by Leave Type:** Sick / Annual / Permission
+- **Filter by Date Range:** Pilih range tanggal
+- **Filter by Company:** Pilih company tertentu
+
+**Leave Type (Jenis Izin):**
+- 🤒 **Sick Leave:** Izin sakit (biasanya perlu surat dokter)
+- 🏖️ **Annual Leave:** Cuti tahunan
+- 📝 **Permission:** Izin (keperluan pribadi, dll)
 
 **Status Pengajuan:**
-- 🟡 **Pending:** Menunggu approval
+- 🟡 **Pending:** Menunggu approval admin
 - 🟢 **Approved:** Disetujui
 - 🔴 **Rejected:** Ditolak
-- ⚪ **Cancelled:** Dibatalkan oleh karyawan
 
-**Filter & Search:**
-- **Status:** Pending / Approved / Rejected / All
-- **Jenis:** Sakit / Cuti / Izin
-- **Divisi:** Filter per department
-- **Date Range:** Cari berdasarkan tanggal pengajuan
+**Fitur Tabel:**
+- 🔍 **Search:** Cari karyawan
+- 🔽 **Filter:** Filter by status, type, date, company
+- 📄 **Pagination:** Navigate halaman
+- 🔢 **Per Page:** Ubah jumlah record per halaman
+- 📥 **Export:** Export data leave requests
 
 **Tips:**
-- Prioritaskan approval untuk izin mendadak (sakit)
-- Cek sisa kuota cuti sebelum approve cuti panjang
-- Verifikasi dokumen pendukung (surat dokter) untuk izin sakit
-- Berikan feedback yang jelas jika reject pengajuan
-- Set notification untuk tidak miss approval yang masuk
+- Prioritaskan review untuk pengajuan dengan status **Pending**
+- Verifikasi dokumen pendukung (surat dokter) untuk Sick Leave
+- Berikan alasan yang jelas jika reject pengajuan
+- Monitor leave requests secara berkala agar tidak menumpuk
+- Export data untuk laporan cuti bulanan/tahunan
 
 ---
 
-## 8. Pengaturan Lokasi Kantor
+## 7. Pengaturan Perusahaan (My Company)
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `24-settings-location-map.png`, `25-settings-location-form.png`, `26-settings-location-multiple.png`
-
-![Map Set Lokasi](docs/screenshots/web/24-settings-location-map.png)
-![Input Koordinat & Radius](docs/screenshots/web/25-settings-location-form.png)
-![Multiple Locations](docs/screenshots/web/26-settings-location-multiple.png)
+![View Company](docs/screenshots/web/View_company.png)
+![Edit Company](docs/screenshots/web/Edit_company.png)
 
 ### 📝 Deskripsi
-**Modul untuk mengatur lokasi kantor dan radius area absen**
+**Modul untuk mengelola data perusahaan/company**
 
 **Fungsi:**
-- Set koordinat GPS lokasi kantor
-- Tentukan radius area Check In yang diizinkan
-- Tambah multiple lokasi (untuk cabang atau area WFH tertentu)
-- Validasi lokasi karyawan saat absen
+- Melihat data company
+- Edit informasi company (nama, email, phone, address)
+- Set work schedule (jam kerja, total hours)
+- Set office location (latitude, longitude, check-in radius)
+- Manage multiple companies (jika sistem multi-company)
 
 **Cara Pakai:**
 
-### 📍 Set Lokasi Kantor:
-1. Dari menu sidebar, klik **"Settings"** → **"Office Location"**
-2. Akan muncul peta interaktif
-3. Ada 2 cara set lokasi:
+### 📋 Melihat Data Company:
+1. Dari menu sidebar, klik **"My Company"**
+2. Akan muncul halaman view company dengan 3 section:
+
+   **Section 1: Company Information**
+   - **Company Name:** Nama perusahaan (contoh: PT Coba dulu)
+   - **Email:** Email perusahaan (contoh: cobaadmin123@gmail.com)
+   - **Phone:** Nomor telepon (contoh: 081681222412)
+   - **Address:** Alamat kantor
+
+   **Section 2: Work Schedule**
+   - **Start Time:** Jam mulai kerja (contoh: 08:00)
+   - **End Time:** Jam selesai kerja (contoh: 17:00)
+   - **Total Hours:** Total jam kerja per hari (contoh: 9 hours)
+
+   **Section 3: Office Location**
+   - **Latitude:** Koordinat latitude kantor
+   - **Longitude:** Koordinat longitude kantor
+   - **Check-In Radius:** Radius area check in (contoh: 100 meters)
+
+### ✏️ Edit Company Information:
+1. Dari halaman view company, klik tombol **"Edit Company Information"** (hijau, pojok kanan atas)
+2. Akan muncul form edit dengan semua field:
    
-   **Cara 1: Point di Map**
-   - Drag map ke lokasi kantor
-   - Klik pada titik lokasi kantor
-   - Pin merah akan muncul
+   **Company Information:**
+   - **Company Name** (required)
+   - **Email** (required, format email)
+   - **Phone** (required)
+   - **Address** (textarea)
    
-   **Cara 2: Input Koordinat Manual**
-   - Masukkan **Latitude** (contoh: -6.200000)
-   - Masukkan **Longitude** (contoh: 106.816666)
-   - Pin akan muncul otomatis di map
+   **Work Schedule:**
+   - **Start Time** (time picker, contoh: 08:00)
+   - **End Time** (time picker, contoh: 17:00)
+   - Total Hours akan otomatis calculated
+   
+   **Office Location:**
+   - **Latitude** (decimal, contoh: -6.200000)
+   - **Longitude** (decimal, contoh: 106.816666)
+   - **Check-In Radius** (dalam meter, contoh: 100)
 
-4. Set **radius area** (dalam meter):
-   - Default: 100 meter
-   - Recommended: 50-200 meter
-   - Lingkaran biru akan muncul menunjukkan coverage area
-5. Beri **nama lokasi** (contoh: "Kantor Pusat Jakarta")
-6. Klik **"Save Location"**
+3. Edit data yang perlu diubah
+4. Klik **"Save changes"** untuk update
+5. Company information berhasil diupdate
 
-### 🏢 Tambah Multiple Lokasi (untuk Cabang):
-1. Klik tombol **"+ Add Location"**
-2. Ulangi proses set lokasi seperti di atas
-3. Beri nama yang berbeda (contoh: "Kantor Cabang Surabaya")
-4. Assign karyawan ke lokasi tertentu
+### 📍 Set Office Location:
+**Cara 1: Input Manual Koordinat**
+1. Cari koordinat kantor di Google Maps
+2. Copy latitude dan longitude
+3. Paste ke field Latitude & Longitude
+4. Set check-in radius (recommended: 50-200 meter)
+5. Save
 
-**Parameter yang Diatur:**
-- 📍 **Latitude & Longitude:** Koordinat GPS kantor
-- 📏 **Radius:** Jarak maksimal Check In (default: 100m)
-- 🏷️ **Nama Lokasi:** Label untuk identifikasi
-- 👥 **Assigned Employees:** Karyawan yang boleh absen di lokasi ini
-- ⏰ **Active Hours:** Jam operasional lokasi
+**Cara 2: Gunakan Map Picker** (jika ada fitur map)
+1. Klik pada peta untuk set lokasi
+2. Pin akan muncul di lokasi yang dipilih
+3. Adjust radius dengan slider
+4. Save
+
+### ⏰ Set Work Schedule:
+1. Set **Start Time:** Jam masuk kerja (default: 08:00)
+2. Set **End Time:** Jam pulang kerja (default: 17:00)
+3. **Total Hours** akan otomatis calculated
+4. Contoh: 08:00 - 17:00 = 9 hours (dengan asumsi 1 jam break)
+5. Save changes
+
+**Parameter yang Dikelola:**
+
+### 🏢 Company Information:
+- **Company Name:** Nama perusahaan/organisasi
+- **Email:** Email official perusahaan
+- **Phone:** Nomor telepon perusahaan
+- **Address:** Alamat lengkap kantor
+
+### ⏰ Work Schedule:
+- **Start Time:** Jam mulai kerja (Check In)
+- **End Time:** Jam selesai kerja (Check Out)
+- **Total Hours:** Total jam kerja per hari
+
+### 📍 Office Location:
+- **Latitude:** Koordinat latitude (-90 to 90)
+- **Longitude:** Koordinat longitude (-180 to 180)
+- **Check-In Radius:** Jarak maksimal check in dari titik office (dalam meter)
+
+**Radius Check-In:**
+- Karyawan hanya bisa check in jika berada dalam radius yang ditentukan
+- Recommended: 50-200 meter tergantung luas area kantor
+- Contoh: Radius 100m = karyawan bisa check in dalam 100 meter dari titik kantor
 
 **Tips:**
-- Gunakan Google Maps untuk cari koordinat yang tepat
-- Set radius tidak terlalu kecil (min 50m) untuk toleransi GPS
-- Jika kantor besar, set radius 150-200m
-- Untuk WFH, buat lokasi "Work From Home" dengan radius lebih besar
-- Test lokasi dengan Check In di mobile app sebelum deploy
+- Gunakan Google Maps untuk dapatkan koordinat yang akurat
+- Set radius tidak terlalu kecil (minimal 50m) untuk toleransi akurasi GPS
+- Jika kantor besar/multi-building, set radius 150-200m
+- Update work schedule jika ada perubahan jam kerja
+- Pastikan data company selalu up-to-date untuk referensi karyawan
+
+**Multiple Companies:**
+- Jika sistem support multi-company, akan ada list companies
+- Setiap company punya setting work schedule dan location sendiri
+- Karyawan di-assign ke company tertentu
+- Admin bisa manage multiple companies dari satu dashboard
 
 ---
 
-## 9. Pengaturan Jadwal Kerja
+## 8. Logout
 
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `27-settings-schedule.png`, `28-settings-shift.png`, `29-settings-holiday.png`
-
-![Form Jadwal Kerja](docs/screenshots/web/27-settings-schedule.png)
-![Shift Management](docs/screenshots/web/28-settings-shift.png)
-![Set Hari Libur](docs/screenshots/web/29-settings-holiday.png)
-
-### 📝 Deskripsi
-**Modul untuk mengatur jadwal kerja, shift, dan hari libur**
-
-**Fungsi:**
-- Set jam kerja default (Check In & Check Out)
-- Atur shift kerja (untuk karyawan shift)
-- Tentukan hari kerja (Senin-Jumat, atau custom)
-- Input hari libur nasional dan libur perusahaan
-- Grace period untuk toleransi keterlambatan
-
-**Cara Pakai:**
-
-### ⏰ Set Jadwal Kerja Default:
-1. Dari menu sidebar, klik **"Settings"** → **"Work Schedule"**
-2. Set **jam kerja:**
-   - **Check In Time:** Jam masuk (contoh: 08:00)
-   - **Check Out Time:** Jam pulang (contoh: 17:00)
-   - **Break Time:** Durasi istirahat (contoh: 1 jam)
-3. Set **hari kerja:**
-   - Centang hari: Senin, Selasa, Rabu, Kamis, Jumat
-   - Atau custom (misal: Senin-Sabtu untuk retail)
-4. Set **grace period:**
-   - Toleransi keterlambatan (contoh: 15 menit)
-   - Karyawan tidak dihitung terlambat jika Check In di jam 08:00-08:15
-5. Klik **"Save Schedule"**
-
-### 🔄 Shift Management (untuk Shift Kerja):
-1. Klik tab **"Shift Schedule"**
-2. Klik **"+ Add Shift"**
-3. Buat shift baru:
-   - **Shift Pagi:** 07:00 - 15:00
-   - **Shift Siang:** 15:00 - 23:00
-   - **Shift Malam:** 23:00 - 07:00
-4. Assign karyawan ke shift tertentu
-5. Set rotasi shift (weekly / monthly)
-
-### 📅 Set Hari Libur:
-1. Klik tab **"Holidays"**
-2. Klik **"+ Add Holiday"**
-3. Input:
-   - **Tanggal libur**
-   - **Nama libur** (contoh: "Hari Raya Idul Fitri")
-   - **Jenis:** Nasional / Perusahaan / Cuti Bersama
-4. Klik **"Save"**
-5. Karyawan tidak perlu Check In di tanggal libur
-
-**Parameter yang Diatur:**
-- ⏰ **Jam Kerja:** Start & End time
-- 🔄 **Shift:** Multiple shift untuk operasional 24/7
-- 📆 **Hari Kerja:** Days of the week
-- ⏱️ **Grace Period:** Toleransi keterlambatan
-- 🏖️ **Holidays:** Libur nasional & perusahaan
-- ⏳ **Overtime Rules:** Aturan lembur
-
-**Tips:**
-- Set grace period 10-15 menit untuk toleransi reasonable
-- Update hari libur nasional setiap awal tahun
-- Untuk shift malam, pastikan set time range yang benar (23:00 → next day 07:00)
-- Export calendar jadwal untuk share ke karyawan
-
----
-
-## 10. Manajemen User & Role
-
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `30-user-list.png`, `31-user-add.png`, `32-user-permission.png`
-
-![List Admin Users](docs/screenshots/web/30-user-list.png)
-![Form Tambah Admin](docs/screenshots/web/31-user-add.png)
-![Permission Matrix](docs/screenshots/web/32-user-permission.png)
-
-### 📝 Deskripsi
-**Modul untuk mengelola user admin dan permission (hanya untuk Super Admin)**
-
-**Fungsi:**
-- Tambah admin baru untuk akses web
-- Set role dan permission
-- Manage access level (read/write/delete)
-- Monitor aktivitas admin
-- Security audit log
-
-**Cara Pakai:**
-
-### 👤 Tambah Admin Baru:
-1. Dari menu sidebar, klik **"Settings"** → **"User Management"**
-2. Klik **"+ Add Admin User"**
-3. Isi form:
-   - **Nama Admin**
-   - **Email** (untuk login)
-   - **Password** (temporary, wajib diganti saat first login)
-   - **Role:** Pilih salah satu
-     - 🔴 **Super Admin:** Full access
-     - 🟠 **HRD Admin:** Manage karyawan, approval, report
-     - 🟡 **Manager:** View report & monitoring
-     - 🟢 **Viewer:** Read-only access
-4. Klik **"Create Admin"**
-5. Email aktivasi dikirim ke admin baru
-
-### 🔐 Role & Permission Matrix:
-
-| Fitur | Super Admin | HRD Admin | Manager | Viewer |
-|-------|------------|-----------|---------|--------|
-| Dashboard | ✅ Full | ✅ Full | ✅ Full | ✅ Full |
-| Manage Karyawan | ✅ CRUD | ✅ CRUD | ❌ View Only | ❌ View Only |
-| Monitoring | ✅ Full | ✅ Full | ✅ View | ✅ View |
-| Approval Izin | ✅ Full | ✅ Full | ✅ Full | ❌ No Access |
-| Laporan | ✅ Export | ✅ Export | ✅ Export | ❌ View Only |
-| Settings | ✅ Full | ❌ No Access | ❌ No Access | ❌ No Access |
-| User Management | ✅ Full | ❌ No Access | ❌ No Access | ❌ No Access |
-
-### 📊 Activity Log:
-1. Klik tab **"Activity Log"**
-2. Lihat riwayat aktivitas semua admin:
-   - Siapa yang login
-   - Apa yang diubah
-   - Kapan terakhir akses
-   - IP Address & device
-
-**Tips:**
-- Hanya buat admin sesuai kebutuhan (principle of least privilege)
-- Gunakan role Manager untuk atasan divisi
-- Audit log secara berkala untuk security
-- Disable admin yang sudah tidak aktif
-- Enforce strong password policy
-
----
-
-## 11. Export Data & Report
-
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:**
-> - `33-export-menu.png`, `34-export-schedule.png`
-
-![Menu Export](docs/screenshots/web/33-export-menu.png)
-![Schedule Auto-Export](docs/screenshots/web/34-export-schedule.png)
-
-### 📝 Deskripsi
-**Fitur untuk export data dan report dalam berbagai format**
-
-**Fungsi:**
-- Export data kehadiran, karyawan, atau report
-- Multiple format: Excel, PDF, CSV
-- Schedule auto-export (daily/weekly/monthly)
-- Email report otomatis ke management
-
-**Cara Pakai:**
-
-### 📥 Manual Export:
-1. Dari halaman yang ingin di-export (Laporan, Monitoring, dll)
-2. Klik tombol **"Export"** di pojok kanan atas
-3. Pilih **data yang ingin di-export:**
-   - Current view (yang sedang tampil)
-   - All data (semua data)
-   - Custom selection
-4. Pilih **format:**
-   - **Excel (.xlsx):** Untuk data processing
-   - **PDF:** Untuk print atau archive
-   - **CSV:** Import ke sistem lain
-5. Klik **"Download"**
-6. File akan terdownload otomatis
-
-### 📅 Schedule Auto-Export:
-1. Dari menu sidebar, klik **"Settings"** → **"Export Schedule"**
-2. Klik **"+ Create Schedule"**
-3. Set parameter:
-   - **Report Type:** Kehadiran / Keterlambatan / Izin
-   - **Frequency:** Daily / Weekly / Monthly
-   - **Format:** Excel / PDF
-   - **Recipients:** Email tujuan (management, HRD, dll)
-   - **Schedule Time:** Kapan report dikirim (misal: setiap Senin jam 08:00)
-4. Klik **"Save Schedule"**
-5. Report akan otomatis generated dan dikirim via email sesuai jadwal
-
-**Format Export:**
-
-### 📊 Excel (.xlsx):
-- Multiple sheets (summary + detail)
-- Formula & calculation built-in
-- Chart & graph
-- Editable untuk analisis lanjutan
-
-### 📄 PDF:
-- Professional layout
-- Company header & logo
-- Signature placeholder
-- Print-ready
-
-### 📋 CSV:
-- Raw data
-- Import ke sistem payroll atau HR software lain
-- Comma-separated values
-
-**Tips:**
-- Export di akhir bulan untuk archive bulanan
-- Set auto-export untuk report rutin ke management
-- Gunakan Excel untuk data yang perlu di-process lebih lanjut
-- PDF untuk report resmi atau presentasi
-
----
-
-## 12. Pengaturan Sistem
-
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:** `35-backup-settings.png`
-
-![General Settings](docs/screenshots/web/35-backup-settings.png)
-
-### 📝 Deskripsi
-**Modul untuk konfigurasi sistem dan settings global**
-
-**Fungsi:**
-- Pengaturan umum aplikasi
-- Konfigurasi email & notification
-- Security & authentication settings
-- Backup & restore data
-- Integration dengan sistem lain (payroll, HR, dll)
-
-**Cara Pakai:**
-
-### ⚙️ General Settings:
-1. Dari menu sidebar, klik **"Settings"** → **"General"**
-2. Set parameter:
-   - **Company Name:** Nama perusahaan
-   - **Logo:** Upload logo perusahaan (untuk report & email)
-   - **Timezone:** Asia/Jakarta
-   - **Language:** Bahasa Indonesia / English
-   - **Date Format:** DD/MM/YYYY atau MM/DD/YYYY
-   - **Currency:** IDR
-3. Klik **"Save Changes"**
-
-### 📧 Email & Notification Settings:
-1. Klik tab **"Notifications"**
-2. Konfigurasi:
-   - **Email Server:** SMTP settings
-   - **Sender Email:** noreply@clockin.cloud
-   - **Notification Rules:**
-     - ✅ Send email saat approval izin
-     - ✅ Reminder Check In via push notification
-     - ✅ Daily report ke manager
-     - ✅ Alert untuk keterlambatan berulang
-
-### 🔒 Security Settings:
-1. Klik tab **"Security"**
-2. Set policy:
-   - **Password Policy:** Min 8 char, must include number
-   - **Session Timeout:** Auto logout setelah 30 menit idle
-   - **Two-Factor Authentication:** Wajib untuk admin
-   - **IP Whitelist:** Restrict akses dari IP tertentu saja
-   - **Audit Log:** Enable logging untuk semua aktivitas
-
-### 💾 Backup & Restore:
-1. Klik tab **"Backup"**
-2. Set **auto-backup:**
-   - Frequency: Daily (jam 02:00)
-   - Retention: Keep 30 days backup
-   - Storage: Cloud / Local server
-3. Manual backup:
-   - Klik **"Backup Now"** untuk backup immediate
-4. Restore:
-   - Pilih backup date
-   - Klik **"Restore"** (hati-hati, akan overwrite data current)
-
-**Tips:**
-- Test email notification setelah setup SMTP
-- Enable 2FA untuk semua admin
-- Schedule backup di jam tidak sibuk (malam hari)
-- Keep backup minimal 30 hari untuk recovery
-- Dokumentasikan semua perubahan settings
-
----
-
-## 13. Logout
-
-### 📸 Screenshot
-
-> **Simpan screenshot dengan nama file:** `36-logout-menu.png`
-
-![Menu Logout](docs/screenshots/web/36-logout-menu.png)
+![Menu Logout](docs/screenshots/web/signout.png)
 
 ### 📝 Deskripsi
 **Fitur untuk keluar dari sistem dan mengakhiri session admin**
@@ -810,29 +584,37 @@
 - Clear cache lokal
 
 **Cara Pakai:**
-1. Klik **avatar/profile icon** di pojok kanan atas
-2. Akan muncul dropdown menu
-3. Klik **"Logout"** atau **"Sign Out"**
-4. Muncul konfirmasi: "Yakin ingin keluar?"
+1. Klik **avatar/profile icon** atau nama user di pojok kanan atas
+2. Akan muncul dropdown menu dengan opsi:
+   - **Profile:** Lihat/edit profile admin
+   - **Settings:** Pengaturan akun
+   - **Logout:** Keluar dari sistem
+3. Klik **"Logout"**
+4. Muncul konfirmasi (optional): "Yakin ingin keluar?"
 5. Klik **"Ya"** atau **"Confirm"**
 6. Session berakhir, redirect ke halaman login
+7. Admin harus login ulang untuk akses sistem
 
 **Kapan Perlu Logout:**
-- Selesai menggunakan sistem
-- Mau ganti user/admin lain
-- Tinggalkan komputer di tempat publik
-- Akhir hari kerja
+- ✅ Selesai menggunakan sistem
+- ✅ Mau ganti user/admin lain
+- ✅ Tinggalkan komputer di tempat publik
+- ✅ Akhir hari kerja
+- ✅ Sebelum menutup browser
 
 **Best Practice:**
-- ✅ Selalu logout setelah selesai
+- ✅ Selalu logout setelah selesai bekerja
 - ✅ Jangan tinggalkan browser login tanpa logout
 - ✅ Clear browser cache jika menggunakan komputer publik
-- ✅ Logout otomatis setelah 30 menit idle
+- ✅ Logout otomatis setelah idle (biasanya 30-60 menit)
 
-**Tips:**
-- Set reminder untuk logout sebelum pulang
-- Jika lupa logout, session akan otomatis expire
-- Admin activity akan tercatat di log system
+**Security Tips:**
+- Jangan share session dengan orang lain
+- Logout jika meninggalkan komputer
+- Jangan save password di browser publik
+- Admin activity akan tercatat di audit log
+
+---
 
 ---
 
@@ -886,6 +668,60 @@ ClockIn+ comply dengan:
 
 **© 2025 ClockIn+ by Team Kelompok 4 Sehat 5 Sempurna**  
 *Ngoding sehat, hasil sempurna... kadang-kadang.* 😄
+
+---
+
+## 📋 Checklist Screenshot Web Admin
+
+Berikut adalah checklist screenshot yang perlu diambil untuk melengkapi manual ini:
+
+### ✅ Halaman Umum & Authentication
+- [ ] ~~`landing.png` - Landing page web~~ ✅ Sudah ada
+- [ ] ~~`landing2.png` - Landing page section 2~~ ✅ Sudah ada
+- [ ] ~~`landing3.png` - Landing page section 3~~ ✅ Sudah ada
+- [ ] ~~`login.png` - Halaman login~~ ✅ Sudah ada
+- [ ] ~~`dashboard.png` - Dashboard utama~~ ✅ Sudah ada
+
+### 📋 Employees (Manajemen Karyawan)
+- [ ] `employees-list.png` - Halaman list karyawan dengan tabel
+- [ ] `employees-create.png` - Form tambah karyawan baru
+- [ ] `employees-detail.png` - Halaman view detail karyawan
+- [ ] `employees-edit.png` - Form edit data karyawan
+
+### ⏰ Attendances (Data Kehadiran)
+- [ ] `attendances-list.png` - Halaman list data kehadiran
+- [ ] `attendances-detail.png` - Halaman detail satu record attendance
+- [ ] `attendances-filter.png` - Tampilan dengan filter aktif
+
+### 📝 Leave Requests (Pengajuan Izin & Cuti)
+- [ ] `leave-requests-list.png` - Halaman list pengajuan
+- [ ] `leave-requests-detail.png` - Detail satu pengajuan
+- [ ] `leave-requests-create.png` - Form create leave request (jika ada)
+- [ ] `leave-requests-edit.png` - Form edit pengajuan
+
+### 🏢 My Company (Pengaturan Perusahaan)
+- [ ] `company-list.png` - List companies (jika multi-company)
+- [ ] `company-view.png` - View detail company (sudah ada sebagai dashboard.JPG)
+- [ ] `company-edit.png` - Form edit company information
+
+### 🚪 Logout
+- [ ] `logout-menu.png` - Dropdown menu dengan opsi logout
+
+**Cara Mengambil Screenshot:**
+1. Login ke web admin di browser
+2. Navigate ke halaman yang akan di-screenshot
+3. Gunakan Snipping Tool (Windows) atau Screenshot tool lainnya
+4. Ambil screenshot full page atau specific section
+5. Save dengan nama file sesuai checklist di atas
+6. Simpan di folder: `docs/screenshots/web/`
+7. Pastikan resolusi cukup clear (minimal 1366x768)
+
+**Tips Screenshot:**
+- Gunakan data dummy yang realistis
+- Pastikan tidak ada data sensitive/real di screenshot
+- Ambil screenshot dalam mode light/dark (sesuai design)
+- Crop jika perlu untuk fokus ke bagian penting
+- Hindari screenshot dengan error/loading state
 
 ---
 
