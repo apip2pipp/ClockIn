@@ -1,7 +1,7 @@
 import laravel from "laravel-vite-plugin";
 import { defineConfig } from "vite";
 
-const currentIP = "192.168.18.126";
+const currentIP = "https://clockin.cloud";
 
 export default defineConfig({
     plugins: [
