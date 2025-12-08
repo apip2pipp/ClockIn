@@ -28,7 +28,7 @@ class ViewAttendance extends ViewRecord
                 ->label('Validate')
                 ->color('success')
                 ->icon('heroicon-o-check-circle')
-                ->visible(fn ($record) => $record->is_valid !== 'valid')
+                ->visible(fn($record) => $record->is_valid !== 'valid')
                 ->requiresConfirmation()
                 ->action(function ($record) {
                     // update the record (same logic as before)
@@ -53,7 +53,7 @@ class ViewAttendance extends ViewRecord
                 ->label('Invalidate')
                 ->color('danger')
                 ->icon('heroicon-o-x-circle')
-                ->visible(fn ($record) => $record->is_valid !== 'invalid')
+                ->visible(fn($record) => $record->is_valid !== 'invalid')
                 ->form([
                     Forms\Components\Textarea::make('validation_notes')
                         ->label('Reason')
@@ -113,7 +113,7 @@ class ViewAttendance extends ViewRecord
                             ->size('lg'),
                         Infolists\Components\TextEntry::make('status')
                             ->badge()
-                            ->color(fn (string $state): string => match ($state) {
+                            ->color(fn(string $state): string => match ($state) {
                                 'on_time' => 'success',
                                 'late' => 'warning',
                                 'half_day' => 'info',
@@ -123,12 +123,12 @@ class ViewAttendance extends ViewRecord
                             ->label('Validation')
                             ->badge()
                             ->size('lg')
-                            ->color(fn (string $state): string => match ($state) {
+                            ->color(fn(string $state): string => match ($state) {
                                 'valid' => 'success',
                                 'invalid' => 'danger',
                                 'pending' => 'gray',
                             })
-                            ->formatStateUsing(fn (string $state): string => match ($state) {
+                            ->formatStateUsing(fn(string $state): string => match ($state) {
                                 'valid' => 'Valid ✓',
                                 'invalid' => 'Invalid ✗',
                                 'pending' => 'Pending Review',
@@ -144,7 +144,8 @@ class ViewAttendance extends ViewRecord
                             ->icon('heroicon-m-clock'),
                         Infolists\Components\TextEntry::make('clock_in_location')
                             ->label('Location')
-                            ->state(fn ($record) =>
+                            ->state(
+                                fn($record) =>
                                 $record->clock_in_latitude && $record->clock_in_longitude
                                     ? "{$record->clock_in_latitude}, {$record->clock_in_longitude}"
                                     : 'Not available'
@@ -153,12 +154,14 @@ class ViewAttendance extends ViewRecord
                             ->icon('heroicon-m-map-pin'),
                         Infolists\Components\TextEntry::make('clock_in_maps')
                             ->label('View on Map')
-                            ->state(fn ($record) =>
+                            ->state(
+                                fn($record) =>
                                 $record->clock_in_latitude && $record->clock_in_longitude
                                     ? "Open in Google Maps"
                                     : 'Not available'
                             )
-                            ->url(fn ($record) =>
+                            ->url(
+                                fn($record) =>
                                 $record->clock_in_latitude && $record->clock_in_longitude
                                     ? "https://maps.google.com/?q={$record->clock_in_latitude},{$record->clock_in_longitude}"
                                     : null
@@ -166,10 +169,26 @@ class ViewAttendance extends ViewRecord
                             ->openUrlInNewTab()
                             ->icon('heroicon-m-globe-alt')
                             ->color('primary'),
-                        Infolists\Components\ImageEntry::make('clock_in_photo')
+
+                        Infolists\Components\TextEntry::make('clock_in_photo')
                             ->label('Photo')
-                            ->height(200)
+                            ->html()
+                            ->formatStateUsing(function ($state) {
+                                if (!$state) {
+                                    return '<span class="text-gray-500">No photo available</span>';
+                                }
+
+                                // Jika sudah ada prefix data:image, langsung pakai
+                                if (str_starts_with($state, 'data:image')) {
+                                    return '<img src="' . $state . '" style="max-width: 100%; height: 300px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />';
+                                }
+
+                                // Jika hanya base64 string (tanpa prefix), tambahkan prefix
+                                // Default ke image/jpeg, bisa disesuaikan
+                                return '<img src="data:image/jpeg;base64,' . $state . '" style="max-width: 100%; height: 300px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />';
+                            })
                             ->columnSpanFull(),
+
                         Infolists\Components\TextEntry::make('clock_in_notes')
                             ->label('Notes')
                             ->default('No notes')
@@ -186,7 +205,8 @@ class ViewAttendance extends ViewRecord
                             ->icon('heroicon-m-clock'),
                         Infolists\Components\TextEntry::make('work_duration')
                             ->label('Work Duration')
-                            ->formatStateUsing(fn ($state) =>
+                            ->formatStateUsing(
+                                fn($state) =>
                                 $state ? floor($state / 60) . ' hours ' . ($state % 60) . ' minutes' : 'Not yet calculated'
                             )
                             ->badge()
@@ -194,7 +214,8 @@ class ViewAttendance extends ViewRecord
                             ->icon('heroicon-m-calendar-days'),
                         Infolists\Components\TextEntry::make('clock_out_location')
                             ->label('Location')
-                            ->state(fn ($record) =>
+                            ->state(
+                                fn($record) =>
                                 $record->clock_out_latitude && $record->clock_out_longitude
                                     ? "{$record->clock_out_latitude}, {$record->clock_out_longitude}"
                                     : 'Not available'
@@ -203,12 +224,14 @@ class ViewAttendance extends ViewRecord
                             ->icon('heroicon-m-map-pin'),
                         Infolists\Components\TextEntry::make('clock_out_maps')
                             ->label('View on Map')
-                            ->state(fn ($record) =>
+                            ->state(
+                                fn($record) =>
                                 $record->clock_out_latitude && $record->clock_out_longitude
                                     ? "Open in Google Maps"
                                     : 'Not available'
                             )
-                            ->url(fn ($record) =>
+                            ->url(
+                                fn($record) =>
                                 $record->clock_out_latitude && $record->clock_out_longitude
                                     ? "https://maps.google.com/?q={$record->clock_out_latitude},{$record->clock_out_longitude}"
                                     : null
@@ -216,19 +239,35 @@ class ViewAttendance extends ViewRecord
                             ->openUrlInNewTab()
                             ->icon('heroicon-m-globe-alt')
                             ->color('primary'),
-                        Infolists\Components\ImageEntry::make('clock_out_photo')
+
+                        Infolists\Components\TextEntry::make('clock_out_photo')
                             ->label('Photo')
-                            ->height(200)
+                            ->html()
+                            ->formatStateUsing(function ($state) {
+                                if (!$state) {
+                                    return '<span class="text-gray-500">No photo available</span>';
+                                }
+
+                                // Jika sudah ada prefix data:image, langsung pakai
+                                if (str_starts_with($state, 'data:image')) {
+                                    return '<img src="' . $state . '" style="max-width: 100%; height: 300px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />';
+                                }
+
+                                // Jika hanya base64 string, tambahkan prefix
+                                return '<img src="data:image/jpeg;base64,' . $state . '" style="max-width: 100%; height: 300px; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />';
+                            })
                             ->columnSpanFull()
-                            ->visible(fn ($record) => $record->clock_out_photo !== null),
+                            ->visible(fn($record) => $record->clock_out_photo !== null),
+
                         Infolists\Components\TextEntry::make('clock_out_notes')
                             ->label('Notes')
                             ->default('No notes')
                             ->columnSpanFull()
-                            ->visible(fn ($record) => $record->clock_out !== null),
+                            ->visible(fn($record) => $record->clock_out !== null),
                     ])
                     ->columns(4)
-                    ->visible(fn ($record) => $record->clock_out !== null),
+                    ->visible(fn($record) => $record->clock_out !== null),
+
 
                 Infolists\Components\Section::make('Validation Information')
                     ->schema([
@@ -245,7 +284,7 @@ class ViewAttendance extends ViewRecord
                             ->default('Not yet validated'),
                     ])
                     ->columns(2)
-                    ->visible(fn ($record) => $record->is_valid !== 'pending'),
+                    ->visible(fn($record) => $record->is_valid !== 'pending'),
             ]);
     }
 }
