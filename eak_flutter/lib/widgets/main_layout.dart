@@ -27,55 +27,36 @@ class _MainLayoutState extends State<MainLayout> {
         listen: false,
       );
 
-      // print('🔘 Clock button tapped');
-      // print('   todayAttendance: ${attendanceProvider.todayAttendance}');
-      // print('   clockOut: ${attendanceProvider.todayAttendance?.clockOut}');
-
       final todayAttendance = attendanceProvider.todayAttendance;
 
       // If no attendance today, navigate to Clock In
       if (todayAttendance == null) {
-        // print('➡️ Navigate to Clock In Screen');
-        
         await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ClockInScreen()),
         );
 
+        // ✅ REFRESH setelah kembali dari Clock In
         if (mounted) {
-          // print('🔄 Refreshing attendance after Clock In...');
           await attendanceProvider.loadTodayAttendance();
-          
-          // print('✅ Refresh complete!');
-          // print('   todayAttendance: ${attendanceProvider.todayAttendance}');
-          // print('   clockOut: ${attendanceProvider.todayAttendance?.clockOut}');
-          
-          setState(() {});
+          setState(() {}); // ← PENTING! Force rebuild
         }
       }
       // If clocked in but not clocked out, navigate to Clock Out
       else if (todayAttendance.clockOut == null) {
-        print('➡️ Navigate to Clock Out Screen');
-        
         await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ClockOutScreen()),
         );
 
+        // ✅ REFRESH setelah kembali dari Clock Out
         if (mounted) {
-          // print('🔄 Refreshing attendance after Clock Out...');
           await attendanceProvider.loadTodayAttendance();
-          
-          // print('✅ Refresh complete!');
-          // print('   todayAttendance: ${attendanceProvider.todayAttendance}');
-          // print('   clockOut: ${attendanceProvider.todayAttendance?.clockOut}');
-          
-          setState(() {});
+          setState(() {}); // ← PENTING! Force rebuild
         }
       }
       // If already clocked out, do nothing
       else {
-        // print('⏹️ Already clocked out - Do nothing');
         return;
       }
 
@@ -121,13 +102,10 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Widget _buildBottomNavBar() {
+    // ✅ WRAP DENGAN CONSUMER untuk auto-rebuild
     return Consumer<AttendanceProvider>(
       builder: (context, attendanceProvider, child) {
         final todayAttendance = attendanceProvider.todayAttendance;
-
-        // print('🔄 _buildBottomNavBar rebuild');
-        // print('   todayAttendance: $todayAttendance');
-        // print('   clockOut: ${todayAttendance?.clockOut}');
 
         return Container(
           height: 80,
@@ -220,11 +198,6 @@ class _MainLayoutState extends State<MainLayout> {
       label = 'In';
       icon = Icons.login;
     }
-
-    // print('🔘 Clock button state:');
-    // print('   Label: $label');
-    // print('   isClockOut: $isClockOut');
-    // print('   isDone: $isDone');
 
     return GestureDetector(
       onTap: isDone ? null : () => _onNavItemTapped(2),
