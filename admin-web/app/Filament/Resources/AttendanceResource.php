@@ -236,9 +236,16 @@ class AttendanceResource extends Resource
     {
         $user = Auth::user();
 
-        return parent::getEloquentQuery()
-            ->where('company_id', $user->company_id ?? 0)
+        $query = parent::getEloquentQuery()
             ->with(['user', 'company', 'validator']);
+
+        // Super Admin bisa lihat semua attendances
+        if ($user->role === 'super_admin') {
+            return $query;
+        }
+
+        // Company Admin & Employee hanya bisa lihat attendances dari company mereka
+        return $query->where('company_id', $user->company_id);
     }
 
     public static function getRelations(): array

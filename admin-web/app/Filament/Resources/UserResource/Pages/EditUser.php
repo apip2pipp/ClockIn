@@ -17,7 +17,8 @@ class EditUser extends EditRecord
         
         $user = Auth::user();
         
-        if ($user->company_id !== $this->record->company_id) {
+        // Super Admin bisa edit semua, Company Admin hanya bisa edit dari company mereka
+        if ($user->role !== 'super_admin' && $user->company_id !== $this->record->company_id) {
             abort(403, 'You are not authorized to edit this employee.');
         }
     }

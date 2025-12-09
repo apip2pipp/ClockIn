@@ -19,7 +19,8 @@ class ViewUser extends ViewRecord
         
         $user = Auth::user();
         
-        if ($user->company_id !== $this->record->company_id) {
+        // Super Admin bisa view semua, Company Admin hanya bisa view dari company mereka
+        if ($user->role !== 'super_admin' && $user->company_id !== $this->record->company_id) {
             abort(403, 'You are not authorized to view this employee.');
         }
     }

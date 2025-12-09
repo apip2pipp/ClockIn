@@ -21,7 +21,8 @@ class EditCompany extends EditRecord
             abort(403, 'You are not authorized to edit company information.');
         }
         
-        if ($user->company_id !== $this->record->id) {
+        // Super Admin bisa edit semua company, Company Admin hanya bisa edit company mereka
+        if ($user->role !== 'super_admin' && $user->company_id !== $this->record->id) {
             abort(403, 'You are not authorized to edit this company.');
         }
     }

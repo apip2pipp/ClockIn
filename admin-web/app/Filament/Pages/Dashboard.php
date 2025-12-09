@@ -3,7 +3,8 @@
 namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
-// logic untuk dashboard 
+use Illuminate\Support\Facades\Auth;
+
 class Dashboard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
@@ -23,19 +24,35 @@ class Dashboard extends Page
         // Ambil data chart
         $this->attendanceChartData = $this->getAttendanceChartData();
 
-        // Dashboard stats
-        $this->totalEmployees = \App\Models\User::count();
-        $this->newEmployees = \App\Models\User::where('created_at', '>=', now()->subMonth())->count();
-        $this->resignedEmployees = \App\Models\User::where('is_active', false)->count();
-        $this->jobApplicants = \App\Models\User::where('is_active', 0)->count() ?? 0;
+        // Dashboard stats dengan filter company
+        $user = Auth::user();
+        $userQuery = \App\Models\User::query();
+
+        // Company Admin hanya lihat data dari company mereka
+        if ($user->role !== 'super_admin') {
+            $userQuery->where('company_id', $user->company_id);
+        }
+
+        $this->totalEmployees = $userQuery->count();
+        $this->newEmployees = (clone $userQuery)->where('created_at', '>=', now()->subMonth())->count();
+        $this->resignedEmployees = (clone $userQuery)->where('is_active', false)->count();
+        $this->jobApplicants = (clone $userQuery)->where('is_active', 0)->count() ?? 0;
     }
 
     // Fungsi untuk membuat attendance hari ini untuk semua user aktif jika belum ada
     protected function createTodayAttendanceForActiveUsers()
     {
         $today = now()->toDateString();
+        $user = Auth::user();
 
-        $users = \App\Models\User::where('is_active', 1)->get();
+        $usersQuery = \App\Models\User::where('is_active', 1);
+
+        // Company Admin hanya create attendance untuk user di company mereka
+        if ($user->role !== 'super_admin') {
+            $usersQuery->where('company_id', $user->company_id);
+        }
+
+        $users = $usersQuery->get();
 
         foreach ($users as $user) {
             $attendance = \App\Models\Attendance::where('user_id', $user->id)
@@ -58,11 +75,23 @@ class Dashboard extends Page
     {
         $startDate = now()->subDays(6)->startOfDay();
         $endDate = now()->endOfDay();
+        $user = Auth::user();
 
-        $totalUsers = \App\Models\User::count();
+        // Total users dengan filter company
+        $totalUsersQuery = \App\Models\User::query();
+        if ($user->role !== 'super_admin') {
+            $totalUsersQuery->where('company_id', $user->company_id);
+        }
+        $totalUsers = $totalUsersQuery->count();
 
-        // Ambil data attendance real dari DB
-        $records = \App\Models\Attendance::whereBetween('clock_in', [$startDate, $endDate])
+        // Ambil data attendance dengan filter company
+        $attendanceQuery = \App\Models\Attendance::whereBetween('clock_in', [$startDate, $endDate]);
+        
+        if ($user->role !== 'super_admin') {
+            $attendanceQuery->where('company_id', $user->company_id);
+        }
+
+        $records = $attendanceQuery
             ->selectRaw('DATE(clock_in) AS date, status, COUNT(*) AS total')
             ->groupBy('date', 'status')
             ->orderBy('date')

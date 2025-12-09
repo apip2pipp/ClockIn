@@ -21,8 +21,8 @@ class ViewCompany extends ViewRecord
         
         $user = Auth::user();
         
-        // Pastikan user hanya bisa akses company mereka sendiri
-        if ($user->company_id !== $this->record->id) {
+        // Super Admin bisa view semua company, Company Admin hanya bisa view company mereka
+        if ($user->role !== 'super_admin' && $user->company_id !== $this->record->id) {
             abort(403, 'You are not authorized to view this company.');
         }
     }

@@ -90,9 +90,16 @@ class LeaveRequestResource extends Resource
     {
         $user = Auth::user();
 
-        return parent::getEloquentQuery()
-            ->where('company_id', $user->company_id ?? 0)
+        $query = parent::getEloquentQuery()
             ->with(['user', 'approver']);
+
+        // Super Admin bisa lihat semua leave requests
+        if ($user->role === 'super_admin') {
+            return $query;
+        }
+
+        // Company Admin & Employee hanya bisa lihat leave requests dari company mereka
+        return $query->where('company_id', $user->company_id);
     }
 
     public static function getRelations(): array

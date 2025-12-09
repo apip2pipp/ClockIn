@@ -274,8 +274,14 @@ class UserResource extends Resource implements
     {
         $user = Auth::user();
 
+        // Super Admin bisa lihat semua users
+        if ($user->role === 'super_admin') {
+            return parent::getEloquentQuery();
+        }
+
+        // Company Admin & Employee hanya bisa lihat users dari company mereka
         return parent::getEloquentQuery()
-            ->where('company_id', $user->company_id ?? 0);
+            ->where('company_id', $user->company_id);
     }
 
     public static function getRelations(): array
