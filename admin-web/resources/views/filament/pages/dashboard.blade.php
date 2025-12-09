@@ -149,13 +149,13 @@
                         <p class="text-2xl font-bold text-green-600 dark:text-green-400">
                             {{ $todayData['onTime'] }}
                         </p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">On Time</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">On Times</p>
                     </div>
                     <div class="text-center p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
                         <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
                             {{ $todayData['late'] }}
                         </p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Late</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Lates</p>
                     </div>
                     <div class="text-center p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20">
                         <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">

@@ -3,7 +3,7 @@
 namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
-
+// logic untuk dashboard 
 class Dashboard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
@@ -30,6 +30,7 @@ class Dashboard extends Page
         $this->jobApplicants = \App\Models\User::where('is_active', 0)->count() ?? 0;
     }
 
+    // Fungsi untuk membuat attendance hari ini untuk semua user aktif jika belum ada
     protected function createTodayAttendanceForActiveUsers()
     {
         $today = now()->toDateString();
