@@ -21,157 +21,140 @@ class MainLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: child,
-      bottomNavigationBar: _buildBottomNavBar(context),
-      floatingActionButton: _buildFloatingClockInButton(context),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _ModernBottomNavBar(selectedIndex: selectedIndex),
     );
   }
+}
 
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: BottomAppBar(
-        color: Colors.white,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: SizedBox(
-          height: 65,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // Home
-              _buildNavItem(
-                context: context,
-                icon: Icons.home,
-                label: 'Home',
-                index: 0,
-                onTap: () => _navigateTo(context, 0),
-              ),
+class _ModernBottomNavBar extends StatelessWidget {
+  final int selectedIndex;
 
-              // History
-              _buildNavItem(
-                context: context,
-                icon: Icons.access_time,
-                label: 'History',
-                index: 1,
-                onTap: () => _navigateTo(context, 1),
-              ),
+  const _ModernBottomNavBar({required this.selectedIndex});
 
-              // SPACER untuk Clock In Button di tengah
-              const SizedBox(width: 60),
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AttendanceProvider>(
+      builder: (context, attendanceProvider, _) {
+        final todayAttendance = attendanceProvider.todayAttendance;
 
-              // Leave Request
-              _buildNavItem(
-                context: context,
-                icon: Icons.note_alt_outlined,
-                label: 'Leave',
-                index: 2,
-                onTap: () => _navigateTo(context, 2),
-              ),
+        final bool canClockIn = todayAttendance == null;
+        final bool canClockOut =
+            todayAttendance != null && todayAttendance.clockOut == null;
+        final bool doneToday =
+            todayAttendance != null && todayAttendance.clockOut != null;
 
-              // Profile
-              _buildNavItem(
-                context: context,
-                icon: Icons.person,
-                label: 'Profile',
-                index: 3,
-                onTap: () => _navigateTo(context, 3),
+        return Container(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 18,
+                offset: const Offset(0, -6),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required int index,
-    required VoidCallback onTap,
-  }) {
-    final isSelected = selectedIndex == index;
-
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? const Color(0xFF26667F) : Colors.grey,
-              size: 26,
+          child: Container(
+            height: 68,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(26),
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? const Color(0xFF26667F) : Colors.grey,
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _NavItem(
+                  icon: Icons.home_filled,
+                  label: 'Home',
+                  index: 0,
+                  selectedIndex: selectedIndex,
+                  onTap: () => _navigateTo(context, 0),
+                ),
+                _NavItem(
+                  icon: Icons.access_time,
+                  label: 'History',
+                  index: 1,
+                  selectedIndex: selectedIndex,
+                  onTap: () => _navigateTo(context, 1),
+                ),
+
+                // Tombol tengah (Clock In/Out) mirip referensi
+                GestureDetector(
+                  onTap: doneToday
+                      ? null
+                      : () async {
+                          Widget target;
+                          if (canClockIn) {
+                            target = const ClockInScreen();
+                          } else if (canClockOut) {
+                            target = const ClockOutScreen();
+                          } else {
+                            return;
+                          }
+
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => target),
+                          );
+
+                          if (context.mounted && result != false) {
+                            await attendanceProvider.loadTodayAttendance();
+                          }
+                        },
+                  child: Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFF80CE70), // hijau
+                          Color(0xFF26667F), // biru
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF26667F,
+                          ).withValues(alpha: 0.35),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      doneToday
+                          ? Icons.check
+                          : (canClockIn ? Icons.login : Icons.logout),
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ),
+                ),
+
+                _NavItem(
+                  icon: Icons.note_alt_outlined,
+                  label: 'Leave',
+                  index: 2,
+                  selectedIndex: selectedIndex,
+                  onTap: () => _navigateTo(context, 2),
+                ),
+                _NavItem(
+                  icon: Icons.person_outline,
+                  label: 'Profile',
+                  index: 3,
+                  selectedIndex: selectedIndex,
+                  onTap: () => _navigateTo(context, 3),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingClockInButton(BuildContext context) {
-    return Consumer<AttendanceProvider>(
-      builder: (context, attendanceProvider, child) {
-        final todayAttendance = attendanceProvider.todayAttendance;
-
-        final IconData icon;
-        final Color bgColor;
-        final Widget targetScreen;
-
-        if (todayAttendance == null) {
-          // Belum clock in hari ini
-          icon = Icons.login;
-          bgColor = const Color(0xFF80CE70); // Hijau
-          targetScreen = const ClockInScreen();
-        } else if (todayAttendance.clockOut == null) {
-          // Sudah clock in, belum clock out
-          icon = Icons.logout;
-          bgColor = Colors.orange; // Orange
-          targetScreen = const ClockOutScreen();
-        } else {
-          // Sudah clock in DAN clock out
-          icon = Icons.check;
-          bgColor = Colors.grey; // Abu-abu (disabled)
-          targetScreen = const HomeScreen(); // Dummy, tidak akan dipanggil
-        }
-
-        return FloatingActionButton(
-          onPressed: todayAttendance?.clockOut != null
-              ? null // ✅ Disable jika sudah clock out
-              : () async {
-                  // ✅ Navigate ke screen yang sesuai
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => targetScreen),
-                  );
-
-                  // ✅ Reload attendance SETELAH kembali dari screen
-                  if (context.mounted && result != false) {
-                    await attendanceProvider.loadTodayAttendance();
-                  }
-                },
-          backgroundColor: bgColor,
-          elevation: 8,
-          child: Icon(icon, color: Colors.white, size: 30),
+          ),
         );
       },
     );
@@ -204,6 +187,58 @@ class MainLayout extends StatelessWidget {
         pageBuilder: (context, animation, secondaryAnimation) => screen,
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int index;
+  final int selectedIndex;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.index,
+    required this.selectedIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isSelected = index == selectedIndex;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: SizedBox(
+        width: 60,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: isSelected
+                  ? const Color(0xFF26667F)
+                  : const Color(0xFF9CA3AF),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                color: isSelected
+                    ? const Color(0xFF26667F)
+                    : const Color(0xFF9CA3AF),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

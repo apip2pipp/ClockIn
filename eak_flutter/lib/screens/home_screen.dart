@@ -23,8 +23,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Timer _timer;
   String _currentTime = '';
-  String _selectedZone = 'WIB';
   List<Map<String, dynamic>> _leaveRequests = [];
+  int _bottomTabIndex = 0; // 0 = Attendance, 1 = My Leaves, 2 = Notifications
 
   @override
   void initState() {
@@ -49,34 +49,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadLeaveRequests() async {
-    try {
-      final token = await AuthProvider.getToken();
+    final token = await AuthProvider.getToken();
+    final url = ApiConfig.leaveUrl;
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+    );
 
-      if (token == null || token.isEmpty) {
-        return;
-      }
-
-      final response = await http.get(
-        Uri.parse(ApiConfig.leaveUrl),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final leaveRequests = data['leave_requests'] as List;
-
-        setState(() {
-          _leaveRequests = leaveRequests
-              .take(3)
-              .map((req) => req as Map<String, dynamic>)
-              .toList();
-        });
-      }
-    } catch (e) {
-      debugPrint('❌ Error loading leave requests: $e');
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      final leaveRequests = data['leave_requests'] as List;
+      setState(() {
+        _leaveRequests = leaveRequests
+            .take(10)
+            .map((req) => req as Map<String, dynamic>)
+            .toList();
+      });
     }
   }
 
@@ -86,19 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _updateTime() {
-    DateTime now = DateTime.now();
-
-    switch (_selectedZone) {
-      case 'WITA':
-        now = now.add(const Duration(hours: 1));
-        break;
-      case 'WIT':
-        now = now.add(const Duration(hours: 2));
-        break;
-      default:
-        break;
-    }
-
+    final now = DateTime.now();
     setState(() {
       _currentTime = DateFormat('HH:mm').format(now);
     });
@@ -110,608 +86,572 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedIndex: 0,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
-        body: Stack(
-          children: [
-            // Main Content
-            SafeArea(
-              child: Consumer2<AuthProvider, AttendanceProvider>(
-                builder: (context, authProvider, attendanceProvider, child) {
-                  final user = authProvider.user;
-                  final company = authProvider.company;
-                  final todayAttendance = attendanceProvider.todayAttendance;
+        body: SafeArea(
+          child: Consumer2<AuthProvider, AttendanceProvider>(
+            builder: (context, authProvider, attendanceProvider, child) {
+              final user = authProvider.user;
+              final company = authProvider.company;
+              final todayAttendance = attendanceProvider.todayAttendance;
 
-                  if (attendanceProvider.isLoading && todayAttendance == null) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+              if (attendanceProvider.isLoading && todayAttendance == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                  return CustomScrollView(
-                    slivers: [
-                      // Header with ClockIn logo and profile button
-                      _buildHeader(context),
-
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.all(25),
-                          child: Column(
-                            children: [
-                              // Gradient Card with User Info and Clock
-                              _buildGradientCard(
-                                user,
-                                company,
-                                todayAttendance,
-                              ),
-
-                              const SizedBox(height: 30),
-
-                              // Attendance Status Card
-                              _buildAttendanceCard(todayAttendance),
-
-                              const SizedBox(height: 30),
-
-                              // Leave Requests Card
-                              _buildLeaveRequestsCard(),
-
-                              const SizedBox(height: 30),
-
-                              // Action Buttons Grid
-                              _buildActionGrid(),
-
-                              const SizedBox(
-                                height: 100,
-                              ), // Space for floating button
-                            ],
-                          ),
-                        ),
+              return Column(
+                children: [
+                  _buildTopHeader(context),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
                       ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return SliverAppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      pinned: true,
-      toolbarHeight: 80,
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF80CE70), Color(0xFF26667F)],
-          ),
-          border: Border(
-            bottom: BorderSide(
-              color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
-              width: 0.6,
-            ),
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 15),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // ClockIn Logo
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 47,
-                      height: 47,
-                      child: Image.asset(
-                        'assets/icon_login.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Text(
-                      'ClockIn',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 25,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Profile Button
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ProfileScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.person_outline,
-                      color: Colors.white,
-                      size: 25,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGradientCard(user, company, todayAttendance) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF80CE70), Color(0xFF26667F)],
-        ),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
-          width: 0.6,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(25),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // User Info
-            Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: CircleAvatar(
-                    radius: 28,
-                    backgroundImage: user?.photoUrl != null
-                        ? NetworkImage(user!.photoUrl)
-                        : null,
-                    child: user?.photoUrl == null
-                        ? const Icon(Icons.person, size: 28)
-                        : null,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Halo, ${user?.name ?? 'User'}!',
-                        style: const TextStyle(
-                          fontSize: 22.5,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF181F3E),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        company?.name ?? 'PT. Example',
-                        style: const TextStyle(
-                          fontSize: 17.5,
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Date
-            Text(
-              DateFormat('EEEE, d MMMM y', 'id_ID').format(DateTime.now()),
-              style: const TextStyle(fontSize: 15, color: Colors.white),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Clock Circle
-            Center(
-              child: Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 8,
-                  ),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _currentTime,
-                        style: const TextStyle(
-                          fontSize: 35,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      // Timezone Selector
-                      Container(
-                        height: 24,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE5E7EB).withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _selectedZone,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[700],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            PopupMenuButton<String>(
-                              icon: Icon(
-                                Icons.arrow_drop_down,
-                                size: 15,
-                                color: Colors.grey[700],
-                              ),
-                              padding: EdgeInsets.zero,
-                              onSelected: (value) {
-                                setState(() {
-                                  _selectedZone = value;
-                                  _updateTime();
-                                });
-                              },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                  value: 'WIB',
-                                  child: Text('WIB'),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'WITA',
-                                  child: Text('WITA'),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'WIT',
-                                  child: Text('WIT'),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAttendanceCard(todayAttendance) {
-    final clockInTime = todayAttendance != null
-        ? DateFormat('HH:mm').format(todayAttendance.clockIn)
-        : '--:--';
-    final clockOutTime = todayAttendance?.clockOut != null
-        ? DateFormat('HH:mm').format(todayAttendance.clockOut!)
-        : '--:--';
-    final duration = todayAttendance?.clockOut != null
-        ? todayAttendance.formattedWorkDuration
-        : '--';
-
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: const Color(0xFFE5E7EB).withValues(alpha: 0.4),
-          width: 0.6,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-          child: Padding(
-            padding: const EdgeInsets.all(25),
-            child: Column(
-              children: [
-                // Icon
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF26667F).withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.access_time,
-                    color: Color(0xFF26667F),
-                    size: 30,
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Clock In
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Clock In:',
-                      style: TextStyle(
-                        fontSize: 17.5,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF181F3E).withValues(alpha: 0.7),
-                      ),
-                    ),
-                    Text(
-                      clockInTime,
-                      style: const TextStyle(
-                        fontSize: 22.5,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF181F3E),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 15),
-
-                // Clock Out
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Clock Out:',
-                      style: TextStyle(
-                        fontSize: 17.5,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF181F3E).withValues(alpha: 0.7),
-                      ),
-                    ),
-                    Text(
-                      clockOutTime,
-                      style: const TextStyle(
-                        fontSize: 22.5,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF181F3E),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // Divider
-                Divider(
-                  color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
-                  thickness: 0.6,
-                ),
-
-                const SizedBox(height: 15),
-
-                // Duration
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Durasi:',
-                      style: TextStyle(
-                        fontSize: 17.5,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF181F3E).withValues(alpha: 0.7),
-                      ),
-                    ),
-                    Text(
-                      duration,
-                      style: const TextStyle(
-                        fontSize: 22.5,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF124170),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLeaveRequestsCard() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: const Color(0xFFE5E7EB).withValues(alpha: 0.4),
-          width: 0.6,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-          child: Padding(
-            padding: const EdgeInsets.all(25),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
+                      child: Column(
                         children: [
-                          Container(
-                            width: 45,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFFFFA726,
-                              ).withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.note_alt_outlined,
-                              color: Color(0xFFFFA726),
-                              size: 24,
-                            ),
+                          _buildMainClockCard(
+                            user: user,
+                            company: company,
+                            todayAttendance: todayAttendance,
                           ),
-                          const SizedBox(width: 15),
-                          const Expanded(
-                            child: Text(
-                              'Leave Requests',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF181F3E),
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
+                          const SizedBox(height: 24),
+                          _buildBottomTabs(),
+                          const SizedBox(height: 16),
+                          if (_bottomTabIndex == 0)
+                            _buildAttendanceSection(todayAttendance)
+                          else if (_bottomTabIndex == 1)
+                            _buildMyLeavesSection()
+                          else
+                            _buildNotificationsSection(),
+                          const SizedBox(height: 24),
+                          _buildQuickActionsRow(),
+                          const SizedBox(height: 16),
                         ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.refresh, size: 22),
-                      color: const Color(0xFF26667F),
-                      onPressed: _loadLeaveRequests,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _leaveRequests.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.inbox_outlined,
-                                size: 48,
-                                color: const Color(
-                                  0xFF6B7280,
-                                ).withValues(alpha: 0.3),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'No leave requests yet',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: const Color(
-                                    0xFF6B7280,
-                                  ).withValues(alpha: 0.7),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : Column(
-                        children: _leaveRequests
-                            .map((request) => _buildLeaveRequestItem(request))
-                            .toList(),
-                      ),
-                if (_leaveRequests.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const LeaveRequestListScreen(),
-                          ),
-                        ).then((_) => _loadLeaveRequests());
-                      },
-                      icon: const Icon(
-                        Icons.list_alt,
-                        size: 18,
-                        color: Color(0xFF26667F),
-                      ),
-                      label: const Text(
-                        'View All Leave Requests',
-                        style: TextStyle(
-                          color: Color(0xFF26667F),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
                       ),
                     ),
                   ),
                 ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------- HEADER ATAS (kecil) ----------
+
+  Widget _buildTopHeader(BuildContext context) {
+    return Container(
+      height: 70,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF80CE70), Color(0xFF26667F)], // hijau–biru
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: Image.asset(
+                  'assets/icon_login.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'ClockIn',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.person_outline,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------- KARTU TENGAH UTAMA ----------
+
+  Widget _buildMainClockCard({
+    required dynamic user,
+    required dynamic company,
+    required dynamic todayAttendance,
+  }) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: 25,
+                  backgroundImage: user?.photoUrl != null
+                      ? NetworkImage(user!.photoUrl)
+                      : null,
+                  child: user?.photoUrl == null
+                      ? const Icon(Icons.person, size: 26)
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.name ?? 'User',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF181F3E),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      company?.name ?? 'PT. Example',
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        color: Color(0xFF6B7280),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            DateFormat('EEEE, d MMMM y', 'id_ID').format(DateTime.now()),
+            style: const TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
+          ),
+          const SizedBox(height: 20),
+
+          // Tombol bulat besar
+          GestureDetector(
+            onTap: () {
+              // TODO: panggil clock in/out di AttendanceProvider
+            },
+            child: Container(
+              width: 210,
+              height: 210,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF80CE70), Color(0xFF26667F)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x3380CE70),
+                    blurRadius: 26,
+                    offset: Offset(0, 16),
+                  ),
+                ],
+              ),
+              child: Container(
+                margin: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.65),
+                    width: 7,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _currentTime,
+                      style: const TextStyle(
+                        fontSize: 44, // angka jam lebih besar
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      todayAttendance?.clockIn == null
+                          ? 'Tap to Clock In'
+                          : (todayAttendance.clockOut == null
+                                ? 'Tap to Clock Out'
+                                : 'Attendance Complete'),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // 3 info kecil di bawah tombol
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _smallInfoChip(
+                title: 'Clock In',
+                value: todayAttendance?.clockIn != null
+                    ? DateFormat('HH:mm').format(todayAttendance.clockIn)
+                    : '--:--',
+              ),
+              _smallInfoChip(
+                title: 'Clock Out',
+                value: todayAttendance?.clockOut != null
+                    ? DateFormat('HH:mm').format(todayAttendance.clockOut!)
+                    : '--:--',
+              ),
+              _smallInfoChip(
+                title: 'Durasi',
+                value: todayAttendance?.clockOut != null
+                    ? todayAttendance.formattedWorkDuration
+                    : '--',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _smallInfoChip({required String title, required String value}) {
+    return Column(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 11.5, color: Color(0xFF9CA3AF)),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF181F3E),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------- TAB BAWAH (Attendance / My Leaves / Notifications) ----------
+
+  Widget _buildBottomTabs() {
+    final labels = ['Attendance', 'My Leaves', 'Notifications'];
+    return Container(
+      height: 42,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      padding: const EdgeInsets.all(3),
+      child: Row(
+        children: List.generate(labels.length, (index) {
+          final selected = index == _bottomTabIndex;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _bottomTabIndex = index;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? const Color(0xFF26667F)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  labels[index],
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected ? Colors.white : const Color(0xFF6B7280),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  // ---------- SECTION: ATTENDANCE LIST ----------
+
+  Widget _buildAttendanceSection(dynamic todayAttendance) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildGlassCard(
+          title: 'Today Attendance',
+          icon: Icons.access_time,
+          iconColor: const Color(0xFF26667F),
+          child: Column(
+            children: [
+              _infoRow(
+                'Clock In',
+                todayAttendance?.clockIn != null
+                    ? DateFormat('HH:mm').format(todayAttendance.clockIn)
+                    : '--:--',
+              ),
+              const SizedBox(height: 6),
+              _infoRow(
+                'Clock Out',
+                todayAttendance?.clockOut != null
+                    ? DateFormat('HH:mm').format(todayAttendance.clockOut!)
+                    : '--:--',
+              ),
+              const SizedBox(height: 6),
+              _infoRow(
+                'Durasi',
+                todayAttendance?.clockOut != null
+                    ? todayAttendance.formattedWorkDuration
+                    : '--',
+              ),
+              const SizedBox(height: 14),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AttendanceHistoryScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.chevron_right,
+                    size: 18,
+                    color: Color(0xFF26667F),
+                  ),
+                  label: const Text(
+                    'View History',
+                    style: TextStyle(
+                      color: Color(0xFF26667F),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: const Color(0xFF181F3E).withValues(alpha: 0.7),
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF181F3E),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------- SECTION: MY LEAVES (pakai data _leaveRequests) ----------
+
+  Widget _buildMyLeavesSection() {
+    return _buildGlassCard(
+      title: 'My Leaves',
+      icon: Icons.beach_access_outlined,
+      iconColor: const Color(0xFFFFA726),
+      child: _leaveRequests.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.inbox_outlined,
+                    size: 42,
+                    color: const Color(0xFF9CA3AF).withValues(alpha: 0.6),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'No leave requests yet',
+                    style: TextStyle(fontSize: 13.5, color: Color(0xFF9CA3AF)),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                ..._leaveRequests
+                    .take(4)
+                    .map((r) => _buildLeaveRequestItem(r))
+                    .toList(),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LeaveRequestListScreen(),
+                        ),
+                      ).then((_) => _loadLeaveRequests());
+                    },
+                    icon: const Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: Color(0xFF26667F),
+                    ),
+                    label: const Text(
+                      'View All',
+                      style: TextStyle(
+                        color: Color(0xFF26667F),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildGlassCard({
+    required String title,
+    required IconData icon,
+    required Color iconColor,
+    required Widget child,
+  }) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(
+          color: const Color(0xFFE5E7EB).withValues(alpha: 0.4),
+          width: 0.6,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: iconColor.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, color: iconColor, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF181F3E),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                child,
               ],
             ),
           ),
@@ -719,6 +659,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  // ---------- LEAVE ITEM ----------
 
   Widget _buildLeaveRequestItem(Map<String, dynamic> request) {
     final status = request['status'] as String? ?? 'pending';
@@ -727,7 +669,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ? DateTime.parse(request['start_date'])
         : DateTime.now();
 
-    // Status colors and labels
     Color statusColor;
     String statusLabel;
     IconData statusIcon;
@@ -749,10 +690,8 @@ class _HomeScreenState extends State<HomeScreen> {
         statusIcon = Icons.schedule;
     }
 
-    // Type labels
     String typeLabel;
     IconData typeIcon;
-
     switch (type.toLowerCase()) {
       case 'sick':
         typeLabel = 'Sick Leave';
@@ -776,25 +715,28 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 1),
+        color: statusColor.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: statusColor.withValues(alpha: 0.25),
+          width: 0.8,
+        ),
       ),
       child: Row(
         children: [
           Container(
-            width: 50,
-            height: 50,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
-            child: Icon(typeIcon, color: statusColor, size: 26),
+            child: Icon(typeIcon, color: statusColor, size: 22),
           ),
-          const SizedBox(width: 15),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -802,25 +744,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   typeLabel,
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 14.5,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF181F3E),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Row(
                   children: [
                     Icon(
                       Icons.calendar_today,
                       size: 12,
-                      color: const Color(0xFF6B7280).withValues(alpha: 0.8),
+                      color: const Color(0xFF6B7280).withValues(alpha: 0.85),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       DateFormat('dd MMM yyyy').format(startDate),
                       style: TextStyle(
-                        fontSize: 13,
-                        color: const Color(0xFF6B7280).withValues(alpha: 0.8),
+                        fontSize: 12.5,
+                        color: const Color(0xFF6B7280).withValues(alpha: 0.85),
                       ),
                     ),
                   ],
@@ -829,27 +771,20 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: statusColor,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: statusColor.withValues(alpha: 0.3),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(999),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(statusIcon, color: Colors.white, size: 14),
+                Icon(statusIcon, color: Colors.white, size: 13),
                 const SizedBox(width: 4),
                 Text(
                   statusLabel,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
@@ -862,71 +797,120 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildActionGrid() {
-    return Column(
+  // ---------- SECTION: NOTIFICATIONS (dummy, pakai style mirip) ----------
+
+  Widget _buildNotificationsSection() {
+    // Sementara pakai data leave sebagai notifikasi contoh
+    final items = _leaveRequests.take(5).toList();
+    return _buildGlassCard(
+      title: 'Notifications',
+      icon: Icons.notifications_none,
+      iconColor: const Color(0xFF26667F),
+      child: items.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.notifications_off_outlined,
+                    size: 42,
+                    color: const Color(0xFF9CA3AF).withValues(alpha: 0.6),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'No notifications yet',
+                    style: TextStyle(fontSize: 13.5, color: Color(0xFF9CA3AF)),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              children: items
+                  .map(
+                    (r) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: const Color(
+                          0xFF26667F,
+                        ).withValues(alpha: 0.12),
+                        child: const Icon(
+                          Icons.mail_outline,
+                          color: Color(0xFF26667F),
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(
+                        'Leave ${r['status']}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Type: ${r['type'] ?? '-'}',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+    );
+  }
+
+  // ---------- QUICK ACTIONS ----------
+
+  Widget _buildQuickActionsRow() {
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionButton(
-                icon: Icons.bar_chart,
-                label: 'Quick Stats',
-                color: const Color(0xFF80CE70),
-                onTap: () {},
-              ),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: _buildActionButton(
-                icon: Icons.calendar_today,
-                label: 'History',
-                color: const Color(0xFF26667F),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AttendanceHistoryScreen(),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+        Expanded(
+          child: _quickActionButton(
+            icon: Icons.bar_chart,
+            label: 'Quick Stats',
+            color: const Color(0xFF80CE70),
+            onTap: () {},
+          ),
         ),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionButton(
-                icon: Icons.note_alt_outlined,
-                label: 'Leave Request',
-                color: const Color(0xFFFFA726),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LeaveRequestListScreen(),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: _buildActionButton(
-                icon: Icons.settings,
-                label: 'Settings',
-                color: const Color(0xFF7E57C2),
-                onTap: () {},
-              ),
-            ),
-          ],
+        const SizedBox(width: 16),
+        Expanded(
+          child: _quickActionButton(
+            icon: Icons.calendar_today,
+            label: 'History',
+            color: const Color(0xFF26667F),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AttendanceHistoryScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _quickActionButton(
+            icon: Icons.note_alt_outlined,
+            label: 'Leave',
+            color: const Color(0xFFFFA726),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LeaveRequestListScreen(),
+                ),
+              );
+            },
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildActionButton({
+  Widget _quickActionButton({
     required IconData icon,
     required String label,
     required Color color,
@@ -934,37 +918,36 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        height: 100,
+        height: 80,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: const Color(0xFFE5E7EB).withValues(alpha: 0.3),
-            width: 0.6,
+            color: const Color(0xFFE5E7EB).withValues(alpha: 0.4),
+            width: 0.7,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 3,
-              offset: const Offset(0, 1),
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 34),
+            Icon(icon, color: color, size: 26),
             const SizedBox(height: 4),
             Text(
               label,
               style: const TextStyle(
-                fontSize: 17.5,
+                fontSize: 13.5,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF181F3E),
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
