@@ -1383,6 +1383,14 @@ php artisan test --coverage
 ✅ should generate sanctum token on login
 ✅ should revoke token on logout
 ❌ [Jika ada yang fail, catat disini]
+
+D:\Kuliah\Flutter\ClockIn\admin-web>php artisan test --filter AuthControllerTest           
+
+ FAIL  Tests\Feature\AuthControllerTest
+  ✓ should authenticate with valid credentials                                      3.32s  
+  ✓ should return 401 with invalid credentials                                      0.76s  
+  ✓ should generate sanctum token on login                                          0.62s  
+  ⨯ should revoke token on logout                                                   1.00s
 ```
 
 **UserController Tests**
@@ -1392,6 +1400,15 @@ php artisan test --coverage
 ✅ should hash password before storing
 ✅ should update user data
 ✅ should soft delete user
+
+ FAIL  Tests\Feature\UserControllerTest
+  ✓ it can get all users                                                            1.50s  
+  ✓ it can get a single user                                                        0.45s  
+  ⨯ it can create user                                                              0.69s  
+  ✓ it can update user                                                              0.58s  
+  ✓ it can delete user                                                              0.52s  
+
+error 422 Unprocessable Entity berarti validasi request gagal saat create user—ada field wajib yang kosong atau format data tidak sesuai aturan di UserController
 ```
 
 **AttendanceController Tests**
@@ -1402,6 +1419,15 @@ php artisan test --coverage
 ✅ should calculate work duration on clock out
 ✅ should apply filters correctly
 ```
+  FAIL  Tests\Feature\AttendanceControllerTest
+  ✓ it can get all attendance                                                       2.68s  
+  ✓ it can get single attendance                                                    0.58s  
+  ⨯ it can create attendance                                                        0.98s  
+  ⨯ it can update attendance                                                        0.54s  
+  ✓ it can delete attendance                                                        0.08s 
+  
+  error 422 Unprocessable Entity berarti validasi data gagal saat create atau update.
+  request yang dikirim tidak memenuhi aturan di AttendanceController
 
 **LeaveRequestController Tests**
 ```
@@ -1409,6 +1435,14 @@ php artisan test --coverage
 ✅ should calculate total days correctly
 ✅ should update status (approve/reject)
 ✅ should prevent overlapping leave dates
+
+ FAIL  Tests\Feature\LeaveRequestControllerTest
+  ⨯ it can create leave request                                                     0.82s  
+  ✓ it validates required fields                                                    1.12s  
+  ⨯ it can store attachment                                                         0.20s  
+  ⨯ it can filter leave requests                                                    0.13s  
+  ⨯ admin can approve leave request                                                 0.10s  
+  ⨯ admin can reject leave request                                                  0.09s  
 ```
 
 **Model Relationship Tests**
@@ -1418,6 +1452,11 @@ php artisan test --coverage
 ✅ Attendance belongsTo User
 ✅ LeaveRequest belongsTo User
 ```
+D:\Kuliah\Flutter\ClockIn\eak_flutter>flutter test test/unit/models/user_model_test.dart 
+00:28 +20: All tests passed!
+
+D:\Kuliah\Flutter\ClockIn\eak_flutter>flutter test test/unit/models/attendance_model_test.dart
+00:04 +18: All tests passed!
 
 #### Temuan (Findings)
 - [Catat test yang fail dan alasannya]
