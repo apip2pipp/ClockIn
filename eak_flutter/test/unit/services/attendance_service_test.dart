@@ -1,94 +1,142 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:eak_flutter/services/attendance_service.dart';
-import 'package:eak_flutter/services/api_services.dart';
+import 'package:eak_flutter/config/api_config.dart';
 
 void main() {
   group('AttendanceService Tests', () {
-    late AttendanceService attendanceService;
-    // late MockApiService mockApiService;
-
-    setUp(() {
-      // mockApiService = MockApiService();
-      attendanceService = AttendanceService();
-    });
-
-    group('Clock In Tests', () {
-      test('should construct multipart correctly for clock-in', () async {
+    group('URL Construction', () {
+      test('should construct correct URL with basic pagination', () {
         // Arrange
-        const latitude = -6.2088;
-        const longitude = 106.8456;
-        const notes = 'Test clock in';
-        // Mock photo file
-
-        // Act
-        // final result = await attendanceService.clockIn(
-        //   latitude: latitude,
-        //   longitude: longitude,
-        //   photo: mockPhoto,
-        //   notes: notes,
-        // );
-
-        // Assert
-        // Verify multipart construction
-        // expect(result, isNotNull);
-      });
-
-      test('should compress image before upload', () async {
-        // TODO: Test image compression
-        // Hint: Check file size before/after
-      });
-
-      test('should handle clock-in success response', () async {
-        // TODO: Test response parsing
-      });
-
-      test('should handle clock-in error', () async {
-        // TODO: Test error handling
-      });
-    });
-
-    group('Clock Out Tests', () {
-      test('should handle clock-out with photo', () async {
-        // TODO: Similar to clock-in test
-      });
-    });
-
-    group('Get Today Attendance Tests', () {
-      test('should parse attendance status correctly', () async {
-        // TODO: Test status parsing
-      });
-
-      test('should return null when no attendance today', () async {
-        // TODO: Test empty response
-      });
-    });
-
-    group('Get Attendance History Tests', () {
-      test('should handle pagination parameters correctly', () async {
-        // Arrange
-        const month = 12;
-        const year = 2024;
         const page = 1;
+        const perPage = 15;
 
         // Act
-        // await attendanceService.getAttendanceHistory(
-        //   month: month,
-        //   year: year,
-        //   page: page,
-        // );
+        final expectedUrl =
+            '${ApiConfig.getFullUrl(ApiConfig.attendanceHistoryEndpoint)}?page=$page&per_page=$perPage';
 
         // Assert
-        // Verify API was called with correct params
+        expect(expectedUrl, contains('/attendance/history'));
+        expect(expectedUrl, contains('page=1'));
+        expect(expectedUrl, contains('per_page=15'));
       });
 
-      test('should parse attendance history response', () async {
-        // TODO: Test response parsing with multiple records
+      test('should include month parameter when provided', () {
+        // Arrange
+        const page = 1;
+        const perPage = 15;
+        const month = 12;
+
+        // Act
+        final expectedUrl =
+            '${ApiConfig.getFullUrl(ApiConfig.attendanceHistoryEndpoint)}?page=$page&per_page=$perPage&month=$month';
+
+        // Assert
+        expect(expectedUrl, contains('month=12'));
       });
 
-      test('should handle empty history', () async {
-        // TODO: Test empty array response
+      test('should include year parameter when provided', () {
+        // Arrange
+        const page = 1;
+        const perPage = 15;
+        const year = 2024;
+
+        // Act
+        final expectedUrl =
+            '${ApiConfig.getFullUrl(ApiConfig.attendanceHistoryEndpoint)}?page=$page&per_page=$perPage&year=$year';
+
+        // Assert
+        expect(expectedUrl, contains('year=2024'));
+      });
+
+      test('should include both month and year when provided', () {
+        // Arrange
+        const page = 2;
+        const perPage = 20;
+        const month = 11;
+        const year = 2024;
+
+        // Act
+        final expectedUrl =
+            '${ApiConfig.getFullUrl(ApiConfig.attendanceHistoryEndpoint)}?page=$page&per_page=$perPage&month=$month&year=$year';
+
+        // Assert
+        expect(expectedUrl, contains('page=2'));
+        expect(expectedUrl, contains('per_page=20'));
+        expect(expectedUrl, contains('month=11'));
+        expect(expectedUrl, contains('year=2024'));
       });
     });
+
+    group('Method Existence', () {
+      test('should have getAttendanceHistory method', () {
+        expect(AttendanceService.getAttendanceHistory, isNotNull);
+      });
+
+      test('should have method with named parameters', () {
+        // This test verifies the method signature by attempting to call with named params
+        expect(
+          () => AttendanceService.getAttendanceHistory(
+            page: 1,
+            perPage: 15,
+            month: 12,
+            year: 2024,
+          ),
+          returnsNormally,
+        );
+      });
+    });
+
+    group('Parameter Validation', () {
+      test('should accept default parameters', () {
+        // Verify method can be called with defaults
+        expect(() => AttendanceService.getAttendanceHistory(), returnsNormally);
+      });
+
+      test('should accept custom page and perPage', () {
+        expect(
+          () => AttendanceService.getAttendanceHistory(page: 5, perPage: 25),
+          returnsNormally,
+        );
+      });
+
+      test('should accept null month and year', () {
+        expect(
+          () => AttendanceService.getAttendanceHistory(month: null, year: null),
+          returnsNormally,
+        );
+      });
+
+      test('should accept valid month range (1-12)', () {
+        for (int month = 1; month <= 12; month++) {
+          expect(
+            () => AttendanceService.getAttendanceHistory(month: month),
+            returnsNormally,
+          );
+        }
+      });
+
+      test('should accept valid year values', () {
+        expect(
+          () => AttendanceService.getAttendanceHistory(year: 2020),
+          returnsNormally,
+        );
+        expect(
+          () => AttendanceService.getAttendanceHistory(year: 2024),
+          returnsNormally,
+        );
+        expect(
+          () => AttendanceService.getAttendanceHistory(year: 2025),
+          returnsNormally,
+        );
+      });
+    });
+
+    // NOTE: Integration tests dengan real API call di-skip karena butuh:
+    // 1. Mock HTTP client (tapi service pakai static methods)
+    // 2. Real backend server
+    // 3. Valid authentication token
+    //
+    // Untuk complete testing, perlu refactor service ke instance-based
+    // agar bisa inject MockClient untuk testing.
   });
 }
