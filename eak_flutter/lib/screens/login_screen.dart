@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
 import 'home_screen.dart';
@@ -18,10 +19,10 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
 
   // URL website untuk registrasi perusahaan (PRODUCTION)
-  static const String _registerWebUrl = 'https://clockin.cloud/register';
+  //static const String _registerWebUrl = 'https://clockin.cloud/register';
 
   // DEVELOPMENT URL (Uncomment untuk development)
-  // static const String _registerWebUrl = 'http://192.168.18.67:8000/register';
+  static const String _registerWebUrl = 'http://192.168.1.45/register';
 
   @override
   void dispose() {
@@ -51,25 +52,59 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Future<void> _handleLogin() async {
+  //   if (!_formKey.currentState!.validate()) return;
+
+  //   final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+  //   final success = await authProvider.login(
+  //     _emailController.text.trim(),
+  //     _passwordController.text,
+  //   );
+
+  //   if (!mounted) return;
+
+  //   if (success) {
+  //     // Navigate to home
+  //     Navigator.of(context).pushReplacement(
+  //       MaterialPageRoute(builder: (context) => const HomeScreen()),
+  //     );
+  //   } else {
+  //     // Show error
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(authProvider.errorMessage ?? 'Login failed'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    debugPrint('🔹 LOGIN pressed with ${_emailController.text.trim()}');
 
     final success = await authProvider.login(
       _emailController.text.trim(),
       _passwordController.text,
     );
 
+    debugPrint('🔹 AUTH success flag: $success');
+
     if (!mounted) return;
 
     if (success) {
-      // Navigate to home
+      final prefs = await SharedPreferences.getInstance();
+      debugPrint(
+        '🔹 saved token after login: ${prefs.getString('auth_token')}',
+      );
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } else {
-      // Show error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage ?? 'Login failed'),

@@ -126,11 +126,22 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("Riwayat Izin"),
-        backgroundColor: Colors.blue,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        centerTitle: true,
+        title: const Text(
+          "Leave History",
+          style: TextStyle(
+            color: Color(0xFF181F3E),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFF181F3E)),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -149,7 +160,7 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inbox, size: 64, color: Colors.grey[400]),
+                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
                   Text(
                     'Belum ada riwayat izin',
@@ -163,17 +174,17 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
           return RefreshIndicator(
             onRefresh: _loadData,
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               itemCount: provider.leaveRequests.length + 1,
               itemBuilder: (context, index) {
                 if (index == provider.leaveRequests.length) {
                   return Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.only(top: 8, bottom: 8),
                     child: _isLoadingMore
                         ? const Center(child: CircularProgressIndicator())
                         : TextButton(
                             onPressed: _loadMore,
-                            child: const Text('Muat Lebih Banyak'),
+                            child: const Text('Muat lebih banyak'),
                           ),
                   );
                 }
@@ -194,115 +205,168 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
             ),
           );
 
-          if (result != null && result['success'] == true) {
-            if (!mounted) return;
-
+          if (result != null && result['success'] == true && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(result['message'] ?? 'Berhasil!'),
-                backgroundColor: Colors.green,
+                backgroundColor: const Color(0xFF80CE70),
                 duration: const Duration(seconds: 3),
               ),
             );
-
             _loadData();
           }
         },
         icon: const Icon(Icons.add),
         label: const Text('Ajukan Izin'),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xFF26667F),
       ),
     );
   }
 
   Widget _buildLeaveCard(LeaveRequest leave) {
-    return Card(
-      elevation: 2,
+    final statusColor = _getStatusColor(leave.status);
+    final statusLabel = _getStatusLabel(leave.status);
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: Type & Status
+            // Bar status kecil di atas
+            Container(
+              height: 3,
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Header: icon + type + status pill
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    Icon(_getTypeIcon(leave.jenis), size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      _getTypeLabel(leave.jenis),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
                       ),
+                      child: Icon(
+                        _getTypeIcon(leave.jenis),
+                        size: 20,
+                        color: statusColor,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _getTypeLabel(leave.jenis),
+                          style: const TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF181F3E),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          DateFormat(
+                                'd MMM yyyy',
+                              ).format(DateTime.parse(leave.startDate)) +
+                              (leave.endDate != leave.startDate
+                                  ? ' - ${DateFormat('d MMM yyyy').format(DateTime.parse(leave.endDate))}'
+                                  : ''),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                    horizontal: 10,
+                    vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(leave.status).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: statusColor.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    _getStatusLabel(leave.status),
+                    statusLabel,
                     style: TextStyle(
-                      fontSize: 11,
-                      color: _getStatusColor(leave.status),
-                      fontWeight: FontWeight.w600,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: statusColor,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
 
-            // Date Range
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  '${DateFormat('d MMM yyyy').format(DateTime.parse(leave.startDate))} - ${DateFormat('d MMM yyyy').format(DateTime.parse(leave.endDate))}',
-                  style: const TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
 
             // Reason
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.description, size: 14, color: Colors.grey),
+                const Icon(
+                  Icons.notes_outlined,
+                  size: 16,
+                  color: Color(0xFF9CA3AF),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     leave.reason,
-                    style: const TextStyle(fontSize: 13),
-                    maxLines: 2,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF4B5563),
+                    ),
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
 
-            // Attachment indicator
             if (leave.attachment != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Row(
                 children: [
-                  Icon(Icons.attach_file, size: 14, color: Colors.blue[700]),
-                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.attach_file,
+                    size: 16,
+                    color: Color(0xFF26667F),
+                  ),
+                  const SizedBox(width: 6),
                   const Text(
                     'Ada lampiran',
-                    style: TextStyle(fontSize: 12, color: Colors.blue),
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: Color(0xFF26667F),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -311,6 +375,34 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
         ),
       ),
     );
+  }
+
+  // --- HELPER: STATUS & TYPE ---
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'approved':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'approved':
+        return 'Disetujui';
+      case 'rejected':
+        return 'Ditolak';
+      default:
+        return status;
+    }
   }
 
   IconData _getTypeIcon(String type) {
@@ -340,32 +432,6 @@ class _LeaveHistoryScreenState extends State<LeaveHistoryScreen> {
         return 'Darurat';
       default:
         return type;
-    }
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return Colors.orange;
-      case 'approved':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getStatusLabel(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'Pending';
-      case 'approved':
-        return 'Disetujui';
-      case 'rejected':
-        return 'Ditolak';
-      default:
-        return status;
     }
   }
 }
