@@ -15,12 +15,12 @@ class ViewAttendance extends ViewRecord
 {
     protected static string $resource = AttendanceResource::class;
 
-    public function mount(int | string $record): void
+    public function mount(int|string $record): void
     {
         parent::mount($record);
-        
+
         $user = Auth::user();
-        
+
         // Super Admin bisa view semua, Company Admin hanya bisa view dari company mereka
         if ($user->role !== 'super_admin' && $user->company_id !== $this->record->company_id) {
             abort(403, 'You are not authorized to view this attendance.');
@@ -31,13 +31,13 @@ class ViewAttendance extends ViewRecord
     {
         return [
             Actions\EditAction::make()
-                ->visible(fn () => Auth::user()?->role === 'super_admin'),
+                ->visible(fn() => Auth::user()?->role === 'super_admin'),
             Actions\Action::make('approve')
                 ->label('Approve')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->requiresConfirmation()
-                ->visible(fn ($record) => $record->is_valid === 'pending')
+                ->visible(fn($record) => $record->is_valid === 'pending')
                 ->action(function ($record) {
                     $record->update([
                         'is_valid' => 'valid',
@@ -60,7 +60,7 @@ class ViewAttendance extends ViewRecord
                         ->required()
                         ->maxLength(500),
                 ])
-                ->visible(fn ($record) => $record->is_valid === 'pending')
+                ->visible(fn($record) => $record->is_valid === 'pending')
                 ->action(function ($record, array $data) {
                     $record->update([
                         'is_valid' => 'invalid',
@@ -91,7 +91,7 @@ class ViewAttendance extends ViewRecord
                             ->default('-'),
                         Infolists\Components\TextEntry::make('status')
                             ->badge()
-                            ->color(fn (string $state): string => match ($state) {
+                            ->color(fn(string $state): string => match ($state) {
                                 'on_time' => 'success',
                                 'late' => 'warning',
                                 'absent' => 'danger',
@@ -100,7 +100,7 @@ class ViewAttendance extends ViewRecord
                         Infolists\Components\TextEntry::make('is_valid')
                             ->label('Validation Status')
                             ->badge()
-                            ->color(fn (string $state): string => match ($state) {
+                            ->color(fn(string $state): string => match ($state) {
                                 'valid' => 'success',
                                 'invalid' => 'danger',
                                 'pending' => 'warning',
@@ -123,7 +123,7 @@ class ViewAttendance extends ViewRecord
                         Infolists\Components\TextEntry::make('clock_in_longitude')
                             ->label('Longitude')
                             ->default('-'),
-                        
+
                         Infolists\Components\TextEntry::make('clock_in_photo')
                             ->label('Photo')
                             ->html()
@@ -131,11 +131,11 @@ class ViewAttendance extends ViewRecord
                                 if (!$state) {
                                     return '<span class="text-gray-500">No photo available</span>';
                                 }
-                                
+
                                 if (Storage::disk('public')->exists($state)) {
                                     $publicUrl = asset('storage/' . $state);
                                     $filename = basename($state);
-                                    
+
                                     return '<div style="text-align: center;">
                                         <img src="' . $publicUrl . '" 
                                              style="max-width: 100%; height: auto; max-height: 400px; object-fit: contain; 
@@ -149,7 +149,7 @@ class ViewAttendance extends ViewRecord
                                         </p>
                                     </div>';
                                 }
-                                
+
                                 if (str_starts_with($state, 'data:image')) {
                                     return '<div style="text-align: center;">
                                         <img src="' . $state . '" 
@@ -163,7 +163,7 @@ class ViewAttendance extends ViewRecord
                                         </p>
                                     </div>';
                                 }
-                                
+
                                 // ❌ 3. FILE NOT FOUND
                                 return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
                                     <svg style="width: 48px; height: 48px; margin: 0 auto 12px; color: #ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,7 +188,10 @@ class ViewAttendance extends ViewRecord
                             ->default('-'),
                         Infolists\Components\TextEntry::make('work_duration')
                             ->label('Work Duration')
-                            ->formatStateUsing(fn ($state) => $state ? floor($state / 60) . 'h ' . ($state % 60) . 'm' : '-'),
+                            ->formatStateUsing(fn($state) => $state ? floor($state / 60) . 'h ' . ($state % 60) . 'm' : '-'),
+                        Infolists\Components\TextEntry::make('late_duration')
+                            ->label('Late')
+                            ->formatStateUsing(fn($state) => $state ? $state . ' min' : '-'),
                         Infolists\Components\TextEntry::make('clock_out_notes')
                             ->label('Notes')
                             ->default('-'),
@@ -198,7 +201,7 @@ class ViewAttendance extends ViewRecord
                         Infolists\Components\TextEntry::make('clock_out_longitude')
                             ->label('Longitude')
                             ->default('-'),
-                        
+
                         Infolists\Components\TextEntry::make('clock_out_photo')
                             ->label('Photo')
                             ->html()
@@ -206,11 +209,11 @@ class ViewAttendance extends ViewRecord
                                 if (!$state) {
                                     return '<span class="text-gray-500">No photo available</span>';
                                 }
-                                
+
                                 if (Storage::disk('public')->exists($state)) {
                                     $publicUrl = asset('storage/' . $state);
                                     $filename = basename($state);
-                                    
+
                                     return '<div style="text-align: center;">
                                         <img src="' . $publicUrl . '" 
                                              style="max-width: 100%; height: auto; max-height: 400px; object-fit: contain; 
@@ -224,7 +227,7 @@ class ViewAttendance extends ViewRecord
                                         </p>
                                     </div>';
                                 }
-                                
+
                                 if (str_starts_with($state, 'data:image')) {
                                     return '<div style="text-align: center;">
                                         <img src="' . $state . '" 
@@ -238,7 +241,7 @@ class ViewAttendance extends ViewRecord
                                         </p>
                                     </div>';
                                 }
-                                
+
                                 // ❌ 3. FILE NOT FOUND
                                 return '<div style="padding: 20px; background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; text-align: center;">
                                     <svg style="width: 48px; height: 48px; margin: 0 auto 12px; color: #ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,10 +255,10 @@ class ViewAttendance extends ViewRecord
                                 </div>';
                             })
                             ->columnSpanFull()
-                            ->visible(fn ($record) => $record->clock_out !== null),
+                            ->visible(fn($record) => $record->clock_out !== null),
                     ])
                     ->columns(2)
-                    ->visible(fn ($record) => $record->clock_out !== null),
+                    ->visible(fn($record) => $record->clock_out !== null),
 
                 Infolists\Components\Section::make('Validation Details')
                     ->schema([
@@ -272,7 +275,7 @@ class ViewAttendance extends ViewRecord
                             ->columnSpanFull(),
                     ])
                     ->columns(2)
-                    ->visible(fn ($record) => $record->is_valid !== 'pending'),
+                    ->visible(fn($record) => $record->is_valid !== 'pending'),
             ]);
     }
 }

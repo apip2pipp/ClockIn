@@ -47,8 +47,8 @@ class Company extends Model
         'latitude' => 'float', 
         'longitude' => 'float',
         'radius' => 'integer',
-        'work_start_time' => 'datetime',
-        'work_end_time' => 'datetime',
+        'work_start_time' => 'datetime:H:i:s',
+        'work_end_time' => 'datetime:H:i:s',
         'is_active' => 'boolean',
     ];
 
