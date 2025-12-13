@@ -1,7 +1,7 @@
 import laravel from "laravel-vite-plugin";
 import { defineConfig } from "vite";
 
-const currentIP = "192.168.1.45";
+const currentIP = "192.168.18.129";
 
 export default defineConfig({
     plugins: [
