@@ -61,10 +61,11 @@ class AttendanceResource extends Resource
                         Forms\Components\TextInput::make('clock_in_location')
                             ->label('Google Maps')
                             ->disabled()
-                            ->formatStateUsing(fn ($record) =>
+                            ->formatStateUsing(
+                                fn($record) =>
                                 $record->clock_in_latitude && $record->clock_in_longitude
-                                    ? "https://maps.google.com/?q={$record->clock_in_latitude},{$record->clock_in_longitude}"
-                                    : 'Not available'
+                                ? "https://maps.google.com/?q={$record->clock_in_latitude},{$record->clock_in_longitude}"
+                                : 'Not available'
                             )->columnSpanFull(),
 
                         Forms\Components\Textarea::make('clock_in_notes')
@@ -94,17 +95,19 @@ class AttendanceResource extends Resource
                         Forms\Components\TextInput::make('work_duration')
                             ->label('Work Duration')
                             ->disabled()
-                            ->formatStateUsing(fn ($state) =>
+                            ->formatStateUsing(
+                                fn($state) =>
                                 $state ? floor($state / 60) . 'h ' . ($state % 60) . 'm' : 'Not clocked out'
                             ),
 
                         Forms\Components\TextInput::make('clock_out_location')
                             ->label('Google Maps')
                             ->disabled()
-                            ->formatStateUsing(fn ($record) =>
+                            ->formatStateUsing(
+                                fn($record) =>
                                 $record->clock_out_latitude && $record->clock_out_longitude
-                                    ? "https://maps.google.com/?q={$record->clock_out_latitude},{$record->clock_out_longitude}"
-                                    : 'Not available'
+                                ? "https://maps.google.com/?q={$record->clock_out_latitude},{$record->clock_out_longitude}"
+                                : 'Not available'
                             )
                             ->columnSpanFull(),
 
@@ -116,7 +119,7 @@ class AttendanceResource extends Resource
                     ])
                     ->columns(4)
                     ->collapsible()
-                    ->visible(fn ($record) => $record->clock_out !== null),
+                    ->visible(fn($record) => $record->clock_out !== null),
 
                 Forms\Components\Section::make('Attendance Status')
                     ->schema([
@@ -148,14 +151,14 @@ class AttendanceResource extends Resource
                             ->label('Validation Notes')
                             ->placeholder('Enter validation notes...')
                             ->rows(3)
-                            ->visible(fn ($get) => $get('is_valid') !== 'pending')
-                            ->required(fn ($get) => $get('is_valid') !== 'pending'),
+                            ->visible(fn($get) => $get('is_valid') !== 'pending')
+                            ->required(fn($get) => $get('is_valid') !== 'pending'),
 
                         Forms\Components\Hidden::make('validated_by')
-                            ->default(fn () => Auth::id()),
+                            ->default(fn() => Auth::id()),
 
                         Forms\Components\Hidden::make('validated_at')
-                            ->default(fn () => now()),
+                            ->default(fn() => now()),
                     ])->columns(1),
             ]);
     }
@@ -179,7 +182,7 @@ class AttendanceResource extends Resource
                     ->label('Employee')
                     ->searchable()
                     ->sortable()
-                    ->description(fn ($record) => $record->user->employee_id),
+                    ->description(fn($record) => $record->user->employee_id),
 
                 Tables\Columns\TextColumn::make('clock_in')
                     ->label('Clock In')
@@ -194,15 +197,21 @@ class AttendanceResource extends Resource
 
                 Tables\Columns\TextColumn::make('work_duration')
                     ->label('Duration')
-                    ->formatStateUsing(fn ($state) =>
+                    ->formatStateUsing(
+                        fn($state) =>
                         $state ? floor($state / 60) . 'h ' . ($state % 60) . 'm' : '-'
                     )
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('late_duration')
+                    ->label('Late')
+                    ->formatStateUsing(fn($state) => $state ? $state . ' min' : '-')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'on_time' => 'success',
                         'late' => 'warning',
                         'half_day' => 'info',
@@ -212,7 +221,7 @@ class AttendanceResource extends Resource
                 Tables\Columns\TextColumn::make('is_valid')
                     ->label('Validation')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'valid' => 'success',
                         'invalid' => 'danger',
                         'pending' => 'gray',

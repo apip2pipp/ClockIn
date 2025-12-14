@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   // ==================== HELPER FUNCTIONS ====================
-
+  static const String tokenKey = 'token';
   static Map<String, dynamic> _handleResponse(
     http.Response response, {
     bool enableLogging = false,
@@ -78,10 +78,7 @@ class ApiService {
             'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
       };
     } else if (error is http.ClientException) {
-      return {
-        'success': false,
-        'message': 'Request gagal. Silakan coba lagi.',
-      };
+      return {'success': false, 'message': 'Request gagal. Silakan coba lagi.'};
     } else {
       return {
         'success': false,
@@ -95,19 +92,22 @@ class ApiService {
   /// Get saved token from SharedPreferences
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
+    //return prefs.getString('auth_token');
+    return prefs.getString(tokenKey);
   }
 
   /// Save token to SharedPreferences
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
+    // await prefs.setString('auth_token', token);
+    await prefs.setString(tokenKey, token);
   }
 
   /// Remove token from SharedPreferences
   static Future<void> removeToken() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
+    // await prefs.remove('auth_token');
+    await prefs.remove('tokenKey');
   }
 
   /// Get headers with token
@@ -148,15 +148,52 @@ class ApiService {
           'message': data['message'],
         };
       } else {
-        return {
-          'success': false,
-          'message': data['message'] ?? 'Login failed',
-        };
+        return {'success': false, 'message': data['message'] ?? 'Login failed'};
       }
     } catch (e) {
       return _handleNetworkError(e);
     }
   }
+
+  // Test TOKEN
+  // static Future<Map<String, dynamic>> login(
+  //   String email,
+  //   String password,
+  // ) async {
+  //   try {
+  //     final url = ApiConfig.getFullUrl(ApiConfig.loginEndpoint);
+  //     debugPrint('🔹 LOGIN URL: $url');
+
+  //     final response = await http.post(
+  //       Uri.parse(url),
+  //       headers: {'Content-Type': 'application/json'},
+  //       body: json.encode({'email': email, 'password': password}),
+  //     );
+
+  //     debugPrint('🔹 LOGIN status: ${response.statusCode}');
+  //     debugPrint('🔹 LOGIN body: ${response.body}');
+
+  //     final data = _handleResponse(response);
+
+  //     if (data['success'] == false && !data.containsKey('token')) {
+  //       return data;
+  //     }
+
+  //     if (response.statusCode == 200 && data['success'] == true) {
+  //       debugPrint('🔹 saving token: ${data['data']['token']}');
+  //       await saveToken(data['data']['token']);
+  //       return {
+  //         'success': true,
+  //         'user': User.fromJson(data['data']['user']),
+  //         'message': data['message'],
+  //       };
+  //     } else {
+  //       return {'success': false, 'message': data['message'] ?? 'Login failed'};
+  //     }
+  //   } catch (e) {
+  //     return _handleNetworkError(e);
+  //   }
+  // }
 
   /// Register new user
   static Future<Map<String, dynamic>> register({
@@ -501,7 +538,7 @@ class ApiService {
   }) async {
     try {
       final token = await getToken();
-      
+
       if (token == null) {
         return {'success': false, 'message': 'Not authenticated'};
       }
@@ -527,7 +564,7 @@ class ApiService {
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      
+
       final data = _handleResponse(response);
 
       if (data['success'] == false && data['message'] != null) {

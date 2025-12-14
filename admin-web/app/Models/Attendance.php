@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Attendance extends Model
 {
@@ -24,6 +25,7 @@ class Attendance extends Model
         'clock_out_notes',
         'status',
         'work_duration',
+        'late_duration',
         'is_valid',
         'validation_notes',
         'validated_at',
@@ -38,8 +40,47 @@ class Attendance extends Model
         'clock_out_latitude' => 'decimal:8',
         'clock_out_longitude' => 'decimal:8',
         'validated_at' => 'datetime',
+        'late_duration' => 'integer',  
+        'work_duration' => 'integer',
     ];
+    protected static function booted()
+    {
+        static::saving(function (Attendance $attendance) {
+            // 1) Hitung durasi kerja
+            if ($attendance->clock_in && $attendance->clock_out) {
+                $start = Carbon::parse($attendance->clock_in);
+                $end   = Carbon::parse($attendance->clock_out);
 
+                $attendance->work_duration = $end->diffInMinutes($start);
+            }
+
+            // 2) Hitung telat
+            $attendance->late_duration = 0;
+
+            if ($attendance->clock_in && $attendance->company) {
+                $company = $attendance->company;
+
+                if ($company->work_start_time) {
+                    $workStart = Carbon::parse(
+                        $attendance->clock_in->toDateString() .
+                        ' ' .
+                        $company->work_start_time->format('H:i:s')
+                    );
+
+                    $actualIn = Carbon::parse($attendance->clock_in);
+
+                    if ($actualIn->greaterThan($workStart)) {
+                        $attendance->late_duration = $actualIn->diffInMinutes($workStart);
+                        $attendance->status = 'late';
+                    } else {
+                        if (! in_array($attendance->status, ['half_day', 'absent'])) {
+                            $attendance->status = 'on_time';
+                        }
+                    }
+                }
+            }
+        });
+    }
     // Relationships
     public function company()
     {
