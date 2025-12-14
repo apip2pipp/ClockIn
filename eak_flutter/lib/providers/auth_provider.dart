@@ -4,6 +4,11 @@ import 'package:eak_flutter/services/api_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider with ChangeNotifier {
+  final ApiServiceImpl _apiService;
+
+  AuthProvider({ApiServiceImpl? apiService})
+      : _apiService = apiService ?? ApiService.instance;
+
   User? _user;
   Company? _company;
   bool _isAuthenticated = false;
@@ -23,7 +28,7 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final token = await getToken();
+    final token = await ApiServiceImpl.getToken();
     if (token != null) {
       // Try to get user profile
       await loadUserProfile();
@@ -67,7 +72,7 @@ class AuthProvider with ChangeNotifier {
 
       debugPrint('🔹 AuthProvider.login called');
 
-      final result = await ApiService.login(email, password);
+      final result = await _apiService.login(email, password);
       debugPrint('🔹 ApiService.login result: $result');
 
       if (result['success'] == true) {
@@ -110,7 +115,7 @@ class AuthProvider with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final result = await ApiService.register(
+    final result = await _apiService.register(
       companyId: companyId,
       name: name,
       email: email,
@@ -145,7 +150,7 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await ApiService.logout();
+    await _apiService.logout();
 
     _user = null;
     _company = null;
@@ -158,7 +163,7 @@ class AuthProvider with ChangeNotifier {
 
   /// Load user profile
   Future<void> loadUserProfile() async {
-    final result = await ApiService.getProfile();
+    final result = await _apiService.getProfile();
 
     if (result['success']) {
       _user = result['user'];
@@ -171,14 +176,14 @@ class AuthProvider with ChangeNotifier {
     } else {
       // Token might be expired
       _isAuthenticated = false;
-      await removeToken();
+      await ApiServiceImpl.removeToken();
       notifyListeners();
     }
   }
 
   /// Load company information
   Future<void> loadCompany() async {
-    final result = await ApiService.getCompany();
+    final result = await _apiService.getCompany();
 
     if (result['success']) {
       _company = result['company'];
@@ -194,24 +199,21 @@ class AuthProvider with ChangeNotifier {
 
   /// Save token to SharedPreferences
   static Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(tokenKey, token);
+    await ApiServiceImpl.saveToken(token);
   }
 
   /// Get token from SharedPreferences
   static Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(tokenKey);
+    return ApiServiceImpl.getToken();
   }
 
   /// Remove token from SharedPreferences
   static Future<void> removeToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(tokenKey);
+    await ApiServiceImpl.removeToken();
   }
 
   /// Clear all tokens (alias for removeToken)
   static Future<void> clearToken() async {
-    await removeToken();
+    await ApiServiceImpl.removeToken();
   }
 }

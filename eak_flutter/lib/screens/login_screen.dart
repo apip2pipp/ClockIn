@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   //static const String _registerWebUrl = 'https://clockin.cloud/register';
 
   // DEVELOPMENT URL (Uncomment untuk development)
-  static const String _registerWebUrl = 'http://192.168.1.45/register';
+  static const String _registerWebUrl = 'http://192.168.110.224/register';
 
   @override
   void dispose() {

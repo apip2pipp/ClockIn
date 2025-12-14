@@ -6,6 +6,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+import '../services/location_service.dart';
+import '../services/image_picker_service.dart';
 
 class ClockInScreen extends StatefulWidget {
   const ClockInScreen({super.key});
@@ -23,7 +25,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
   double? longitude;
   bool _locationLoading = false;
 
-  final picker = ImagePicker();
+
   final MapController _mapController = MapController();
 
   @override
@@ -33,7 +35,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await picker.pickImage(
+    final pickedFile = await ImagePickerService.instance.pickImage(
       source: ImageSource.camera,
       imageQuality: 85,
     );
@@ -50,7 +52,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
   Future<void> getCurrentLocation() async {
     setState(() => _locationLoading = true);
 
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    bool serviceEnabled = await LocationService.instance.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -60,7 +62,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
       return;
     }
 
-    LocationPermission permission = await Geolocator.requestPermission();
+    LocationPermission permission = await LocationService.instance.requestPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
       if (!mounted) return;
@@ -71,7 +73,7 @@ class _ClockInScreenState extends State<ClockInScreen> {
       return;
     }
 
-    Position pos = await Geolocator.getCurrentPosition(
+    Position pos = await LocationService.instance.getCurrentPosition(
       // ignore: deprecated_member_use
       desiredAccuracy: LocationAccuracy.high,
     );

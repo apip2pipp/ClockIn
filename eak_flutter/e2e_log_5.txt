@@ -1,0 +1,7 @@
+﻿00:00 +0: loading D:/ClockIn/eak_flutter/integration_test/app_test.dart
+Running Gradle task 'assembleDebug'...                             28.2s
+ΓêÜ Built build\app\outputs\flutter-apk\app-debug.apk
+Installing build\app\outputs\flutter-apk\app-debug.apk...          18.0s
+00:00 +0 -1: loading D:/ClockIn/eak_flutter/integration_test/app_test.dart [E]
+  Failed to load "D:/ClockIn/eak_flutter/integration_test/app_test.dart": Unable to start the app on the device.
+00:00 +0 -1: Some tests failed.

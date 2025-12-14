@@ -92,7 +92,7 @@ class ProfileScreen extends StatelessWidget {
                                     children: [
                                       CircleAvatar(
                                         radius: 50,
-                                        backgroundImage: user?.photoUrl != null
+                                        backgroundImage: (user?.photoUrl != null && user!.photoUrl.isNotEmpty) 
                                             ? NetworkImage(user!.photoUrl)
                                             : null,
                                         child: user?.photoUrl == null

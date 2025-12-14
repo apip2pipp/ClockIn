@@ -1,0 +1,164 @@
+﻿00:00 +0: loading D:/ClockIn/eak_flutter/integration_test/app_test.dart
+Running Gradle task 'assembleDebug'...                             30.8s
+ΓêÜ Built build\app\outputs\flutter-apk\app-debug.apk
+Installing build\app\outputs\flutter-apk\app-debug.apk...          20.7s
+00:00 +0: E2E Application Tests Complete Login Flow: Login -> Dashboard -> Logout
+≡ƒö╣ LOGIN pressed with test@example.com
+≡ƒö╣ AuthProvider.login called
+≡ƒö╣ ApiService.login result: {success: true, user: Instance of 'User', message: Login successful}
+≡ƒö╣ AUTH success flag: true
+≡ƒö╣ saved token after login: null
+ΓòÉΓòÉΓòí EXCEPTION CAUGHT BY FOUNDATION LIBRARY Γò₧ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+The following assertion was thrown while dispatching notifications for AttendanceProvider:
+setState() or markNeedsBuild() called during build.
+This _InheritedProviderScope<AttendanceProvider?> widget cannot be marked as needing to build
+because the framework is already in the process of building widgets. A widget can be marked as
+needing to be built during the build phase only if one of its ancestors is currently building. This
+exception is allowed because the framework builds parent widgets before children, which means a
+dirty descendant will always be built. Otherwise, the framework might not visit this widget during
+this build phase.
+The widget on which setState() or markNeedsBuild() was called was:
+  _InheritedProviderScope<AttendanceProvider?>
+The widget which was currently being built when the offending call was made was:
+  Builder
+
+When the exception was thrown, this was the stack:
+#0      Element.markNeedsBuild.<anonymous closure> (package:flutter/src/widgets/framework.dart:5376:9)
+#1      Element.markNeedsBuild (package:flutter/src/widgets/framework.dart:5388:6)
+#2      _InheritedProviderScopeElement.markNeedsNotifyDependents (package:provider/src/inherited_provider.dart:590:5)
+#3      ChangeNotifier.notifyListeners (package:flutter/src/foundation/change_notifier.dart:435:24)
+#4      AttendanceProvider.loadTodayAttendance (package:eak_flutter/providers/attendance_provider.dart:21:7)
+#5      _HomeScreenState._loadData (package:eak_flutter/screens/home_screen.dart:47:30)
+#6      _HomeScreenState.initState (package:eak_flutter/screens/home_screen.dart:32:5)
+#7      StatefulElement._firstBuild (package:flutter/src/widgets/framework.dart:5953:55)
+#8      ComponentElement.mount (package:flutter/src/widgets/framework.dart:5796:5)
+...     Normal element mounting (260 frames)
+#268    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4590:20)
+#269    MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7269:36)
+#270    Element.updateChild (package:flutter/src/widgets/framework.dart:4059:18)
+#271    Element.updateChildren (package:flutter/src/widgets/framework.dart:4258:32)
+#272    MultiChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7302:17)
+#273    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#274    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#275    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#276    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#277    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#278    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#279    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#280    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#281    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#282    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#283    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#284    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#285    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#286    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#287    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#288    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#289    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#290    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#291    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#292    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#293    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#294    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#295    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#296    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#297    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#298    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#299    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#300    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#301    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#302    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#303    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#304    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#305    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#306    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#307    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#308    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7125:14)
+#309    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#310    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7125:14)
+#311    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#312    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#313    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#314    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#315    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#316    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#317    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#318    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#319    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#320    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#321    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#322    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#323    BuildScope._tryRebuild (package:flutter/src/widgets/framework.dart:2750:15)
+#324    BuildScope._flushDirtyElements (package:flutter/src/widgets/framework.dart:2807:11)
+#325    BuildOwner.buildScope (package:flutter/src/widgets/framework.dart:3111:18)
+#326    WidgetsBinding.drawFrame (package:flutter/src/widgets/binding.dart:1262:21)
+#327    RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:495:5)
+#328    SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1434:15)
+#329    SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1347:9)
+#330    LiveTestWidgetsFlutterBinding.handleDrawFrame (package:flutter_test/src/binding.dart:1886:13)
+#331    SchedulerBinding._handleDrawFrame (package:flutter/src/scheduler/binding.dart:1200:5)
+#335    _invoke (dart:ui/hooks.dart:358:10)
+#336    PlatformDispatcher._drawFrame (dart:ui/platform_dispatcher.dart:444:5)
+#337    _drawFrame (dart:ui/hooks.dart:328:31)
+(elided 3 frames from dart:async)
+
+The AttendanceProvider sending notification was:
+  Instance of 'AttendanceProvider'
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+ΓòÉΓòÉΓòí EXCEPTION CAUGHT BY IMAGE RESOURCE SERVICE Γò₧ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+The following ArgumentError was thrown resolving an image codec:
+Invalid argument(s): No host specified in URI file:///
+
+When the exception was thrown, this was the stack:
+#0      _HttpClient._openUrl (dart:_http/http_impl.dart:2986:9)
+#1      _HttpClient.getUrl (dart:_http/http_impl.dart:2868:48)
+#2      NetworkImage._loadAsync (package:flutter/src/painting/_network_image_io.dart:119:59)
+#3      NetworkImage.loadImage (package:flutter/src/painting/_network_image_io.dart:81:14)
+#4      ImageProvider.resolveStreamForKey.<anonymous closure> (package:flutter/src/painting/image_provider.dart:546:39)
+#5      ImageCache.putIfAbsent (package:flutter/src/painting/image_cache.dart:368:22)
+#6      ImageProvider.resolveStreamForKey (package:flutter/src/painting/image_provider.dart:543:81)
+#7      ImageProvider.resolve.<anonymous closure> (package:flutter/src/painting/image_provider.dart:383:9)
+#8      ImageProvider._createErrorHandlerAndKey.<anonymous closure> (package:flutter/src/painting/image_provider.dart:499:28)
+#9      SynchronousFuture.then (package:flutter/src/foundation/synchronous_future.dart:44:27)
+#10     ImageProvider._createErrorHandlerAndKey (package:flutter/src/painting/image_provider.dart:496:10)
+#11     ImageProvider.resolve (package:flutter/src/painting/image_provider.dart:380:5)
+#12     _DecorationImagePainter.paint (package:flutter/src/painting/decoration_image.dart:373:55)
+#13     _BoxDecorationPainter._paintBackgroundImage (package:flutter/src/painting/box_decoration.dart:560:20)
+#14     _BoxDecorationPainter.paint (package:flutter/src/painting/box_decoration.dart:577:5)
+#15     RenderDecoratedBox.paint (package:flutter/src/rendering/proxy_box.dart:2414:17)
+#16     RenderObject._paintWithContext (package:flutter/src/rendering/object.dart:3436:7)
+#17     PaintingContext.paintChild (package:flutter/src/rendering/object.dart:261:13)
+#18     RenderProxyBoxMixin.paint (package:flutter/src/rendering/proxy_box.dart:140:13)
+#19     RenderObject._paintWithContext (package:flutter/src/rendering/object.dart:3436:7)
+#20     PaintingContext.paintChild (package:flutter/src/rendering/object.dart:261:13)
+#21     RenderShiftedBox.paint (package:flutter/src/rendering/shifted_box.dart:81:15)
+#22     RenderObject._paintWithContext (package:flutter/src/rendering/object.dart:3436:7)
+#23     PaintingContext.paintChild (package:flutter/src/rendering/object.dart:261:13)
+#24     RenderProxyBoxMixin.paint (package:flutter/src/rendering/proxy_box.dart:140:13)
+#25     RenderDecoratedBox.paint (package:flutter/src/rendering/proxy_box.dart:2444:11)
+#26     RenderObject._paintWithContext (package:flutter/src/rendering/object.dart:3436:7)
+#27     PaintingContext.paintChild (package:flutter/src/rendering/object.dart:261:13)
+#28     RenderProxyBoxMixin.paint (package:flutter/src/rendering/proxy_box.dart:140:13)
+#29     RenderObject._paintWithContext (package:flutter/src/rendering/object.dart:3436:7)
+#30     PaintingContext.paintChild (package:flutter/src/rendering/object.dart:261:13)
+#31     RenderBoxContainerDefaultsMixin.defaultPaint (package:flutter/src/rendering/box.dart:3367:15)
+#32     RenderFlex.paint (package:flutter/src/rendering/flex.dart:1317:7)
+#33     RenderObject._paintWithContext (package:flutter/src/rendering/object.dart:3436:7)
+#34     PaintingContext.paintChild (package:flutter/src/rendering/object.dart:261:13)
+#35     RenderBoxContainerDefaultsMixin.defaultPaint (package:flutter/src/rendering/box.dart:3367:15)
+#36     RenderFlex.paint (package:flutter/src/rendering/flex.dart:1317:7)
+#37     RenderObject._paintWithContext (package:flutter/src/rendering/object.dart:3436:7)
+#38     PaintingContext.paintChild (package:flutter/src/rendering/object.dart:261:13)
+#39     RenderShiftedBox.paint (package:flutter/src/rendering/shifted_box.dart:81:15)
+#40     RenderObject._paintWithContext (package:flutter/src/rendering/object.dart:3436:7)
+#41     PaintingContext.paintChild (package:flutter/src/rendering/object.dart:261:13)
+#42     RenderProxyBoxMixin.paint (package:flutter/src/rendering/proxy_box.dart:140:13)
+#43     RenderDecoratedBox.paint (package:flutter/src/rendering/proxy_box.dart:2444:11)
+#44     RenderObject._paintWithContext (package:flutter/src/rendering/object.dart:3436:7)
+#45     PaintingContext.paintChild (package:flutter/src/rendering/object.dart:261:13)
+00:12 +0 -1: E2E Application Tests Complete Login Flow: Login -> Dashboard -> Logout [E]
+  Test failed. See exception logs above.
+  The test description was: Complete Login Flow: Login -> Dashboard -> Logout
+  
+00:12 +0 -1: (tearDownAll)
+00:12 +0 -1: Some tests failed.

@@ -9,10 +9,116 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Legacy Service Wrapper for backward compatibility
+/// Use [ApiServiceImpl] for new development and testing
 class ApiService {
+  static ApiServiceImpl _instance = ApiServiceImpl();
+  static ApiServiceImpl get instance => _instance;
+
+  @visibleForTesting
+  static void setInstance(ApiServiceImpl newInstance) {
+    _instance = newInstance;
+  }
+
+  static Future<Map<String, dynamic>> login(String email, String password) => 
+      instance.login(email, password);
+
+  static Future<Map<String, dynamic>> register({
+    required int companyId,
+    required String name,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+    String? phone,
+    String? employeeId,
+    String? position,
+  }) => instance.register(
+    companyId: companyId,
+    name: name,
+    email: email,
+    password: password,
+    passwordConfirmation: passwordConfirmation,
+    phone: phone,
+    employeeId: employeeId,
+    position: position,
+  );
+
+  static Future<Map<String, dynamic>> logout() => instance.logout();
+
+  static Future<Map<String, dynamic>> getProfile() => instance.getProfile();
+
+  static Future<Map<String, dynamic>> getCompany() => instance.getCompany();
+
+  static Future<Map<String, dynamic>> clockIn({
+    required double latitude,
+    required double longitude,
+    required File photo,
+    String? notes,
+  }) => instance.clockIn(
+    latitude: latitude,
+    longitude: longitude,
+    photo: photo,
+    notes: notes,
+  );
+
+  static Future<Map<String, dynamic>> clockOut({
+    required double latitude,
+    required double longitude,
+    required File photo,
+    required String notes,
+  }) => instance.clockOut(
+    latitude: latitude,
+    longitude: longitude,
+    photo: photo,
+    notes: notes,
+  );
+
+  static Future<Map<String, dynamic>> getTodayAttendance() => instance.getTodayAttendance();
+
+  static Future<Map<String, dynamic>> getLeaveRequests({
+    int page = 1,
+    String? status,
+    String? type,
+  }) => instance.getLeaveRequests(page: page, status: status, type: type);
+
+  static Future<Map<String, dynamic>> submitLeaveRequest({
+    required String type,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String reason,
+    File? attachment,
+  }) => instance.submitLeaveRequest(
+    type: type,
+    startDate: startDate,
+    endDate: endDate,
+    reason: reason,
+    attachment: attachment,
+  );
+
+  static Future<Map<String, dynamic>> getAttendanceHistory({
+    int page = 1,
+    int? month,
+    int? year,
+  }) => instance.getAttendanceHistory(page: page, month: month, year: year);
+
+  // Token helpers can remain static in wrapper or delegate
+  static Future<String?> getToken() => ApiServiceImpl.getToken();
+  static Future<void> saveToken(String token) => ApiServiceImpl.saveToken(token);
+  static Future<void> removeToken() => ApiServiceImpl.removeToken();
+  static Future<Map<String, String>> getHeaders() => instance.getHeaders();
+}
+
+/// Instance-based Service implementation
+/// Supports dependency injection for testing
+class ApiServiceImpl {
+  final http.Client client;
+
+  ApiServiceImpl({http.Client? client}) : client = client ?? http.Client();
+
   // ==================== HELPER FUNCTIONS ====================
   static const String tokenKey = 'token';
-  static Map<String, dynamic> _handleResponse(
+  
+  Map<String, dynamic> _handleResponse(
     http.Response response, {
     bool enableLogging = false,
   }) {
@@ -68,7 +174,7 @@ class ApiService {
     }
   }
 
-  static Map<String, dynamic> _handleNetworkError(dynamic error) {
+  Map<String, dynamic> _handleNetworkError(dynamic error) {
     debugPrint('❌ Network Error: $error');
 
     if (error is SocketException) {
@@ -92,26 +198,23 @@ class ApiService {
   /// Get saved token from SharedPreferences
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    //return prefs.getString('auth_token');
     return prefs.getString(tokenKey);
   }
 
   /// Save token to SharedPreferences
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    // await prefs.setString('auth_token', token);
     await prefs.setString(tokenKey, token);
   }
 
   /// Remove token from SharedPreferences
   static Future<void> removeToken() async {
     final prefs = await SharedPreferences.getInstance();
-    // await prefs.remove('auth_token');
-    await prefs.remove('tokenKey');
+    await prefs.remove(tokenKey);
   }
 
   /// Get headers with token
-  static Future<Map<String, String>> getHeaders() async {
+  Future<Map<String, String>> getHeaders() async {
     final token = await getToken();
     return {
       'Content-Type': 'application/json',
@@ -123,12 +226,12 @@ class ApiService {
   // ==================== AUTHENTICATION ====================
 
   /// Login user
-  static Future<Map<String, dynamic>> login(
+  Future<Map<String, dynamic>> login(
     String email,
     String password,
   ) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse(ApiConfig.getFullUrl(ApiConfig.loginEndpoint)),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'email': email, 'password': password}),
@@ -155,48 +258,8 @@ class ApiService {
     }
   }
 
-  // Test TOKEN
-  // static Future<Map<String, dynamic>> login(
-  //   String email,
-  //   String password,
-  // ) async {
-  //   try {
-  //     final url = ApiConfig.getFullUrl(ApiConfig.loginEndpoint);
-  //     debugPrint('🔹 LOGIN URL: $url');
-
-  //     final response = await http.post(
-  //       Uri.parse(url),
-  //       headers: {'Content-Type': 'application/json'},
-  //       body: json.encode({'email': email, 'password': password}),
-  //     );
-
-  //     debugPrint('🔹 LOGIN status: ${response.statusCode}');
-  //     debugPrint('🔹 LOGIN body: ${response.body}');
-
-  //     final data = _handleResponse(response);
-
-  //     if (data['success'] == false && !data.containsKey('token')) {
-  //       return data;
-  //     }
-
-  //     if (response.statusCode == 200 && data['success'] == true) {
-  //       debugPrint('🔹 saving token: ${data['data']['token']}');
-  //       await saveToken(data['data']['token']);
-  //       return {
-  //         'success': true,
-  //         'user': User.fromJson(data['data']['user']),
-  //         'message': data['message'],
-  //       };
-  //     } else {
-  //       return {'success': false, 'message': data['message'] ?? 'Login failed'};
-  //     }
-  //   } catch (e) {
-  //     return _handleNetworkError(e);
-  //   }
-  // }
-
   /// Register new user
-  static Future<Map<String, dynamic>> register({
+  Future<Map<String, dynamic>> register({
     required int companyId,
     required String name,
     required String email,
@@ -207,7 +270,7 @@ class ApiService {
     String? position,
   }) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse(ApiConfig.getFullUrl(ApiConfig.registerEndpoint)),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
@@ -248,10 +311,10 @@ class ApiService {
   }
 
   /// Logout user
-  static Future<Map<String, dynamic>> logout() async {
+  Future<Map<String, dynamic>> logout() async {
     try {
       final headers = await getHeaders();
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse(ApiConfig.getFullUrl(ApiConfig.logoutEndpoint)),
         headers: headers,
       );
@@ -277,10 +340,10 @@ class ApiService {
   }
 
   /// Get user profile
-  static Future<Map<String, dynamic>> getProfile() async {
+  Future<Map<String, dynamic>> getProfile() async {
     try {
       final headers = await getHeaders();
-      final response = await http.get(
+      final response = await client.get(
         Uri.parse(ApiConfig.getFullUrl(ApiConfig.profileEndpoint)),
         headers: headers,
       );
@@ -307,10 +370,10 @@ class ApiService {
   // ==================== COMPANY ====================
 
   /// Get company information
-  static Future<Map<String, dynamic>> getCompany() async {
+  Future<Map<String, dynamic>> getCompany() async {
     try {
       final headers = await getHeaders();
-      final response = await http.get(
+      final response = await client.get(
         Uri.parse(ApiConfig.getFullUrl(ApiConfig.companyEndpoint)),
         headers: headers,
       );
@@ -337,7 +400,7 @@ class ApiService {
   // ==================== ATTENDANCE ====================
 
   /// Clock In
-  static Future<Map<String, dynamic>> clockIn({
+  Future<Map<String, dynamic>> clockIn({
     required double latitude,
     required double longitude,
     required File photo,
@@ -352,7 +415,7 @@ class ApiService {
 
       String base64Image = base64Encode(await photo.readAsBytes());
 
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse(ApiConfig.getFullUrl(ApiConfig.clockInEndpoint)),
         headers: {
           'Content-Type': 'application/json',
@@ -391,7 +454,7 @@ class ApiService {
   }
 
   /// Clock Out
-  static Future<Map<String, dynamic>> clockOut({
+  Future<Map<String, dynamic>> clockOut({
     required double latitude,
     required double longitude,
     required File photo,
@@ -406,7 +469,7 @@ class ApiService {
 
       String base64Image = base64Encode(await photo.readAsBytes());
 
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse(ApiConfig.getFullUrl(ApiConfig.clockOutEndpoint)),
         headers: {
           'Content-Type': 'application/json',
@@ -445,7 +508,7 @@ class ApiService {
   }
 
   /// Get today's attendance
-  static Future<Map<String, dynamic>> getTodayAttendance() async {
+  Future<Map<String, dynamic>> getTodayAttendance() async {
     try {
       final token = await getToken();
 
@@ -453,7 +516,7 @@ class ApiService {
         return {'success': false, 'message': 'Not authenticated'};
       }
 
-      final response = await http.get(
+      final response = await client.get(
         Uri.parse(ApiConfig.getFullUrl(ApiConfig.todayAttendanceEndpoint)),
         headers: {
           'Content-Type': 'application/json',
@@ -483,7 +546,7 @@ class ApiService {
   // ==================== LEAVE REQUESTS ====================
 
   /// Get leave requests
-  static Future<Map<String, dynamic>> getLeaveRequests({
+  Future<Map<String, dynamic>> getLeaveRequests({
     int page = 1,
     String? status,
     String? type,
@@ -495,7 +558,7 @@ class ApiService {
       if (status != null) url += '&status=$status';
       if (type != null) url += '&type=$type';
 
-      final response = await http.get(Uri.parse(url), headers: headers);
+      final response = await client.get(Uri.parse(url), headers: headers);
 
       final data = _handleResponse(response);
 
@@ -529,7 +592,7 @@ class ApiService {
   }
 
   /// Submit leave request
-  static Future<Map<String, dynamic>> submitLeaveRequest({
+  Future<Map<String, dynamic>> submitLeaveRequest({
     required String type,
     required DateTime startDate,
     required DateTime endDate,
@@ -588,7 +651,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> getAttendanceHistory({
+  Future<Map<String, dynamic>> getAttendanceHistory({
     int page = 1,
     int? month,
     int? year,

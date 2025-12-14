@@ -4,12 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../providers/auth_provider.dart';
 import '../providers/attendance_provider.dart';
+import '../providers/leave_request_provider.dart';
+import '../models/leave_request_model.dart';
 import '../config/api_config.dart';
 import 'attendance_history_screen.dart';
 import 'package:eak_flutter/screens/leave_request_list_screen.dart';
+import 'package:eak_flutter/screens/clock_in_screen.dart';
+import 'package:eak_flutter/screens/clock_out_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/main_layout.dart';
 
@@ -23,14 +26,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Timer _timer;
   String _currentTime = '';
-  List<Map<String, dynamic>> _leaveRequests = [];
   int _bottomTabIndex = 0; // 0 = Attendance, 1 = My Leaves, 2 = Notifications
 
   @override
   void initState() {
     super.initState();
-    _loadData();
     _startClock();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   @override
@@ -49,23 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadLeaveRequests() async {
-    final token = await AuthProvider.getToken();
-    final url = ApiConfig.leaveUrl;
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      final leaveRequests = data['leave_requests'] as List;
-      setState(() {
-        _leaveRequests = leaveRequests
-            .take(10)
-            .map((req) => req as Map<String, dynamic>)
-            .toList();
-      });
-    }
+    final leaveProvider = Provider.of<LeaveRequestProvider>(context, listen: false);
+    await leaveProvider.loadLeaveRequests();
   }
 
   void _startClock() {
@@ -176,6 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           InkWell(
+            key: const Key('profile_button'),
             onTap: () {
               Navigator.push(
                 context,
@@ -241,10 +231,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: CircleAvatar(
                   radius: 25,
-                  backgroundImage: user?.photoUrl != null
+                  backgroundImage: (user?.photoUrl != null && user!.photoUrl.isNotEmpty)
                       ? NetworkImage(user!.photoUrl)
                       : null,
-                  child: user?.photoUrl == null
+                  child: (user?.photoUrl == null || user!.photoUrl.isEmpty)
                       ? const Icon(Icons.person, size: 26)
                       : null,
                 ),
@@ -288,8 +278,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Tombol bulat besar
           GestureDetector(
-            onTap: () {
-              // TODO: panggil clock in/out di AttendanceProvider
+            onTap: () async {
+              if (todayAttendance?.clockIn == null) {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ClockInScreen()),
+                );
+                _loadData(); // Refresh data after returning
+              } else if (todayAttendance?.clockOut == null) {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ClockOutScreen()),
+                );
+                _loadData();
+              }
             },
             child: Container(
               width: 210,
@@ -537,62 +539,68 @@ class _HomeScreenState extends State<HomeScreen> {
   // ---------- SECTION: MY LEAVES (pakai data _leaveRequests) ----------
 
   Widget _buildMyLeavesSection() {
-    return _buildGlassCard(
-      title: 'My Leaves',
-      icon: Icons.beach_access_outlined,
-      iconColor: const Color(0xFFFFA726),
-      child: _leaveRequests.isEmpty
-          ? Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.inbox_outlined,
-                    size: 42,
-                    color: const Color(0xFF9CA3AF).withValues(alpha: 0.6),
+    return Consumer<LeaveRequestProvider>(
+      builder: (context, provider, child) {
+        final leaveRequests = provider.leaveRequests;
+        
+        return _buildGlassCard(
+          title: 'My Leaves',
+          icon: Icons.beach_access_outlined,
+          iconColor: const Color(0xFFFFA726),
+          child: leaveRequests.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.inbox_outlined,
+                        size: 42,
+                        color: const Color(0xFF9CA3AF).withValues(alpha: 0.6),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'No leave requests yet',
+                        style: TextStyle(fontSize: 13.5, color: Color(0xFF9CA3AF)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'No leave requests yet',
-                    style: TextStyle(fontSize: 13.5, color: Color(0xFF9CA3AF)),
-                  ),
-                ],
-              ),
-            )
-          : Column(
-              children: [
-                ..._leaveRequests
-                    .take(4)
-                    .map((r) => _buildLeaveRequestItem(r))
-                    .toList(),
-                const SizedBox(height: 6),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LeaveRequestListScreen(),
+                )
+              : Column(
+                  children: [
+                    ...leaveRequests
+                        .take(4)
+                        .map((r) => _buildLeaveRequestItem(r))
+                        .toList(),
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LeaveRequestListScreen(),
+                            ),
+                          ).then((_) => _loadLeaveRequests());
+                        },
+                        icon: const Icon(
+                          Icons.chevron_right,
+                          size: 18,
+                          color: Color(0xFF26667F),
                         ),
-                      ).then((_) => _loadLeaveRequests());
-                    },
-                    icon: const Icon(
-                      Icons.chevron_right,
-                      size: 18,
-                      color: Color(0xFF26667F),
-                    ),
-                    label: const Text(
-                      'View All',
-                      style: TextStyle(
-                        color: Color(0xFF26667F),
-                        fontWeight: FontWeight.w600,
+                        label: const Text(
+                          'View All',
+                          style: TextStyle(
+                            color: Color(0xFF26667F),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+        );
+      },
     );
   }
 
@@ -662,12 +670,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ---------- LEAVE ITEM ----------
 
-  Widget _buildLeaveRequestItem(Map<String, dynamic> request) {
-    final status = request['status'] as String? ?? 'pending';
-    final type = request['type'] as String? ?? 'unknown';
-    final startDate = request['start_date'] != null
-        ? DateTime.parse(request['start_date'])
-        : DateTime.now();
+  Widget _buildLeaveRequestItem(LeaveRequest request) {
+    // Model usage
+    final status = request.status;
+    final type = request.jenis;
+    // startDate is String in Model? Let's check model again. 
+    // Model says String startDate. UI needs DateTime.
+    // I will parse it.
+    final startDate = DateTime.tryParse(request.startDate) ?? DateTime.now();
 
     Color statusColor;
     String statusLabel;
@@ -694,14 +704,17 @@ class _HomeScreenState extends State<HomeScreen> {
     IconData typeIcon;
     switch (type.toLowerCase()) {
       case 'sick':
+      case 'sakit': // Add Bahasa support just in case
         typeLabel = 'Sick Leave';
         typeIcon = Icons.local_hospital_outlined;
         break;
       case 'annual':
+      case 'cuti': // Add Bahasa support
         typeLabel = 'Annual Leave';
         typeIcon = Icons.beach_access_outlined;
         break;
       case 'permission':
+      case 'izin':
         typeLabel = 'Permission';
         typeIcon = Icons.edit_calendar_outlined;
         break;
@@ -801,63 +814,67 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildNotificationsSection() {
     // Sementara pakai data leave sebagai notifikasi contoh
-    final items = _leaveRequests.take(5).toList();
-    return _buildGlassCard(
-      title: 'Notifications',
-      icon: Icons.notifications_none,
-      iconColor: const Color(0xFF26667F),
-      child: items.isEmpty
-          ? Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.notifications_off_outlined,
-                    size: 42,
-                    color: const Color(0xFF9CA3AF).withValues(alpha: 0.6),
+    return Consumer<LeaveRequestProvider>(
+      builder: (context, provider, child) {
+        final items = provider.leaveRequests.take(5).toList();
+        return _buildGlassCard(
+          title: 'Notifications',
+          icon: Icons.notifications_none,
+          iconColor: const Color(0xFF26667F),
+          child: items.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.notifications_off_outlined,
+                        size: 42,
+                        color: const Color(0xFF9CA3AF).withValues(alpha: 0.6),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'No notifications yet',
+                        style: TextStyle(fontSize: 13.5, color: Color(0xFF9CA3AF)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'No notifications yet',
-                    style: TextStyle(fontSize: 13.5, color: Color(0xFF9CA3AF)),
-                  ),
-                ],
-              ),
-            )
-          : Column(
-              children: items
-                  .map(
-                    (r) => ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        radius: 20,
-                        backgroundColor: const Color(
-                          0xFF26667F,
-                        ).withValues(alpha: 0.12),
-                        child: const Icon(
-                          Icons.mail_outline,
-                          color: Color(0xFF26667F),
-                          size: 20,
+                )
+              : Column(
+                  children: items
+                      .map(
+                        (r) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: const Color(
+                              0xFF26667F,
+                            ).withValues(alpha: 0.12),
+                            child: const Icon(
+                              Icons.mail_outline,
+                              color: Color(0xFF26667F),
+                              size: 20,
+                            ),
+                          ),
+                          title: Text(
+                            'Leave ${r.status}', // Model usage
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Type: ${r.jenis}', // Model usage (jenis)
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
                         ),
-                      ),
-                      title: Text(
-                        'Leave ${r['status']}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'Type: ${r['type'] ?? '-'}',
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          color: Color(0xFF6B7280),
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
+                      )
+                      .toList(),
+                ),
+        );
+      },
     );
   }
 
