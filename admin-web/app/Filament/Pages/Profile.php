@@ -22,9 +22,7 @@ class Profile extends Page implements
     protected static ?string $navigationLabel = 'My Profile';
     protected static ?string $title           = 'My Profile';
     protected static string $view             = 'filament.pages.profile';
-
     public ?array $data = [];
-
     public function mount(): void
     {
         /** @var User $user */
