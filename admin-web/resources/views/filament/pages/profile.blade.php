@@ -2,7 +2,7 @@
     @php
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
+//test
         // Data statistik tambahan (disesuaikan jika Anda punya data lain di Livewire/Page)
         $stats = [
             [
