@@ -5,10 +5,8 @@ namespace App\Providers\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -33,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->darkMode(true)
             ->colors([
                 'primary' => [
-                    50 => '#f0fdf4',
+                    50  => '#f0fdf4',
                     100 => '#dcfce7',
                     200 => '#bbf7d0',
                     300 => '#86efac',
@@ -46,9 +44,17 @@ class AdminPanelProvider extends PanelProvider
                     950 => '#052e16',
                 ],
             ])
+
+            // NAVIGATION / LAYOUT
+            // Sidebar tetap di kiri, tapi bisa di-collapse pakai tombol toggle.
+            ->sidebarCollapsibleOnDesktop()
+            // kalau mau benar‑benar lipat penuh (hanya icon), bisa ganti dengan:
+            // ->sidebarFullyCollapsibleOnDesktop()
+
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
+                //
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
