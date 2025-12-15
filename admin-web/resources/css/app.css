@@ -2,31 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ====== BASE (GLOBAL APP) ====== */
 @layer base {
     body {
-        @apply bg-gradient-to-br from-clockin-teal via-clockin-blue to-clockin-dark;
         @apply min-h-screen font-sans;
+        @apply bg-gradient-to-br from-clockin-teal via-clockin-blue to-clockin-dark;
+        @apply text-gray-900;
     }
 }
 
+/* ====== COMPONENTS (GLOBAL APP) ====== */
 @layer components {
     .btn-primary {
-        @apply bg-clockin-green hover:bg-clockin-green-dark text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl;
+        @apply bg-clockin-green hover:bg-clockin-green-dark;
+        @apply text-white font-semibold py-3 px-6 rounded-lg;
+        @apply transition-all duration-200 shadow-lg hover:shadow-xl;
     }
-    
+
     .input-field {
-        @apply w-full px-4 py-3 bg-white text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-clockin-green focus:border-transparent transition-all;
+        @apply w-full px-4 py-3 bg-white text-gray-900;
+        @apply border border-gray-200 rounded-lg;
+        @apply focus:outline-none focus:ring-2 focus:ring-clockin-green focus:border-transparent;
+        @apply transition-all;
     }
-    
+
     .input-field::placeholder {
         color: rgba(156, 163, 175, 0.8) !important;
         opacity: 1 !important;
     }
-    
+
     .card {
         @apply bg-clockin-blue rounded-2xl shadow-2xl p-8;
     }
-    
+
     .label {
         @apply block text-sm font-medium text-white mb-2;
     }
