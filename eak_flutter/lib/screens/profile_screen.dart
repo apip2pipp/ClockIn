@@ -44,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      selectedIndex: 4,
+      selectedIndex: 3,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         body: SafeArea(
@@ -92,7 +92,9 @@ class ProfileScreen extends StatelessWidget {
                                     children: [
                                       CircleAvatar(
                                         radius: 50,
-                                        backgroundImage: (user?.photoUrl != null && user!.photoUrl.isNotEmpty) 
+                                        backgroundImage:
+                                            (user?.photoUrl != null &&
+                                                user!.photoUrl.isNotEmpty)
                                             ? NetworkImage(user!.photoUrl)
                                             : null,
                                         child: user?.photoUrl == null

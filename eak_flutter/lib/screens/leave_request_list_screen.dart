@@ -143,7 +143,7 @@ class _LeaveRequestListScreenState extends State<LeaveRequestListScreen> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      selectedIndex: 3,
+      selectedIndex: 2,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         body: SafeArea(
