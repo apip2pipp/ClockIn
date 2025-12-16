@@ -117,10 +117,14 @@
                         {{-- 3. Additional Stats (Looping for flexibility) --}}
                         @foreach($stats as $stat)
                              <div class="flex items-center gap-3">
-                                <div @class([
-                                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
-                                    'bg-'.$stat['color'].'-100 text-'.$stat['color'].'-600 dark:bg-'.$stat['color'].'-500/10 dark:text-'.$stat['color'].'-400',
-                                ])>
+                                @php
+                                    $colorClasses = match($stat['color']) {
+                                        'orange' => 'bg-orange-100 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400',
+                                        'rose' => 'bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400',
+                                        default => 'bg-gray-100 text-gray-600 dark:bg-gray-500/10 dark:text-gray-400',
+                                    };
+                                @endphp
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $colorClasses }}">
                                     <x-filament::icon :icon="$stat['icon']" class="h-5 w-5" />
                                 </div>
                                 <div class="min-w-0">
