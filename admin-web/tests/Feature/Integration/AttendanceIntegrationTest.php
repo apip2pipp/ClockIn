@@ -114,13 +114,19 @@ class AttendanceIntegrationTest extends TestCase
             'longitude' => 106.8456,
         ]);
 
-        // Get attendance and update clock_in time
-        $attendance = Attendance::where('user_id', $this->user->id)->latest()->first();
-        if ($attendance) {
-            $attendance->update([
-                'clock_in' => now()->subHours(8),
-            ]);
-        }
+        // Get attendance and update clock_in time (but keep it today)
+        $attendance = Attendance::where('user_id', $this->user->id)
+            ->whereDate('clock_in', Carbon::today())
+            ->whereNull('clock_out')
+            ->first();
+
+        $this->assertNotNull($attendance, 'Attendance should exist after clock in');
+
+        // Update clock_in to 8 hours ago but still today
+        $attendance->update([
+            'clock_in' => Carbon::today()->addHours(8), // Set to 8 AM today
+        ]);
+        $attendance->refresh();
 
         // Clock out
         $response = $this->withHeaders([
@@ -286,35 +292,43 @@ class AttendanceIntegrationTest extends TestCase
         // Create a valid base64 image
         $photoBase64 = 'data:image/jpeg;base64,' . base64_encode(str_repeat('x', 1000));
 
-        // Clock in
+        // Set clock in time to 8 AM today
+        $clockInTime = Carbon::today()->addHours(8);
+
+        // Clock in with specific time
         $this->withHeaders([
             'Authorization' => "Bearer $token"
         ])->postJson('/api/attendance/clock-in', [
             'photo' => $photoBase64,
             'latitude' => -6.2088,
             'longitude' => 106.8456,
+            'clock_in_time' => $clockInTime->toDateTimeString(),
         ]);
 
-        $attendance = Attendance::where('user_id', $this->user->id)->latest()->first();
+        // Get attendance
+        $attendance = Attendance::where('user_id', $this->user->id)
+            ->whereDate('clock_in', Carbon::today())
+            ->whereNull('clock_out')
+            ->first();
 
-        // Simulate 8 hours of work
-        if ($attendance) {
-            $attendance->update([
-                'clock_in' => now()->subHours(8),
-            ]);
-        }
+        $this->assertNotNull($attendance, 'Attendance should exist after clock in');
 
-        // Clock out
+        // Set clock out time to 4 PM today (8 hours after clock in)
+        $clockOutTime = $clockInTime->copy()->addHours(8);
+
+        // Clock out with specific time
         $this->withHeaders([
             'Authorization' => "Bearer $token"
         ])->postJson('/api/attendance/clock-out', [
             'photo' => $photoBase64,
             'latitude' => -6.2088,
             'longitude' => 106.8456,
+            'clock_out_time' => $clockOutTime->toDateTimeString(),
         ]);
 
         $attendance->refresh();
-        $this->assertEquals(480, $attendance->work_duration); // 8 hours = 480 minutes
+        // Work duration should be exactly 8 hours (480 minutes)
+        $this->assertEquals(480, $attendance->work_duration);
     }
 
     // Statistics endpoint not implemented yet

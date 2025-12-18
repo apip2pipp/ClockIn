@@ -1,0 +1,173 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - navigation [ref=e5]:
+        - button "User menu" [ref=e9] [cursor=pointer]:
+          - img "Avatar of Admin Filament" [ref=e10]
+      - main [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]:
+            - generic [ref=e15]:
+              - navigation [ref=e16]:
+                - list [ref=e17]:
+                  - listitem [ref=e18]:
+                    - link "Leave Requests" [ref=e19] [cursor=pointer]:
+                      - /url: http://127.0.0.1:8000/admin/leave-requests
+                  - listitem [ref=e20]:
+                    - img [ref=e21]
+                    - generic [ref=e23]: View
+              - heading "View Leave Request" [level=1] [ref=e24]
+            - generic [ref=e28]:
+              - generic [ref=e30]:
+                - heading "Request Status" [level=3] [ref=e34]
+                - generic [ref=e38]:
+                  - generic [ref=e41]:
+                    - term [ref=e43]:
+                      - generic [ref=e44]: Status
+                    - definition [ref=e46]:
+                      - generic [ref=e54]: Approved
+                  - generic [ref=e57]:
+                    - term [ref=e59]:
+                      - generic [ref=e60]: Submitted On
+                    - definition [ref=e62]:
+                      - generic [ref=e68]:
+                        - img [ref=e69]
+                        - generic [ref=e71]: 16 Dec 2025, 09:11
+              - generic [ref=e73]:
+                - heading "Employee Information" [level=3] [ref=e77]
+                - generic [ref=e81]:
+                  - generic [ref=e84]:
+                    - term [ref=e86]:
+                      - generic [ref=e87]: Employee Name
+                    - definition [ref=e89]:
+                      - generic [ref=e95]:
+                        - img [ref=e96]
+                        - generic [ref=e98]: Nanda Pratama
+                  - generic [ref=e101]:
+                    - term [ref=e103]:
+                      - generic [ref=e104]: Employee ID
+                    - definition [ref=e106]:
+                      - generic [ref=e112]:
+                        - img [ref=e113]
+                        - generic [ref=e116]: EMP1010
+                  - generic [ref=e119]:
+                    - term [ref=e121]:
+                      - generic [ref=e122]: Position
+                    - definition [ref=e124]:
+                      - generic [ref=e130]:
+                        - img [ref=e131]
+                        - generic [ref=e134]: Product Manager
+                  - generic [ref=e137]:
+                    - term [ref=e139]:
+                      - generic [ref=e140]: Company
+                    - definition [ref=e142]:
+                      - generic [ref=e148]:
+                        - img [ref=e149]
+                        - generic [ref=e151]: PT. Digital Solutions Indonesia
+              - generic [ref=e153]:
+                - heading "Leave Details" [level=3] [ref=e157]
+                - generic [ref=e161]:
+                  - generic [ref=e164]:
+                    - term [ref=e166]:
+                      - generic [ref=e167]: Leave Type
+                    - generic:
+                      - definition
+                  - generic [ref=e170]:
+                    - term [ref=e172]:
+                      - generic [ref=e173]: Start Date
+                    - definition [ref=e175]:
+                      - generic [ref=e181]:
+                        - img [ref=e182]
+                        - generic [ref=e184]: 09 Feb 2026
+                  - generic [ref=e187]:
+                    - term [ref=e189]:
+                      - generic [ref=e190]: End Date
+                    - definition [ref=e192]:
+                      - generic [ref=e198]:
+                        - img [ref=e199]
+                        - generic [ref=e201]: 10 Feb 2026
+                  - generic [ref=e204]:
+                    - term [ref=e206]:
+                      - generic [ref=e207]: Duration
+                    - generic:
+                      - definition
+              - generic [ref=e209]:
+                - heading "Request Information" [level=3] [ref=e213]
+                - generic [ref=e220]:
+                  - term [ref=e222]:
+                    - generic [ref=e223]: Reason
+                  - definition [ref=e225]:
+                    - generic [ref=e232]: Menghadiri acara penting
+              - generic [ref=e234]:
+                - heading "Approval Information" [level=3] [ref=e238]
+                - generic [ref=e242]:
+                  - generic [ref=e245]:
+                    - term [ref=e247]:
+                      - generic [ref=e248]: Approved/Rejected By
+                    - definition [ref=e250]:
+                      - generic [ref=e256]:
+                        - img [ref=e257]
+                        - generic [ref=e259]: Admin Filament
+                  - generic [ref=e262]:
+                    - term [ref=e264]:
+                      - generic [ref=e265]: Action Date
+                    - definition [ref=e267]:
+                      - generic [ref=e273]:
+                        - img [ref=e274]
+                        - generic [ref=e276]: 18 Dec 2025, 05:27
+          - generic:
+            - dialog
+          - generic:
+            - dialog
+          - generic:
+            - dialog
+    - complementary [ref=e277]:
+      - generic [ref=e279]:
+        - link "Clockin Logo Clockin" [ref=e281] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/admin/dashboard
+          - generic [ref=e282]:
+            - img "Clockin Logo" [ref=e283]
+            - generic [ref=e284]: Clockin
+        - button "Collapse sidebar" [ref=e285] [cursor=pointer]:
+          - generic [ref=e286]: Collapse sidebar
+          - img [ref=e287]
+      - navigation [ref=e289]:
+        - list [ref=e290]:
+          - listitem [ref=e291]:
+            - list [ref=e292]:
+              - listitem [ref=e293]:
+                - link "Dashboard" [ref=e294] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/admin/dashboard
+                  - img [ref=e295]
+                  - generic [ref=e297]: Dashboard
+              - listitem [ref=e298]:
+                - link "My Profile" [ref=e299] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/admin/profile
+                  - img [ref=e300]
+                  - generic [ref=e302]: My Profile
+              - listitem [ref=e303]:
+                - link "My Company" [ref=e304] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/admin/companies/1
+                  - img [ref=e305]
+                  - generic [ref=e307]: My Company
+              - listitem [ref=e308]:
+                - link "Employees" [ref=e309] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/admin/users
+                  - img [ref=e310]
+                  - generic [ref=e312]: Employees
+              - listitem [ref=e313]:
+                - link "Attendances" [ref=e314] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/admin/attendances
+                  - img [ref=e315]
+                  - generic [ref=e317]: Attendances
+              - listitem [ref=e318]:
+                - link "Leave Requests" [ref=e319] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/admin/leave-requests
+                  - img [ref=e320]
+                  - generic [ref=e322]: Leave Requests
+  - generic:
+    - status
+```

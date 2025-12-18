@@ -1,0 +1,42 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - img "Clockin Logo" [ref=e9]
+            - generic [ref=e10]: Clockin
+          - heading "Sign in" [level=1] [ref=e11]
+        - generic [ref=e12]:
+          - generic [ref=e13]:
+            - generic [ref=e16]:
+              - generic [ref=e19]:
+                - text: Email address
+                - superscript [ref=e20]: "*"
+              - textbox "Email address*" [ref=e24]: admin@gmail.com
+            - generic [ref=e27]:
+              - generic [ref=e30]:
+                - text: Password
+                - superscript [ref=e31]: "*"
+              - generic [ref=e33]:
+                - textbox "Password*" [ref=e35]: rahasia
+                - button "Show password" [ref=e38] [cursor=pointer]:
+                  - generic [ref=e39]: Show password
+                  - img [ref=e40]
+            - generic [ref=e47]:
+              - checkbox "Remember me" [ref=e48]
+              - generic [ref=e49]: Remember me
+          - button "Sign in" [ref=e52] [cursor=pointer]:
+            - generic [ref=e53]: Sign in
+      - generic:
+        - dialog
+      - generic:
+        - dialog
+      - generic:
+        - dialog
+  - generic:
+    - status
+```
