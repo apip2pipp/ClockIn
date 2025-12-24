@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   //static const String _registerWebUrl = 'https://clockin.cloud/register';
 
   // DEVELOPMENT URL (Uncomment untuk development)
-  static const String _registerWebUrl = 'http://192.168.110.224/register';
+  static const String _registerWebUrl = 'http://172.16.61.157/register';
 
   @override
   void dispose() {
@@ -162,6 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // Email Field
                     TextFormField(
+                      key: const Key('emailField'),
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       style: const TextStyle(fontSize: 16),
@@ -212,6 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // Password Field
                     TextFormField(
+                      key: const Key('passwordField'),
                       controller: _passwordController,
                       obscureText: !_isPasswordVisible,
                       style: const TextStyle(fontSize: 16),
@@ -223,6 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Theme.of(context).primaryColor,
                         ),
                         suffixIcon: IconButton(
+                          key: const Key('passwordVisibilityToggle'),
                           icon: Icon(
                             _isPasswordVisible
                                 ? Icons.visibility_outlined
@@ -305,6 +308,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: double.infinity,
                           height: 56,
                           child: ElevatedButton(
+                            key: const Key('loginButton'),
                             onPressed: authProvider.isLoading
                                 ? null
                                 : _handleLogin,
